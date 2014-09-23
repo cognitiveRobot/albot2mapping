@@ -57,7 +57,7 @@ CXX = g++-4.4
 
 
 # Sources files
-SRC = Robot.cpp Camera.cpp Map.cpp View.cpp ImageProcessing.cpp main.cpp 
+SRC = Robot.cpp Camera.cpp Map.cpp View.cpp ImageProcessing.cpp ImageReader.cpp main.cpp 
 
 
 # executable name and contents

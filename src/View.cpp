@@ -1,6 +1,7 @@
 //#include <bits/stl_vector.h>
 #include <fstream>
 #include "View.h"
+#include "ImageReader.h"
 
 /* Functions definitions for Obstacles class */
 
@@ -134,7 +135,15 @@ void Obstacle::setSurface() {
 
 }
 
+void Obstacle::setColor(uint16_t color) {
+	this->color = color;
+}
+
 /* Functions definitions for View class */
+
+const unsigned View::MINIMUM_OBSTABLE_POINTS = 3;
+const int View::COLOR_IMAGE_WIDTH = 320;
+const int View::COLOR_IMAGE_HEIGHT = 240;
 
 View::View() {
 	Id = 0;
@@ -221,7 +230,7 @@ void View::setView(TriclopsContext triclops, TriclopsImage16 depthImage,
 		Point2f newPoint(i + 1 / 2, avgZ);
 
 		if (avgZ == avgZ) {
-			// TODO: add color distinction
+			// TODO: add color distinction to clustering of objects
 			if (abs(avgZ - preAvgZ) < 0.15) { // If close enough to previous depth value
 				tmpObst.addPoint(newPoint); // Consider it belongs to same Obstacle
 
@@ -237,6 +246,13 @@ void View::setView(TriclopsContext triclops, TriclopsImage16 depthImage,
 
 	}
 
+	// read colors
+	char filenameColor[50];
+	sprintf(filenameColor, "%s%d%s", "../outputs/color/color-", Id, ".ppm");
+	ImageReader imageReader;
+	uint16_t colors[COLOR_IMAGE_WIDTH][COLOR_IMAGE_HEIGHT];
+	imageReader.readPPM(filenameColor, colors);
+
 	//save surfaces like laser
 	char sname[50];
 	sprintf(sname, "%s%d", "../outputs/surfaces/surfaces-", Id);
@@ -251,7 +267,7 @@ void View::setView(TriclopsContext triclops, TriclopsImage16 depthImage,
 
 void View::setSurfaces() {
 	for (unsigned int i = 0; i < Obst.size(); i++) { // For each obstacle
-		if (Obst[i].getPoints().size() > 3) // If the Obstacle is relevant
+		if (Obst[i].getPoints().size() > MINIMUM_OBSTABLE_POINTS) // If the Obstacle is relevant
 			Obst[i].setSurface(); // Set surface
 	}
 }
@@ -273,7 +289,7 @@ void View::translate() {
 }
 
 void View::cleanView() {
-	vector < Obstacle > tmpObsts;
+	vector<Obstacle> tmpObsts;
 
 	for (unsigned int i = 0; i < Obst.size(); i++) { // For each obstacle
 		if (Obst[i].getPoints().size() > 4) { // If there is enough points in 1 obstacle...
@@ -297,7 +313,7 @@ void View::clearView() {
 }
 
 Mat View::display() {
-	vector < Obstacle > tmp1Obst;   // Temporary obstacles vector to update Obst
+	vector<Obstacle> tmp1Obst;   // Temporary obstacles vector to update Obst
 	drawing = Mat::zeros(Size(sizeX, sizeY), CV_8UC3);
 	drawing.setTo(Scalar(255, 255, 255));
 	Point2f P;
