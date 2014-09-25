@@ -26,6 +26,7 @@
 #include "Obstacle.h"
 #include "Camera.h"
 #include "Color.h"
+#include "Constants.h"
 #include "ImageReader.h"
 
 /* ------------------------- Namespaces ------------------------- */
@@ -34,9 +35,6 @@ using namespace std;
 
 #define DISPARITY_HEIGHT 240.
 #define DISPARITY_WIDTH 320.
-
-#define COLOR_IMAGE_WIDTH 320
-#define COLOR_IMAGE_HEIGHT 240
 
 /* View class contains :
  * Robot position and orientation
@@ -47,6 +45,7 @@ class View {
 
 private:
 	static const unsigned MINIMUM_OBSTABLE_POINTS;
+	static const double DEPTH_DIFF_TRESHOLD;
 	static const int COLOR_DIFF_TRESHOLD;
 
 	int Id;

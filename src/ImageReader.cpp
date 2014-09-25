@@ -7,7 +7,8 @@
 /**
  * Partly from http://stackoverflow.com/questions/20582494/converting-any-colored-ppm-image-into-a-colored-image-with-only-8-colors
  */
-void ImageReader::readPPM(char * filename, Color targetColors[][240 /* View::COLOR_IMAGE_HEIGHT */]) {
+void ImageReader::readPPM(char * filename,
+		Color targetColors[COLOR_IMAGE_WIDTH][COLOR_IMAGE_HEIGHT]) {
 	printf("Reading PPM %s\n", filename);
 	std::ifstream in;
 	in.open(filename);

@@ -2,9 +2,8 @@
 #include <fstream>
 #include "View.h"
 
-/* Functions definitions for View class */
-
 const unsigned View::MINIMUM_OBSTABLE_POINTS = 3;
+const double View::DEPTH_DIFF_TRESHOLD = 0.15;
 const int View::COLOR_DIFF_TRESHOLD = 100;
 
 View::View() {
@@ -100,29 +99,32 @@ void View::setView(TriclopsContext triclops, TriclopsImage16 depthImage,
 		/* Set the new points for the View */
 		cv::Point2f newPoint(boundX + 1 / 2, avgZ);
 
-		if (avgZ == avgZ) {
+		int totalColorDiff = 0;
+		if (boundX > 0) { // not the first slice
 			int redDiff = abs(currColor.red - prevColor.red);
 			int greenDiff = abs(currColor.green - prevColor.green);
 			int blueDiff = abs(currColor.blue - prevColor.blue);
-			int totalColorDiff = redDiff + greenDiff + blueDiff;
-			// Far enough from previous depth value or different colors
-			if (abs(avgZ - preAvgZ) >= 0.15
-					|| totalColorDiff >= COLOR_DIFF_TRESHOLD) {
-				cv::Point2f Center((float) DISPARITY_WIDTH / 2, 0.15);
-				tmpObst.coordTransf(Center, sizeX / DISPARITY_WIDTH, 100); // Adapt the coordinates
-				Color obstColor = calculateAverageColor(obstColors); // calculate obstacle color
-				tmpObst.setColor(obstColor);
-				addObst(tmpObst); 				// Add the Obstacle to the View
-				tmpObst.clearPoints(); 			// Clear the temporary Obstacle
-				obstColors.clear(); 			// clear colors
-			}
-			// point and color information are added independent of having a new obstacle or not
+			totalColorDiff = redDiff + greenDiff + blueDiff;
+		}
+		if (abs(avgZ - preAvgZ) < DEPTH_DIFF_TRESHOLD // Close enough to previous depth value
+		&& totalColorDiff < COLOR_DIFF_TRESHOLD) { // and close enough to previous color
+			tmpObst.addPoint(newPoint); // Consider it belongs to same Obstacle
+			obstColors.push_back(currColor);
+		} else { // new obstacle
+			cv::Point2f Center((float) DISPARITY_WIDTH / 2, 0.15);
+			tmpObst.coordTransf(Center, sizeX / DISPARITY_WIDTH, 100); // Adapt the coordinates
+			Color obstColor =
+					boundX > 0 ?
+							calculateAverageColor(obstColors) : Color(0, 0, 0);
+			tmpObst.setColor(obstColor);
+			addObst(tmpObst); 				// Add the Obstacle to the View
+			tmpObst.clearPoints(); 			// Clear the temporary Obstacle
+			obstColors.clear(); 			// clear colors
 			tmpObst.addPoint(newPoint);
 			obstColors.push_back(currColor);
-			preAvgZ = avgZ;
-			prevColor = currColor;
 		}
-
+		preAvgZ = avgZ;
+		prevColor = currColor;
 	}
 
 	//save surfaces like laser
@@ -247,7 +249,8 @@ cv::Mat View::display() {
 					rbt0.y - curObst.getP2().y);
 
 			cv::line(drawing, curObst.getP1(), curObst.getP2(),
-					cv::Scalar(0, 0, 255), 3, 8, 0);    // Draw that line
+					cv::Scalar(curObst.color.red, curObst.color.green,
+							curObst.color.blue), 3, 8, 0);    // Draw that line
 			numline++;
 
 //tmp1Obst.push_back(Obst[i]);

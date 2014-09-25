@@ -1,7 +1,9 @@
 #include "Color.h"
 
 Color::Color() {
+	this->setRGB(0, 0, 0);
 }
+
 Color::Color(int red, int green, int blue) {
 	this->setRGB(red, green, blue);
 }

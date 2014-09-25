@@ -25,10 +25,10 @@ private:
 	int id; // unique identification of this object
 	std::vector<cv::Point2f> points;    // Points constituting the obstacles
 	cv::Point2f P1, P2;             // Ends of the obstacle's surface
-	Color color;
 	static int idCounter; // unique id counter, change after every object creation
 
 public:
+	Color color;
 
 	Obstacle();
 	~Obstacle();
