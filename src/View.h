@@ -35,6 +35,8 @@ using namespace std;
 #define DISPARITY_HEIGHT 240.
 #define DISPARITY_WIDTH 320.
 
+#define COLOR_IMAGE_WIDTH 320
+#define COLOR_IMAGE_HEIGHT 240
 
 /* View class contains :
  * Robot position and orientation
@@ -49,6 +51,7 @@ private:
 	int Id;
 	cv::Point3f robot;
 	vector<Obstacle> Obst;
+	Color colors[COLOR_IMAGE_WIDTH][COLOR_IMAGE_HEIGHT];
 
 	/*Display*/
 	int step;
@@ -59,8 +62,6 @@ private:
 	void readColors(char* filename);
 
 public:
-	static const int COLOR_IMAGE_WIDTH, COLOR_IMAGE_HEIGHT;
-
 	View();
 	~View();
 
@@ -69,7 +70,9 @@ public:
 	void setRobotPos(float X, float Y, float angle);
 	cv::Point3f getRobotPos();
 	void setView(TriclopsContext triclops, TriclopsImage16 depthImage,
-			cv::Point3f robotPos);            // Setting View from camera photograph
+			cv::Point3f robotPos);        // Setting View from camera photograph
+	Color getAverageColor(int boundW, int boundH);
+	Color calculateAverageColor(std::vector<Color> colors);
 	float distance(cv::Point2f A, cv::Point2f B); // Get the distance between 2 points of a snapshot to know if they belong to the same obstacle
 	void addObst(Obstacle newObst);
 	void setSurfaces();                 // Set the surface for each Obstacle

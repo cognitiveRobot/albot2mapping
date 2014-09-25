@@ -5,8 +5,6 @@
 /* Functions definitions for View class */
 
 const unsigned View::MINIMUM_OBSTABLE_POINTS = 3;
-const int View::COLOR_IMAGE_WIDTH = 320;
-const int View::COLOR_IMAGE_HEIGHT = 240;
 
 View::View() {
 	Id = 0;
@@ -49,25 +47,20 @@ void View::setView(TriclopsContext triclops, TriclopsImage16 depthImage,
 	int disparity;
 	float x, y, z, leftX, rightX;
 	int boundX, boundY, boundW, boundH;
+	boundW = step;
+	boundH = 25;
+	boundY = DISPARITY_HEIGHT / 2;
 	int count = 0;
-	std::vector<Color> obstColors();
+	std::vector<Color> obstColors;
 
 	// read colors
 	char filenameColor[50];
 	sprintf(filenameColor, "%s%d%s", "../outputs/color/color-", Id, ".ppm");
 	ImageReader imageReader;
-	Color colors[COLOR_IMAGE_WIDTH][COLOR_IMAGE_HEIGHT];
-	imageReader.readPPM(filenameColor, colors);
+	imageReader.readPPM(filenameColor, this->colors);
 
-	// assign colors to surfaces
-	// TODO
-
-	for (int i = 0; i < DISPARITY_WIDTH - step; i += step) { //For each slices of the image
+	for (boundX = 0; boundX < DISPARITY_WIDTH - step; boundX += step) { //For each slices of the image
 		count++;
-		boundX = i;
-		boundY = DISPARITY_HEIGHT / 2;
-		boundW = step;
-		boundH = 25;
 		avgZ = 0;
 		n = 0;
 		nbPoints = 0;
@@ -100,21 +93,25 @@ void View::setView(TriclopsContext triclops, TriclopsImage16 depthImage,
 		}
 		avgZ /= nbPoints;
 
+		Color avgColor = getAverageColor(boundW, boundH);
+
 		/* Set the new points for the View */
-		cv::Point2f newPoint(i + 1 / 2, avgZ);
+		cv::Point2f newPoint(boundX + 1 / 2, avgZ);
 
 		if (avgZ == avgZ) {
 			// TODO: add color distinction to clustering of objects
-			if (abs(avgZ - preAvgZ) < 0.15) { // If close enough to previous depth value
-				tmpObst.addPoint(newPoint); // Consider it belongs to same Obstacle
-
-			} else {
+			if (abs(avgZ - preAvgZ) >= 0.15) { // Far enough from previous depth value
 				cv::Point2f Center((float) DISPARITY_WIDTH / 2, 0.15);
 				tmpObst.coordTransf(Center, sizeX / DISPARITY_WIDTH, 100); // Adapt the coordinates
-				addObst(tmpObst);                // Add the Obstacle to the View
-				tmpObst.clearPoints();           // Clear the temporary Obstacle
-				tmpObst.addPoint(newPoint); // Create new temporary Obstacle with new point
+				avgColor = calculateAverageColor(obstColors); // calculate obstacle color
+				tmpObst.setColor(avgColor);
+				addObst(tmpObst); 				// Add the Obstacle to the View
+				tmpObst.clearPoints(); 			// Clear the temporary Obstacle
+				obstColors.clear(); 			// clear colors
 			}
+			// point and color information are added independent of having a new obstacle or not
+			tmpObst.addPoint(newPoint);
+			obstColors.push_back(avgColor);
 			preAvgZ = avgZ;
 		}
 
@@ -130,6 +127,22 @@ void View::setView(TriclopsContext triclops, TriclopsImage16 depthImage,
 	robot.y = robotPos.y;
 	robot.z = robotPos.z;
 
+}
+
+Color View::getAverageColor(int boundW, int boundH) {
+	return Color(0, 0, 0);
+}
+
+Color View::calculateAverageColor(std::vector<Color> colors) {
+	long sumRed = 0, sumGreen = 0, sumBlue = 0;
+	for (std::vector<Color>::iterator it = colors.begin(); it != colors.end();
+			++it) {
+		sumRed += it->red;
+		sumGreen += it->green;
+		sumBlue += it->blue;
+	}
+	return Color(sumRed / colors.size(), sumGreen / colors.size(),
+			sumBlue / colors.size());
 }
 
 void View::setSurfaces() {
