@@ -22,8 +22,11 @@
 #include <opencv/cv.h>
 #include <opencv2/opencv.hpp>
 
-/* ------------------------- Headers ------------------------ */
+/* ------------------------- Own Headers ------------------------ */
+#include "Obstacle.h"
 #include "Camera.h"
+#include "Color.h"
+#include "ImageReader.h"
 
 /* ------------------------- Namespaces ------------------------- */
 using namespace std;
@@ -32,35 +35,6 @@ using namespace std;
 #define DISPARITY_HEIGHT 240.
 #define DISPARITY_WIDTH 320.
 
-/* Class of obstacles that are to be displayed on the map */
-
-class Obstacle {
-private:
-
-	vector<cv::Point2f> points;    // Points constituting the obstacles
-	cv::Point2f P1, P2;             // Ends of the obstacle's surface
-	uint16_t color; 			// Color representation in RGB565
-
-public:
-
-	Obstacle();
-	~Obstacle();
-
-	void addPoint(cv::Point2f newPoint);
-	void coordTransf(cv::Point2f newCenter, float hX, float hY); // Transforming coordinates of the points into the new frame or reference centered on newCenter and with the axes being Xax*x and Yax*y
-	void rotate(cv::Point3f Center); // Rotate P1 & P2 according to the angle Center.z
-	vector<cv::Point2f> getPoints();
-	void clearPoints();
-
-	void setP1(float X, float Y);
-	void setP2(float X, float Y);
-	cv::Point2f getP1();
-	cv::Point2f getP2();
-
-	void setSurface(); // Surface : average line of points. It is given by it's 2 ends P1 & P2
-
-	void setColor(uint16_t color);
-};
 
 /* View class contains :
  * Robot position and orientation

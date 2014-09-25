@@ -12,7 +12,7 @@
 
 class ImageReader {
 public:
-	void readPPM(char * filename, uint16_t colors[][240 /* View::COLOR_IMAGE_HEIGHT */]);
+	void readPPM(char * filename, Color colors[][240 /* View::COLOR_IMAGE_HEIGHT */]);
 	uint16_t rgb565_from_triplet(uint8_t red, uint8_t green, uint8_t blue);
 };
 
