@@ -11,6 +11,9 @@ void Color::setRGB(int red, int green, int blue) {
 	this->blue = blue;
 }
 
+int Color::getRGB() {
+	return 256 * 256 * red + 256 * green + blue;
+}
 int Color::getRGB565() {
 	return Color::rgb565FromTriplet(this->red, this->green, this->blue);
 }

@@ -5,6 +5,7 @@
 /* Functions definitions for View class */
 
 const unsigned View::MINIMUM_OBSTABLE_POINTS = 3;
+const int View::COLOR_DIFF_TRESHOLD = 100;
 
 View::View() {
 	Id = 0;
@@ -51,6 +52,7 @@ void View::setView(TriclopsContext triclops, TriclopsImage16 depthImage,
 	boundH = 25;
 	boundY = DISPARITY_HEIGHT / 2;
 	int count = 0;
+	Color prevColor;
 	std::vector<Color> obstColors;
 
 	// read colors
@@ -93,26 +95,32 @@ void View::setView(TriclopsContext triclops, TriclopsImage16 depthImage,
 		}
 		avgZ /= nbPoints;
 
-		Color avgColor = getAverageColor(boundW, boundH);
+		Color currColor = getAverageColor(boundX, boundY, boundW, boundH);
 
 		/* Set the new points for the View */
 		cv::Point2f newPoint(boundX + 1 / 2, avgZ);
 
 		if (avgZ == avgZ) {
-			// TODO: add color distinction to clustering of objects
-			if (abs(avgZ - preAvgZ) >= 0.15) { // Far enough from previous depth value
+			int redDiff = abs(currColor.red - prevColor.red);
+			int greenDiff = abs(currColor.green - prevColor.green);
+			int blueDiff = abs(currColor.blue - prevColor.blue);
+			int totalColorDiff = redDiff + greenDiff + blueDiff;
+			// Far enough from previous depth value or different colors
+			if (abs(avgZ - preAvgZ) >= 0.15
+					|| totalColorDiff >= COLOR_DIFF_TRESHOLD) {
 				cv::Point2f Center((float) DISPARITY_WIDTH / 2, 0.15);
 				tmpObst.coordTransf(Center, sizeX / DISPARITY_WIDTH, 100); // Adapt the coordinates
-				avgColor = calculateAverageColor(obstColors); // calculate obstacle color
-				tmpObst.setColor(avgColor);
+				Color obstColor = calculateAverageColor(obstColors); // calculate obstacle color
+				tmpObst.setColor(obstColor);
 				addObst(tmpObst); 				// Add the Obstacle to the View
 				tmpObst.clearPoints(); 			// Clear the temporary Obstacle
 				obstColors.clear(); 			// clear colors
 			}
 			// point and color information are added independent of having a new obstacle or not
 			tmpObst.addPoint(newPoint);
-			obstColors.push_back(avgColor);
+			obstColors.push_back(currColor);
 			preAvgZ = avgZ;
+			prevColor = currColor;
 		}
 
 	}
@@ -129,8 +137,14 @@ void View::setView(TriclopsContext triclops, TriclopsImage16 depthImage,
 
 }
 
-Color View::getAverageColor(int boundW, int boundH) {
-	return Color(0, 0, 0);
+Color View::getAverageColor(int boundX, int boundY, int boundW, int boundH) {
+	vector<Color> areaColors;
+	for (int x = boundX; x < boundX + boundW; x++) {
+		for (int y = boundY; y < boundY + boundH; y++) {
+			areaColors.push_back(this->colors[x][y]);
+		}
+	}
+	return calculateAverageColor(areaColors);
 }
 
 Color View::calculateAverageColor(std::vector<Color> colors) {

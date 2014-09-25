@@ -47,6 +47,7 @@ class View {
 
 private:
 	static const unsigned MINIMUM_OBSTABLE_POINTS;
+	static const int COLOR_DIFF_TRESHOLD;
 
 	int Id;
 	cv::Point3f robot;
@@ -71,7 +72,7 @@ public:
 	cv::Point3f getRobotPos();
 	void setView(TriclopsContext triclops, TriclopsImage16 depthImage,
 			cv::Point3f robotPos);        // Setting View from camera photograph
-	Color getAverageColor(int boundW, int boundH);
+	Color getAverageColor(int boundX, int boundY, int boundW, int boundH);
 	Color calculateAverageColor(std::vector<Color> colors);
 	float distance(cv::Point2f A, cv::Point2f B); // Get the distance between 2 points of a snapshot to know if they belong to the same obstacle
 	void addObst(Obstacle newObst);
