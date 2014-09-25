@@ -225,6 +225,9 @@ void Camera::getImage() {
 	}
 	ppmWriteFromTriclopsColorImage(filenameColor, &rectifiedColor);
 	printf("wrote color file\n");
+        
+        //save point cloud in .pcd file
+        savePointCloud(triclops,depthImage);
 }
 
 void Camera::cleanup_and_exit(dc1394camera_t* camera) {
@@ -305,4 +308,62 @@ TriclopsImage Camera::getRectifiedImage() {
 }
 TriclopsColorImage Camera::getRectifiedColor() {
 	return rectifiedColor;
+}
+
+void Camera::savePointCloud(TriclopsContext triclops, TriclopsImage16 depthImage) {
+    float            x, y, z; 
+    int	             pixelinc ;
+    int	             i, j, k;
+    unsigned short * row;
+    unsigned short   disparity;
+
+   
+    pcl::PointCloud<pcl::PointXYZ> cloud;
+
+  // Fill in the cloud data
+  cloud.width    = depthImage.nrows * depthImage.ncols;
+  cloud.height   = 1;
+  cloud.is_dense = false;
+  cloud.points.resize (cloud.width * cloud.height);
+
+  
+ //error = triclopsSaveImage16(&depthImage, "depthImage.ppm");
+
+    // The format for the output file is:
+    // <x> <y> <z> <red> <grn> <blu> <row> <col>
+    // <x> <y> <z> <red> <grn> <blu> <row> <col>
+    // ...
+
+  int savedPoints = 0;
+    // Determine the number of pixels spacing per row
+    pixelinc = depthImage.rowinc/2;
+    for ( i = 0; i < depthImage.nrows; i++ )
+    {
+        row = depthImage.data + i * pixelinc;
+        for ( j = 0; j < depthImage.ncols; j++)
+        {
+            disparity = row[j];
+
+            // do not save invalid points
+            if ( disparity < 0xFF00 )
+            {
+                // convert the 16 bit disparity value to floating point x,y,z
+                triclopsRCD16ToXYZ( triclops, i, j, disparity, &x, &y, &z );
+                
+                
+                // look at points within a range
+                if (z < 5.0  )
+                {
+                   cloud.points[savedPoints].x = x;
+                   cloud.points[savedPoints].y = z;
+                   cloud.points[savedPoints].z = -y;
+                   savedPoints++;
+                }
+            }
+        }
+    }
+   
+    pcl::io::savePCDFileASCII ("test_pcd.pcd", cloud);
+     std::cerr << "Saved " << savedPoints<< " data points to test_pcd.pcd." << std::endl;
+    //std::cerr << "Saved " << cloud.points.size () << " data points to test_pcd.pcd." << std::endl;
 }

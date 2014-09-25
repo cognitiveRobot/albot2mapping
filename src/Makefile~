@@ -28,7 +28,7 @@ CPPFLAGS += -I/usr/local/include/opencv2
 CPPFLAGS += -I/usr/local/Aria/include
 
 
-CPPFLAGS += -I/usr/include/pcl-1.7 #pcl
+CPPFLAGS += -I/usr/include/pcl-1.7	#pcl
 CPPFLAGS += -I/usr/include/eigen3	#pcl	
 CPPFLAGS += -I/usr/include/vtk-5.8	#pcl
 #CPPFLAGS += `pkg-config --cflags mrpt-base mrpt-slam`
@@ -48,7 +48,18 @@ LIBS    += -ldc1394 -lraw1394 -pthread
 LIBS	+= -lpgrlibdcstereo -ltriclops -lpnmutils -lflycapture -lflycapture2bridge -lm
 LIBS	+= `pkg-config --libs opencv` #mrpt-base mrpt-slam`
 
-LIBS	+= -lpcl_io -lboost_system -lpcl_common -lpcl_filters -lpcl_segmentation -lpcl_visualization -lvtkCommon -lvtkFiltering -lvtkRendering -lvtkGraphics	#pcl
+LIBS	+= -lpcl_io -lboost_system -lpcl_common -lpcl_filters -lpcl_segmentation -lpcl_visualization -lvtkCommon -lvtkFiltering -lvtkRendering -lvtkGraphics	
+
+LIBS	+= -lpcl_search -lpcl_kdtree -lpcl_octree -lpcl_features -lpcl_keypoints -lpcl_registration -lpcl_apps -lpcl_range_image_border_extractor -lpcl_range_image -lpcl_sample_consensus -lpcl_surface
+#pcl . added all to avoid linking problem in the future.
+
+
+
+
+
+
+
+
 
 
 
@@ -57,7 +68,7 @@ CXX = g++-4.4
 
 
 # Sources files
-SRC = Robot.cpp Camera.cpp Map.cpp View.cpp ImageProcessing.cpp main.cpp 
+SRC = Robot.cpp Camera.cpp Map.cpp View.cpp ImageProcessing.cpp ImageReader.cpp main.cpp 
 
 
 # executable name and contents

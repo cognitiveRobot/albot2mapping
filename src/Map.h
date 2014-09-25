@@ -14,7 +14,7 @@
 
 /* ------------------------- Namespaces ------------------------- */
 using namespace std;
-using namespace cv;
+//using namespace cv;
 
 #define DISPARITY_HEIGHT 240.
 #define DISPARITY_WIDTH 320.
@@ -26,8 +26,8 @@ private:
      
     vector <View> Views;
     vector <Obstacle> Obst;
-    vector <Point3f> rbtPos;
-    Mat drawing;
+    vector <cv::Point3f> rbtPos;
+    cv::Mat drawing;
     int sizeX;
     int sizeY;
     int M;
@@ -41,9 +41,9 @@ public:
     ~Map();
 
     void update(View newView);                          // Update the map according to the newView
-    bool isBehind(Obstacle Old, Obstacle New, Point3f rbtPos); /* NOT SURE IF DONE CORRECTLY */ // Check if Old and New obstacles are concealing each other
-    void coordTransf(Point3f *target, Point3f newCenter, double hX, double hY);                 // Transform the coordinates of *target with newCenter and homothetic transformation in X & Y directions
-    void rotate(Point2f* target, Point2f Center,  float angle);                                 // Rotate *target point of angle around Center
+    bool isBehind(Obstacle Old, Obstacle New, cv::Point3f rbtPos); /* NOT SURE IF DONE CORRECTLY */ // Check if Old and New obstacles are concealing each other
+    void coordTransf(cv::Point3f *target, cv::Point3f newCenter, double hX, double hY);                 // Transform the coordinates of *target with newCenter and homothetic transformation in X & Y directions
+    void rotate(cv::Point2f* target, cv::Point2f Center,  float angle);                                 // Rotate *target point of angle around Center
     void display();                                     // Display map in output file
      
 };

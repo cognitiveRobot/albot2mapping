@@ -41,6 +41,11 @@
 #include <opencv2/opencv.hpp>
 //#include <mrpt/bayes/CParticleFilterCapable.h>
 
+/* ------------------------- PCL includes ------------------------- */
+#include <iostream>
+#include <pcl/io/pcd_io.h>
+#include <pcl/point_types.h>
+
 /* ------------------------- Headers ------------------------ */
 #include "Robot.h"
 
@@ -62,7 +67,7 @@
 } \
 
 using namespace std;
-using namespace cv;
+//using namespace cv;   //bcz of error: reference to ‘flann’ is ambiguous
 
 
 class Camera
@@ -87,6 +92,7 @@ private:
     TriclopsImage16 depthImage;
     TriclopsImage rectifiedImage;
     TriclopsColorImage rectifiedColor;
+    pcl::PointCloud<pcl::PointXYZ> pointCloud;
     
     
     // Buffers to hold the de-interleaved images
@@ -139,6 +145,7 @@ public:
     
     void deleteBuff();
     
+    void savePointCloud(TriclopsContext triclops, TriclopsImage16 depthImage);
     
     /* Outputs */
     // Image buffers

@@ -48,7 +48,18 @@ LIBS    += -ldc1394 -lraw1394 -pthread
 LIBS	+= -lpgrlibdcstereo -ltriclops -lpnmutils -lflycapture -lflycapture2bridge -lm
 LIBS	+= `pkg-config --libs opencv` #mrpt-base mrpt-slam`
 
-LIBS	+= -lpcl_io -lboost_system -lpcl_common -lpcl_filters -lpcl_segmentation -lpcl_visualization -lvtkCommon -lvtkFiltering -lvtkRendering -lvtkGraphics	#pcl
+LIBS	+= -lpcl_io -lboost_system -lpcl_common -lpcl_filters -lpcl_segmentation -lpcl_visualization -lvtkCommon -lvtkFiltering -lvtkRendering -lvtkGraphics	
+
+LIBS	+= -lpcl_search -lpcl_kdtree -lpcl_octree -lpcl_features -lpcl_keypoints -lpcl_registration -lpcl_apps -lpcl_sample_consensus -lpcl_surface
+#pcl . added all to avoid linking problem in the future.
+
+
+
+
+
+
+
+
 
 
 

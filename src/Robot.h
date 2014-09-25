@@ -35,7 +35,7 @@ const int TIMEOUT = 8000;
 const int SHORT_PAUSE = 100;
 
 using namespace std;
-using namespace cv;
+//using namespace cv;
 
 #define _USE_MATH_DEFINES
 
@@ -47,7 +47,7 @@ class Robot
 private:
     ArRobot robot;                           
     int step;                                // Number of step taken so far
-    Point3f Pos;                             // Robot Position (X, Y, Angle)
+    cv::Point3f Pos;                             // Robot Position (X, Y, Angle)
     double odoDistanceOld;
     double globalAngleOld;
     double angleToMove;
@@ -74,7 +74,7 @@ public:
     inline void setHeading(double heading);
     inline void moveDistance(double distance, double velocity);
     void updatePos(float r, float teta);
-    Point3f getPos();
+    cv::Point3f getPos();
     
     void saveTravelInfo(double dist, double angle, char * filename);
     

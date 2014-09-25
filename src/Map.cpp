@@ -15,7 +15,7 @@ Map::~Map()
 }
 
 
-void Map::coordTransf(Point3f *target, Point3f newCenter, double hX, double hY)
+void Map::coordTransf(cv::Point3f *target, cv::Point3f newCenter, double hX, double hY)
 {
     
         // Homothetic transformation to adapt to axes
@@ -28,7 +28,7 @@ void Map::coordTransf(Point3f *target, Point3f newCenter, double hX, double hY)
 }
 
 
-void Map::rotate(Point2f* target, Point2f Center,  float angle)
+void Map::rotate(cv::Point2f* target, cv::Point2f Center,  float angle)
 {
     float r;
     float teta;
@@ -70,9 +70,9 @@ void Map::rotate(Point2f* target, Point2f Center,  float angle)
 void Map::update(View newView)
 {
     // Robot
-        Point3f tmpPos;
-        Point3f O(sizeX/2, sizeY/2, 0);
-       //Point3f O(sizeX/2, sizeY-15, 0);
+        cv::Point3f tmpPos;
+        cv::Point3f O(sizeX/2, sizeY/2, 0);
+       //cv::Point3f O(sizeX/2, sizeY-15, 0);
         
         
         // Comparing obstacle variables
@@ -193,7 +193,7 @@ Obst.clear();
     
 }
 
-bool Map::isBehind(Obstacle Old, Obstacle New, Point3f rbtPos)
+bool Map::isBehind(Obstacle Old, Obstacle New, cv::Point3f rbtPos)
 {
     bool ret = false;
     
@@ -245,22 +245,22 @@ bool Map::isBehind(Obstacle Old, Obstacle New, Point3f rbtPos)
 void Map::display()
 {
     
-    drawing = Mat::zeros(Size(sizeX, sizeY), CV_8UC3);
-    drawing.setTo(Scalar (255, 255, 255));
-    Point2f P11,P21, P1, P2;
-    Point2f O(0,0);
+    drawing = cv::Mat::zeros(cv::Size(sizeX, sizeY), CV_8UC3);
+    drawing.setTo(cv::Scalar (255, 255, 255));
+    cv::Point2f P11,P21, P1, P2;
+    cv::Point2f O(0,0);
     Obstacle curObst1;
     
     // Draw robot positions
     for (unsigned int i = 0; i<rbtPos.size(); i++)
     {  
-        Point2f rbt0(rbtPos[i].x, rbtPos[i].y);
-        Point2f rbt1(rbt0.x - 15, rbt0.y - 15);
-        Point2f rbt2(rbt0.x + 15, rbt0.y + 15);
-        Point2f rbt3(rbt0.x, rbt0.y - 30);
+        cv::Point2f rbt0(rbtPos[i].x, rbtPos[i].y);
+        cv::Point2f rbt1(rbt0.x - 15, rbt0.y - 15);
+        cv::Point2f rbt2(rbt0.x + 15, rbt0.y + 15);
+        cv::Point2f rbt3(rbt0.x, rbt0.y - 30);
         rotate(&rbt3, rbt0, rbtPos[i].z);                               // Set the robot into the right direction
-        rectangle(drawing, rbt1, rbt2, Scalar(0,0,255), 3, 8, 0);
-        line(drawing, rbt0, rbt3, Scalar(0,0,0), 3, 8, 0); 
+        cv::rectangle(drawing, rbt1, rbt2, cv::Scalar(0,0,255), 3, 8, 0);
+        cv::line(drawing, rbt0, rbt3, cv::Scalar(0,0,0), 3, 8, 0); 
     }
     
     // Draw Obstacles Surfaces
@@ -269,9 +269,9 @@ void Map::display()
     for (unsigned int i = 0; i<Obst.size(); i++)
     { 
         // Adapt the point to the openCV Mat drawing
-       P1 = Point2f(rbtPos[0].x + Obst[i].getP1().x,rbtPos[0].y - Obst[i].getP1().y );
-        P2 = Point2f(rbtPos[0].x + Obst[i].getP2().x,rbtPos[0].y - Obst[i].getP2().y );
-       line(drawing, P1, P2, Scalar(0,0,255), 3, 8, 0);                // Draw the actual line
+       P1 = cv::Point2f(rbtPos[0].x + Obst[i].getP1().x,rbtPos[0].y - Obst[i].getP1().y );
+        P2 = cv::Point2f(rbtPos[0].x + Obst[i].getP2().x,rbtPos[0].y - Obst[i].getP2().y );
+       cv::line(drawing, P1, P2, cv::Scalar(0,0,255), 3, 8, 0);                // Draw the actual line
     }
         
 
@@ -289,7 +289,7 @@ void Map::display()
     //            curObst1.setP1(rbtPos[0].x + curObst1.getP1().x,rbtPos[0].y - curObst1.getP1().y );
     //            curObst1.setP2(rbtPos[0].x + curObst1.getP2().x,rbtPos[0].y - curObst1.getP2().y );
 //
-    //            line(drawing, curObst1.getP1(), curObst1.getP2(), Scalar(0,0,255), 3, 8, 0);    // Draw that line
+    //            cv::line(drawing, curObst1.getP1(), curObst1.getP2(), cv::Scalar(0,0,255), 3, 8, 0);    // Draw that line
     //   numline1++;
 // }
 //}
@@ -301,7 +301,7 @@ void Map::display()
     // Display the map in a file
     char filename[50];
     sprintf(filename, "%s%d%s", "../outputs/Maps/Map", M, ".jpg");
-    imwrite(filename, drawing);
+    cv::imwrite(filename, drawing);
     
     
     M++;

@@ -64,7 +64,7 @@
 /* ------------------------- Namespaces ------------------------- */
 
 using namespace std;
-using namespace cv;
+//using namespace cv;
 
 
 /* ------------------------- Program ------------------------- */
@@ -72,10 +72,10 @@ using namespace cv;
 int main(int argc, char** argv) {
     
     //pcl test
-   //     ImageProcessing imgPro;
-       // imgPro.buildAPointCloud();
-   //     imgPro.visualizePointCloud();
-   //     waitHere();
+  //      ImageProcessing imgPro;
+//        imgPro.buildAPointCloud();
+//        imgPro.visualizePointCloud();
+//        waitHere();
 
     /*------------------------------------------ Variables declaration ------------------------------------------ */
     
@@ -100,6 +100,8 @@ int main(int argc, char** argv) {
     
     /* -------- Initialization : View 0 ------- */
     Bumblebee.getImage();               // Acquire image from Camera
+    
+    
         // View
     curView.setView(Bumblebee.getTriclops(), Bumblebee.getDepthImage(), Albot.getPos());        // Set view from camera photograph
 

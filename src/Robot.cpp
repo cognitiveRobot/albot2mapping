@@ -214,7 +214,7 @@ void Robot::updatePos(float r, float teta)
     
 }
 
-Point3f Robot::getPos()
+cv::Point3f Robot::getPos()
 {
     return Pos;
 }

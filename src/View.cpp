@@ -12,11 +12,11 @@ Obstacle::~Obstacle() {
 
 }
 
-void Obstacle::addPoint(Point2f newPoint) {
+void Obstacle::addPoint(cv::Point2f newPoint) {
 	points.push_back(newPoint);
 }
 
-void Obstacle::coordTransf(Point2f newCenter, float hX, float hY) {
+void Obstacle::coordTransf(cv::Point2f newCenter, float hX, float hY) {
 
 	for (unsigned int i = 0; i < points.size(); i++) {
 
@@ -32,7 +32,7 @@ void Obstacle::coordTransf(Point2f newCenter, float hX, float hY) {
 
 }
 
-void Obstacle::rotate(Point3f Center) {
+void Obstacle::rotate(cv::Point3f Center) {
 	float distance;
 	float teta, angle;
 
@@ -77,7 +77,7 @@ void Obstacle::rotate(Point3f Center) {
 
 }
 
-vector<Point2f> Obstacle::getPoints() {
+vector<cv::Point2f> Obstacle::getPoints() {
 	return points;
 }
 
@@ -95,18 +95,18 @@ void Obstacle::setP2(float X, float Y) {
 	P2.y = Y;
 }
 
-Point2f Obstacle::getP1() {
+cv::Point2f Obstacle::getP1() {
 	return P1;
 }
 
-Point2f Obstacle::getP2() {
+cv::Point2f Obstacle::getP2() {
 	return P2;
 }
 
 void Obstacle::setSurface() {
 
-	Vec4f vecLine;                          // Orientation vector
-	vector < Point2f > myPoints = points;
+	cv::Vec4f vecLine;                          // Orientation vector
+	vector < cv::Point2f > myPoints = points;
 	float distance = 0;                     // Size of the surface
 
 	/* Set surface size by measuring the longest distance between 2 points */
@@ -127,7 +127,7 @@ void Obstacle::setSurface() {
 	}
 
 	/* Set the orientation vector to fit with the set of points*/
-	fitLine(myPoints, vecLine, CV_DIST_L2, 0, 0.01, 0.01);
+	cv::fitLine(myPoints, vecLine, CV_DIST_L2, 0, 0.01, 0.01);
 
 	/* Set the ends of the surface */
 	setP1(myPoints[0].x, myPoints[0].y);
@@ -169,16 +169,16 @@ void View::setRobotPos(float X, float Y, float angle) {
 	robot.z = angle;
 }
 
-Point3f View::getRobotPos() {
+cv::Point3f View::getRobotPos() {
 	return robot;
 }
 
 void View::setView(TriclopsContext triclops, TriclopsImage16 depthImage,
-		Point3f robotPos) {
+		cv::Point3f robotPos) {
 	clearView();
 	cout << endl << "Getting view from image" << endl;
 
-	RNG rng(time (NULL));
+	cv::RNG rng(time (NULL));
 	Obstacle tmpObst = Obstacle();
 	double avgZ = 0;
 	double preAvgZ = 0;
@@ -227,7 +227,7 @@ void View::setView(TriclopsContext triclops, TriclopsImage16 depthImage,
 		avgZ /= nbPoints;
 
 		/* Set the new points for the View */
-		Point2f newPoint(i + 1 / 2, avgZ);
+		cv::Point2f newPoint(i + 1 / 2, avgZ);
 
 		if (avgZ == avgZ) {
 			// TODO: add color distinction to clustering of objects
@@ -235,7 +235,7 @@ void View::setView(TriclopsContext triclops, TriclopsImage16 depthImage,
 				tmpObst.addPoint(newPoint); // Consider it belongs to same Obstacle
 
 			} else {
-				Point2f Center((float) DISPARITY_WIDTH / 2, 0.15);
+				cv::Point2f Center((float) DISPARITY_WIDTH / 2, 0.15);
 				tmpObst.coordTransf(Center, sizeX / DISPARITY_WIDTH, 100); // Adapt the coordinates
 				addObst(tmpObst);                // Add the Obstacle to the View
 				tmpObst.clearPoints();           // Clear the temporary Obstacle
@@ -252,6 +252,9 @@ void View::setView(TriclopsContext triclops, TriclopsImage16 depthImage,
 	ImageReader imageReader;
 	uint16_t colors[COLOR_IMAGE_WIDTH][COLOR_IMAGE_HEIGHT];
 	imageReader.readPPM(filenameColor, colors);
+
+	// assign colors to surfaces
+	// TODO
 
 	//save surfaces like laser
 	char sname[50];
@@ -312,20 +315,20 @@ void View::clearView() {
 	Obst.clear();
 }
 
-Mat View::display() {
+cv::Mat View::display() {
 	vector<Obstacle> tmp1Obst;   // Temporary obstacles vector to update Obst
-	drawing = Mat::zeros(Size(sizeX, sizeY), CV_8UC3);
-	drawing.setTo(Scalar(255, 255, 255));
-	Point2f P;
+	drawing = cv::Mat::zeros(cv::Size(sizeX, sizeY), CV_8UC3);
+	drawing.setTo(cv::Scalar(255, 255, 255));
+	cv::Point2f P;
 	Obstacle curObst;
 
 	// Draw the robot
-	Point2f rbt0(sizeX / 2, sizeY - 15);
-	Point2f rbt1(rbt0.x - 15, rbt0.y - 15);
-	Point2f rbt2(rbt0.x + 15, rbt0.y + 15);
-	Point2f rbt3(rbt0.x, rbt0.y - 30);
-	rectangle(drawing, rbt1, rbt2, Scalar(0, 0, 255), 3, 8, 0);
-	line(drawing, rbt0, rbt3, Scalar(0, 0, 0), 2, 8, 0);
+	cv::Point2f rbt0(sizeX / 2, sizeY - 15);
+	cv::Point2f rbt1(rbt0.x - 15, rbt0.y - 15);
+	cv::Point2f rbt2(rbt0.x + 15, rbt0.y + 15);
+	cv::Point2f rbt3(rbt0.x, rbt0.y - 30);
+	cv::rectangle(drawing, rbt1, rbt2, cv::Scalar(0, 0, 255), 3, 8, 0);
+	cv::line(drawing, rbt0, rbt3, cv::Scalar(0, 0, 0), 2, 8, 0);
 
 	for (unsigned int i = 0; i < Obst.size(); i++) {
 		curObst = Obst[i]; // Transform the coordinates to have the right frame of reference
@@ -352,7 +355,7 @@ Mat View::display() {
 			curObst.setP2(rbt0.x + curObst.getP2().x,
 					rbt0.y - curObst.getP2().y);
 
-			line(drawing, curObst.getP1(), curObst.getP2(), Scalar(0, 0, 255),
+			cv::line(drawing, curObst.getP1(), curObst.getP2(), cv::Scalar(0, 0, 255),
 					3, 8, 0);    // Draw that line
 			numline++;
 
@@ -365,7 +368,7 @@ Mat View::display() {
 		for (unsigned int j = 0; j < curObst.getPoints().size(); j++) {
 			P.x = rbt0.x + curObst.getPoints()[j].x;
 			P.y = rbt0.y - curObst.getPoints()[j].y;
-			circle(drawing, P, 1, Scalar(255, 0, 0), 1, 8, 0);
+			cv::circle(drawing, P, 1, cv::Scalar(255, 0, 0), 1, 8, 0);
 		}
 
 	}
@@ -376,7 +379,7 @@ Mat View::display() {
 	// Display the view in a file
 	char filename[50];
 	sprintf(filename, "%s%d%s", "../outputs/Views/View", Id, ".jpg");
-	imwrite(filename, drawing);
+	cv::imwrite(filename, drawing);
 
 	return drawing;
 }

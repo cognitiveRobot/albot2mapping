@@ -17,15 +17,15 @@
 
 /* ------------------------- Namespaces ------------------------- */
 using namespace std;
-using namespace cv;
+//using namespace cv;
 
 class Output
 {
 private:
     
-    Mat drawing;
-    Mat Image500;
-    Mat mapDrawing;
+    cv::Mat drawing;
+    cv::Mat Image500;
+    cv::Mat mapDrawing;
     
     char filenameRight[50], filenameLeft[50], filenameColor[50], filenameRectified[50];
     
@@ -49,9 +49,9 @@ public:
     
     
     /* Drawing */
-    void rotate(Point2f* target, Point2f Center, float angle);
+    void rotate(cv::Point2f* target, cv::Point2f Center, float angle);
     
-    Mat createView(View curView);
+    cv::Mat createView(View curView);
     void updateMap(vector <View> Map);
     
     

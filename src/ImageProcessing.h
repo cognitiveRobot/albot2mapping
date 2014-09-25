@@ -36,7 +36,7 @@
 
 /* ------------------------- Namespaces ------------------------- */
 using namespace std;
-using namespace cv;
+//using namespace cv;
 
 
 
@@ -55,8 +55,12 @@ private:
     
     
 public:
-    void visualizePointCloud();
     void buildAPointCloud();
+        
+    void visualizePointCloud(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud);
+    void visualizePointCloud(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud);
+
+    void segRegionGrowing();
    
     
     
