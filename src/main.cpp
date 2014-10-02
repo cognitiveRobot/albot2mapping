@@ -71,16 +71,19 @@ using namespace std;
 
 int main(int argc, char** argv) {
     
-    //pcl test
-  //      ImageProcessing imgPro;
-//        imgPro.buildAPointCloud();
-//        imgPro.visualizePointCloud();
+//    //pcl test
+    ImageProcessing imgPro;
+////        imgPro.buildAPointCloud();
+////        imgPro.visualizePointCloud();
+//        imgPro.segRegionGrowing();
+//        imgPro.segEuclideanClusters();
 //        waitHere();
 
     /*------------------------------------------ Variables declaration ------------------------------------------ */
     
     Robot Albot;
     ArSimpleConnector connector(&argc, argv);
+    
     Camera Bumblebee;
     View curView;
     Map curMap(1500, 1500);
@@ -102,6 +105,8 @@ int main(int argc, char** argv) {
     Bumblebee.getImage();               // Acquire image from Camera
     
     
+    
+    
         // View
     curView.setView(Bumblebee.getTriclops(), Bumblebee.getDepthImage(), Albot.getPos());        // Set view from camera photograph
 
@@ -112,7 +117,9 @@ int main(int argc, char** argv) {
     
     
     /* -------- Loop ------- */
-    char tkStep = 'y';
+    char tkStep;
+    cout << endl << endl << "Take first step? (y/n) ";            // Ask user if continue
+    cin >> tkStep;
     while(tkStep != 'n' && tkStep != 'N')
     {
         /* Increment counters */

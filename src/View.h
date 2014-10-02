@@ -27,7 +27,6 @@
 #include "Camera.h"
 #include "Color.h"
 #include "Constants.h"
-#include "ImageReader.h"
 
 /* ------------------------- Namespaces ------------------------- */
 using namespace std;
@@ -60,6 +59,11 @@ private:
 	int sizeY;
 
 	void readColors(char* filename);
+	void matToColorMatrix(cv::Mat mat,
+			Color colors[COLOR_IMAGE_WIDTH][COLOR_IMAGE_HEIGHT]);
+	void markAndSave(cv::Mat mat, const char * filename);
+	void writeColors(Color colors[COLOR_IMAGE_WIDTH][COLOR_IMAGE_HEIGHT],
+			const char * filename);
 
 public:
 	View();

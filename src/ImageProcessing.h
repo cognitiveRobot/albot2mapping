@@ -60,9 +60,13 @@ public:
     void visualizePointCloud(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud);
     void visualizePointCloud(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud);
 
+    
     void segRegionGrowing();
    
+    void segEuclideanClusters();
     
+    int getMaxMin(double value[], int valueSize, int maxmin);
+    void getDisparity();
     
 };
 

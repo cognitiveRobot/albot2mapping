@@ -226,8 +226,38 @@ void Camera::getImage() {
 	ppmWriteFromTriclopsColorImage(filenameColor, &rectifiedColor);
 	printf("wrote color file\n");
         
-        //save point cloud in .pcd file
-        savePointCloud(triclops,depthImage);
+                 //save point cloud in .pcd file
+                 savePointCloud(triclops,depthImage);
+                 
+                 TriclopsImage leftImage, rightImage;
+                 //TriclopsColorImage leftImage, rightImage;
+                 //retrieve left image
+                 error = triclopsGetImage(triclops,TriImg_RECTIFIED,TriCam_LEFT,&leftImage);
+//               error = triclopsRectifyColorImage(triclops, TriCam_LEFT, &colorInput,
+//			&leftImage);
+                 _HANDLE_TRICLOPS_ERROR("triclopsLeftImage()", error);
+                 if (sprintf(filenameColor, "%s%d%s", "../outputs/raw/left-", v, ".pgm")
+			== -1) {
+		cout << "Impossible to write left image" << endl;
+		exit (EXIT_FAILURE);
+	}
+                 error = triclopsSaveImage(&leftImage, filenameColor);
+	_HANDLE_TRICLOPS_ERROR("triclopsSaveLeftImage()", error);
+	printf("wrote 'raw/left.pgm'\n");
+        
+                //retrieve right image
+                error = triclopsGetImage(triclops,TriImg_RECTIFIED,TriCam_RIGHT,&rightImage);
+//              error = triclopsRectifyColorImage(triclops, TriCam_RIGHT, &colorInput,
+//			&rightImage);
+                 _HANDLE_TRICLOPS_ERROR("triclopsLeftImage()", error);
+                 if (sprintf(filenameColor, "%s%d%s", "../outputs/raw/right-", v, ".pgm")
+			== -1) {
+		cout << "Impossible to write right image" << endl;
+		exit (EXIT_FAILURE);
+	}
+                 error = triclopsSaveImage(&rightImage, filenameColor);
+	_HANDLE_TRICLOPS_ERROR("triclopsSaveRightImage()", error);
+	printf("wrote 'raw/right.pgm'\n");
 }
 
 void Camera::cleanup_and_exit(dc1394camera_t* camera) {

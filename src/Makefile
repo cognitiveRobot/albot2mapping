@@ -72,7 +72,7 @@ SRC = Robot.cpp \
 	Camera.cpp \
 	Map.cpp \
 	Obstacle.cpp View.cpp \
-	ImageProcessing.cpp ImageReader.cpp Color.cpp \
+	ImageProcessing.cpp Color.cpp \
 	main.cpp 
 
 
