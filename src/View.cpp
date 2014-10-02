@@ -148,18 +148,16 @@ void View::setView(TriclopsContext triclops, TriclopsImage16 depthImage,
 
 Color View::getAverageColor(int boundX, int boundY, int boundW, int boundH) {
 	vector<Color> areaColors;
-	int count = 0;
 	for (int x = boundX; x < boundX + boundW; x++) {
 		for (int y = boundY; y < boundY + boundH; y++) {
 			areaColors.push_back(this->colors[x][y]);
-			count++;
 		}
 	}
 	Color avgColor = Color::calculateAverageColor(areaColors);
 //	printf(
 //			"Built Avg color for (x=%d, w=%d, y=%d, h=%d) - %d pixels: r%d g%d b%d\n",
-//			boundX, boundY, boundW, boundH, count, avgColor.red, avgColor.green,
-//			avgColor.blue);
+//			boundX, boundY, boundW, boundH, areaColors.size(), avgColor.red,
+//			avgColor.green, avgColor.blue);
 	return avgColor;
 }
 

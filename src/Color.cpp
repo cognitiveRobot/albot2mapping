@@ -12,7 +12,7 @@ Color::Color(int red, int green, int blue) {
 }
 void Color::setRGB(int red, int green, int blue) {
 	if(red < 0 || red > 255 || green < 0 || green > 255 || blue < 0 || blue > 255)
-		throw std::invalid_argument("red, green or blue are either < 0 or > 255");
+//		throw std::invalid_argument("red, green or blue are either < 0 or > 255");
 	this->red = red;
 	this->green = green;
 	this->blue = blue;
@@ -42,7 +42,7 @@ Color Color::calculateAverageColor(std::vector<Color> colors) {
 			average = average.mix(*it);
 		}
 	}
-	printf("Average of %d colors: r%d g%d b%d\n", colors.size(), average.red, average.green, average.blue);
+//	printf("Average of %d colors: r%d g%d b%d\n", colors.size(), average.red, average.green, average.blue);
 	return average;
 }
 
@@ -75,7 +75,7 @@ void Color::toCMYK(float cmyk[]) {
 	cmyk[2] = y;
 	cmyk[3] = k;
 
-	printf("r%d g%d b%d to c%f m%f y%f k%f\n", red, green, blue, c, m, y, k);
+//	printf("r%d g%d b%d to c%f m%f y%f k%f\n", red, green, blue, c, m, y, k);
 }
 
 void Color::toRGB(float c, float m, float y, float k, int rgb[]) {
