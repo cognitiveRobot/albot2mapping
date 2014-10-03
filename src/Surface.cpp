@@ -1,26 +1,26 @@
-#include "Obstacle.h"
+#include "Surface.h"
 
 
-/* Functions definitions for Obstacles class */
+/* Functions definitions for Surfaces class */
 
-Obstacle::Obstacle() {
-	this->id = Obstacle::getUniqueId();
+Surface::Surface() {
+	this->id = Surface::getUniqueId();
 }
-Obstacle::~Obstacle() {
+Surface::~Surface() {
 
-}
-
-int Obstacle::idCounter = 0;
-
-int Obstacle::getUniqueId() {
-	return Obstacle::idCounter++;
 }
 
-void Obstacle::addPoint(cv::Point2f newPoint) {
+int Surface::idCounter = 0;
+
+int Surface::getUniqueId() {
+	return Surface::idCounter++;
+}
+
+void Surface::addPoint(cv::Point2f newPoint) {
 	points.push_back(newPoint);
 }
 
-void Obstacle::coordTransf(cv::Point2f newCenter, float hX, float hY) {
+void Surface::coordTransf(cv::Point2f newCenter, float hX, float hY) {
 
 	for (unsigned int i = 0; i < points.size(); i++) {
 
@@ -36,7 +36,7 @@ void Obstacle::coordTransf(cv::Point2f newCenter, float hX, float hY) {
 
 }
 
-void Obstacle::rotate(cv::Point3f Center) {
+void Surface::rotate(cv::Point3f Center) {
 	float distance;
 	float teta, angle;
 
@@ -81,33 +81,33 @@ void Obstacle::rotate(cv::Point3f Center) {
 
 }
 
-std::vector<cv::Point2f> Obstacle::getPoints() {
+std::vector<cv::Point2f> Surface::getPoints() {
 	return points;
 }
 
-void Obstacle::clearPoints() {
+void Surface::clearPoints() {
 	points.clear();
 }
 
-void Obstacle::setP1(float X, float Y) {
+void Surface::setP1(float X, float Y) {
 	P1.x = X;
 	P1.y = Y;
 }
 
-void Obstacle::setP2(float X, float Y) {
+void Surface::setP2(float X, float Y) {
 	P2.x = X;
 	P2.y = Y;
 }
 
-cv::Point2f Obstacle::getP1() {
+cv::Point2f Surface::getP1() {
 	return P1;
 }
 
-cv::Point2f Obstacle::getP2() {
+cv::Point2f Surface::getP2() {
 	return P2;
 }
 
-void Obstacle::setSurface() {
+void Surface::setSurface() {
 
 	cv::Vec4f vecLine;                          // Orientation vector
 	std::vector < cv::Point2f > myPoints = points;
@@ -139,6 +139,6 @@ void Obstacle::setSurface() {
 
 }
 
-void Obstacle::setColor(Color color) {
+void Surface::setColor(Color color) {
 	this->color = color;
 }

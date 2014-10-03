@@ -45,7 +45,7 @@ void View::setView(TriclopsContext triclops, TriclopsImage16 depthImage,
 	cout << endl << "Getting view from image" << endl;
 
 	cv::RNG rng(time (NULL));
-	Obstacle tmpObst = Obstacle();
+	Surface tmpObst = Surface();
 	double avgZ = 0;
 	double preAvgZ = 0;
 	int nbPoints = 0, n = 0;
@@ -60,7 +60,7 @@ void View::setView(TriclopsContext triclops, TriclopsImage16 depthImage,
 	char filename[50];
 	sprintf(filename, "%s%d%s", "../outputs/color/color-", Id, ".ppm");
 	cv::Mat mat = cv::imread(filename);
-	sprintf(filename, "%s%d%s", "../outputs/color/colorarea-", Id, ".png");
+	sprintf(filename, "%s%d%s", "../outputs/color/colorarea-", Id, ".jpg");
 	markAndSave(mat, filename);
 	matToColorMatrix(mat, this->colors);
 
@@ -116,17 +116,17 @@ void View::setView(TriclopsContext triclops, TriclopsImage16 depthImage,
 		}
 		if (abs(avgZ - preAvgZ) < DEPTH_DIFF_TRESHOLD // Close enough to previous depth value
 		&& totalColorDiff < COLOR_DIFF_TRESHOLD) { // and close enough to previous color
-			tmpObst.addPoint(newPoint); // Consider it belongs to same Obstacle
+			tmpObst.addPoint(newPoint); // Consider it belongs to same Surface
 			obstColors.push_back(areaColor);
-		} else { // new obstacle
+		} else { // new surface
 			cv::Point2f Center((float) DISPARITY_WIDTH / 2, 0.15);
 			tmpObst.coordTransf(Center, sizeX / DISPARITY_WIDTH, 100); // Adapt the coordinates
 			Color obstColor = Color::calculateAverageColor(obstColors);
-//			printf("Obstacle color: r%d g%d b%d\n", obstColor.red,
+//			printf("Surface color: r%d g%d b%d\n", obstColor.red,
 //					obstColor.green, obstColor.blue);
 			tmpObst.setColor(obstColor);
-			addObst(tmpObst); 				// Add the Obstacle to the View
-			tmpObst.clearPoints(); 			// Clear the temporary Obstacle
+			addObst(tmpObst); 				// Add the Surface to the View
+			tmpObst.clearPoints(); 			// Clear the temporary Surface
 			obstColors.clear(); 			// clear colors
 			tmpObst.addPoint(newPoint);
 			obstColors.push_back(areaColor);
@@ -166,20 +166,20 @@ Color View::getAverageColor(int boundX, int boundY, int boundW, int boundH) {
 }
 
 void View::setSurfaces() {
-	for (unsigned int i = 0; i < Obst.size(); i++) { // For each obstacle
-		if (Obst[i].getPoints().size() > MINIMUM_OBSTABLE_POINTS) // If the Obstacle is relevant
+	for (unsigned int i = 0; i < Obst.size(); i++) { // For each surface
+		if (Obst[i].getPoints().size() > MINIMUM_OBSTABLE_POINTS) // If the Surface is relevant
 			Obst[i].setSurface(); // Set surface
 	}
 }
 
 void View::rotate() {
-	for (unsigned int i = 0; i < Obst.size(); i++) { // For each obstacle
+	for (unsigned int i = 0; i < Obst.size(); i++) { // For each surface
 		Obst[i].rotate(robot); // Rotate according to robot angle
 	}
 }
 
 void View::translate() {
-	/* Translate the ends P1 & P2 of each Obstacle according to robot position */
+	/* Translate the ends P1 & P2 of each Surface according to robot position */
 	for (unsigned int i = 0; i < Obst.size(); i++) {
 		Obst[i].setP1((float) Obst[i].getP1().x + robot.x / 10,
 				(float) Obst[i].getP1().y + robot.y / 10);
@@ -189,10 +189,10 @@ void View::translate() {
 }
 
 void View::cleanView() {
-	vector<Obstacle> tmpObsts;
+	vector<Surface> tmpObsts;
 
-	for (unsigned int i = 0; i < Obst.size(); i++) { // For each obstacle
-		if (Obst[i].getPoints().size() > 4) { // If there is enough points in 1 obstacle...
+	for (unsigned int i = 0; i < Obst.size(); i++) { // For each surface
+		if (Obst[i].getPoints().size() > 4) { // If there is enough points in 1 surface...
 			tmpObsts.push_back(Obst[i]);
 		}
 	}
@@ -200,11 +200,11 @@ void View::cleanView() {
 	Obst = tmpObsts;
 }
 
-void View::addObst(Obstacle newObst) {
+void View::addObst(Surface newObst) {
 	Obst.push_back(newObst);
 }
 
-vector<Obstacle> View::getObsts() {
+vector<Surface> View::getObsts() {
 	return Obst;
 }
 
@@ -213,11 +213,11 @@ void View::clearView() {
 }
 
 cv::Mat View::display() {
-	vector<Obstacle> tmp1Obst;  // Temporary obstacles vector to update Obst
+	vector<Surface> tmp1Obst;  // Temporary surfaces vector to update Obst
 	cv::Mat drawing = cv::Mat::zeros(cv::Size(sizeX, sizeY), CV_8UC3);
 	drawing.setTo(cv::Scalar(255, 255, 255));
 	cv::Point2f P;
-	Obstacle curObst;
+	Surface curObst;
 
 	// Draw the robot
 	cv::Point2f rbt0(sizeX / 2, sizeY - 15);
@@ -230,20 +230,20 @@ cv::Mat View::display() {
 	for (unsigned int i = 0; i < Obst.size(); i++) {
 		curObst = Obst[i]; // Transform the coordinates to have the right frame of reference
 
-		if (curObst.getPoints().size() > 4) { // If there is enough points in 1 obstacle...
+		if (curObst.getPoints().size() > 4) { // If there is enough points in 1 surface...
 			tmp1Obst.push_back(Obst[i]);
 		}
 	}
 	Obst.clear();
 	Obst = tmp1Obst;
 
-	// Draw the obstacles
-	cout << Obst.size() << " Obstacles in this view" << endl;
+	// Draw the surfaces
+	cout << Obst.size() << " Surfaces in this view" << endl;
 	unsigned int numline = 0;
-	for (unsigned int i = 0; i < Obst.size(); i++) { // For each obstacle
+	for (unsigned int i = 0; i < Obst.size(); i++) { // For each surface
 		curObst = Obst[i]; // Transform the coordinates to have the right frame of reference
 
-		if (curObst.getPoints().size() > 4) { // If there is enough points in 1 obstacle...
+		if (curObst.getPoints().size() > 4) { // If there is enough points in 1 surface...
 			curObst.setSurface();        // Construct a line with the points
 			// Adapt the point to the openCV Mat drawing
 			curObst.setP1(rbt0.x + curObst.getP1().x,
@@ -259,7 +259,7 @@ cv::Mat View::display() {
 		}
 
 		// Draw the points
-		//cout << curObst.getPoints().size() << "Obstacles points in this view" << endl;
+		//cout << curObst.getPoints().size() << "Surfaces points in this view" << endl;
 		for (unsigned int j = 0; j < curObst.getPoints().size(); j++) {
 			P.x = rbt0.x + curObst.getPoints()[j].x;
 			P.y = rbt0.y - curObst.getPoints()[j].y;
@@ -277,27 +277,27 @@ cv::Mat View::display() {
 	return drawing;
 }
 
-void View::saveSurfaces(vector<Obstacle> obstacles, char * filename) {
+void View::saveSurfaces(vector<Surface> surfaces, char * filename) {
 	cout << "Saving surface file" << endl;
 	ofstream outFile(filename, ios::out);
 
 	// Output ASCII header (row and column)
-	outFile << obstacles.size() << " " << 4 << endl;
+	outFile << surfaces.size() << " " << 4 << endl;
 
 	// 8 digits should be more than enough
 	// outFile << fixed;
 	//outFile.precision(10);
 
-	for (int i = 0; i < int(obstacles.size()); i++) {
-		//outFile << obstacles[i].getID() << " ";
-		if (obstacles[i].getPoints().size() > 4) {
-			outFile << obstacles[i].getPoints()[0].x << " ";
-			outFile << obstacles[i].getPoints()[0].y << " ";
+	for (int i = 0; i < int(surfaces.size()); i++) {
+		//outFile << surfaces[i].getID() << " ";
+		if (surfaces[i].getPoints().size() > 4) {
+			outFile << surfaces[i].getPoints()[0].x << " ";
+			outFile << surfaces[i].getPoints()[0].y << " ";
 			outFile
-					<< obstacles[i].getPoints()[obstacles[i].getPoints().size()
+					<< surfaces[i].getPoints()[surfaces[i].getPoints().size()
 							- 1].x << " ";
 			outFile
-					<< obstacles[i].getPoints()[obstacles[i].getPoints().size()
+					<< surfaces[i].getPoints()[surfaces[i].getPoints().size()
 							- 1].y << endl;
 		}
 	}

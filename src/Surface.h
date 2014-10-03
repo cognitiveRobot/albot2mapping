@@ -1,5 +1,5 @@
-#ifndef OBSTACLE_H
-#define OBSTACLE_H
+#ifndef SURFACE_H
+#define SURFACE_H
 
 /* ------------------------- Basic Includes ------------------------- */
 #include <stdlib.h>
@@ -18,20 +18,20 @@
 /* ------------------------- Own includes ------------------------- */
 #include "Color.h"
 
-/* Class of obstacles that are to be displayed on the map */
+/* Class of surfaces that are to be displayed on the map */
 
-class Obstacle {
+class Surface {
 private:
 	int id; // unique identification of this object
-	std::vector<cv::Point2f> points;    // Points constituting the obstacles
-	cv::Point2f P1, P2;             // Ends of the obstacle's surface
+	std::vector<cv::Point2f> points;    // Points constituting the surfaces
+	cv::Point2f P1, P2;             // Ends of the surface's surface
 	static int idCounter; // unique id counter, change after every object creation
 
 public:
 	Color color;
 
-	Obstacle();
-	~Obstacle();
+	Surface();
+	~Surface();
 
 	static int getUniqueId();
 
@@ -51,4 +51,4 @@ public:
 	void setColor(Color color);
 };
 
-#endif /* OBSTACLE_H */
+#endif /* SURFACE_H */

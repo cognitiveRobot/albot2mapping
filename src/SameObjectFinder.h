@@ -8,10 +8,10 @@
 class SameObjectFinder {
 public:
 	/**
-	 * @return the id-pairs of the same obstacles
+	 * @return the id-pairs of the same surfaces
 	 */
 	std::vector<pair<int, int>> findSameObjects(
-			std::vector<Obstacle> obstacles1, std::vector<Obstacle> obstacles2);
+			std::vector<Surface> surfaces1, std::vector<Surface> surfaces2);
 };
 
 #endif /* SAME_OBJECT_FINDER_H */

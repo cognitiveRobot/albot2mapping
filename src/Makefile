@@ -71,7 +71,7 @@ CXX = g++-4.4
 SRC = Robot.cpp \
 	Camera.cpp \
 	Map.cpp \
-	Obstacle.cpp View.cpp \
+	Surface.cpp View.cpp \
 	ImageProcessing.cpp Color.cpp
 	
 SRC_MAIN = $(SRC) main.cpp

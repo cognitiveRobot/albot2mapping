@@ -45,7 +45,7 @@ using namespace std;
 
 /* View class contains :
  * Robot position and orientation
- * Vector of obstacles
+ * Vector of surfaces
 */
 
 class ImageProcessing

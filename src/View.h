@@ -23,7 +23,7 @@
 #include <opencv2/opencv.hpp>
 
 /* ------------------------- Own Headers ------------------------ */
-#include "Obstacle.h"
+#include "Surface.h"
 #include "Camera.h"
 #include "Color.h"
 #include "Constants.h"
@@ -37,7 +37,7 @@ using namespace std;
 
 /* View class contains :
  * Robot position and orientation
- * Vector of obstacles
+ * Vector of surfaces
  */
 
 class View {
@@ -50,7 +50,7 @@ private:
 	int Id;
 	int boundY, boundW, boundH; // boundX declared locally since it changes
 	cv::Point3f robot;
-	vector<Obstacle> Obst;
+	vector<Surface> Obst;
 	Color colors[COLOR_IMAGE_WIDTH][COLOR_IMAGE_HEIGHT];
 
 	/*Display*/
@@ -78,16 +78,16 @@ public:
 			cv::Point3f robotPos);        // Setting View from camera photograph
 	Color getAverageColor(int boundX, int boundY, int boundW, int boundH);
 	Color calculateAverageColor(std::vector<Color> colors);
-	float distance(cv::Point2f A, cv::Point2f B); // Get the distance between 2 points of a snapshot to know if they belong to the same obstacle
-	void addObst(Obstacle newObst);
-	void setSurfaces();                 // Set the surface for each Obstacle
-	void rotate();            // Rotate each Obstacle according to angle robot.z
-	void translate();  // Translate each Obstacle according to robot.x & robot.y
-	void cleanView();                   // Delete irrelevant Obstacles
-	vector<Obstacle> getObsts();
+	float distance(cv::Point2f A, cv::Point2f B); // Get the distance between 2 points of a snapshot to know if they belong to the same surface
+	void addObst(Surface newObst);
+	void setSurfaces();                 // Set the surface for each Surface
+	void rotate();            // Rotate each Surface according to angle robot.z
+	void translate();  // Translate each Surface according to robot.x & robot.y
+	void cleanView();                   // Delete irrelevant Surfaces
+	vector<Surface> getObsts();
 	void clearView();
 
-	void saveSurfaces(vector<Obstacle> obstacles, char * filename);
+	void saveSurfaces(vector<Surface> surfaces, char * filename);
 
 	cv::Mat display();
 

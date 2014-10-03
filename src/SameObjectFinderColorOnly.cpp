@@ -1,6 +1,6 @@
 #include "SameObjectFinder.h"
 
-std::vector<pair<Obstacle, Obstacle>> findSameObjects(
-		std::vector<Obstacle> obstacles1, std::vector<Obstacle> obstacles2) {
+std::vector<pair<Surface, Surface>> findSameObjects(
+		std::vector<Surface> surfaces1, std::vector<Surface> surfaces2) {
 
 }

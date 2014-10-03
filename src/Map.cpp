@@ -62,31 +62,31 @@ void Map::update(View newView) {
 	cv::Point3f O(sizeX / 2, sizeY / 2, 0);
 	//cv::Point3f O(sizeX/2, sizeY-15, 0);
 
-	// Comparing obstacle variables
-	vector<Obstacle> tmpObst, tmpObst1; // Temporary obstacles vector to update Obst
+	// Comparing surface variables
+	vector<Surface> tmpObst, tmpObst1; // Temporary surfaces vector to update Obst
 	int counter;
-	unsigned int Osize, Osize1; // Original size of Obst before adding new Obstacles to the map
+	unsigned int Osize, Osize1; // Original size of Obst before adding new Surfaces to the map
 
-	cout << Obst.size() << " Intial Obstacles in the map" << endl;
-	/* Adapt newView to compare Obstacles to previous ones */
+	cout << Obst.size() << " Intial Surfaces in the map" << endl;
+	/* Adapt newView to compare Surfaces to previous ones */
 	newView.setSurfaces();
 	newView.rotate();
 	newView.translate();
 
-	if (Obst.size() == 0) { // If the map is empty, place the robot in initial position and add obstacles
+	if (Obst.size() == 0) { // If the map is empty, place the robot in initial position and add surfaces
 		// Set robot position on the map and add it to rbtPos
-		cout << Obst.size() << "No Obstacle in the map" << endl;
+		cout << Obst.size() << "No Surface in the map" << endl;
 		tmpPos = newView.getRobotPos();
 		coordTransf(&tmpPos, O, (double) 1 / 10, (double) -1 / 10);
 		newView.setRobotPos(tmpPos.x, tmpPos.y, tmpPos.z);
 		rbtPos.push_back(tmpPos);
 
-		// Add the Obstacles to the map
+		// Add the Surfaces to the map
 		Obst = newView.getObsts();
 
 		newView.clearView();
-		cout << Obst.size() << " start Obstacle in the map" << endl;
-	} else                            // Else compare obstacles
+		cout << Obst.size() << " start Surface in the map" << endl;
+	} else                            // Else compare surfaces
 	{
 
 		// Move the robot
@@ -99,16 +99,16 @@ void Map::update(View newView) {
 		Osize = Obst.size();
 		Osize1 = Obst.size();
 		//old and then new
-		for (unsigned int j = 0; j < newView.getObsts().size(); j++) { // For each obstacle of the new View
+		for (unsigned int j = 0; j < newView.getObsts().size(); j++) { // For each surface of the new View
 
 			counter = 0;
 
-			for (unsigned int i = 0; i < Osize; i++) { // For every obstacle of the map
+			for (unsigned int i = 0; i < Osize; i++) { // For every surface of the map
 
 				if (isBehind(Obst[i], newView.getObsts()[j],
 						rbtPos[rbtPos.size()])
 						|| isBehind(newView.getObsts()[j], Obst[i],
-								rbtPos[rbtPos.size()])) // Check if any Obstacles are concealing others
+								rbtPos[rbtPos.size()])) // Check if any Surfaces are concealing others
 								{
 					counter++;
 
@@ -120,23 +120,23 @@ void Map::update(View newView) {
 				}
 			}
 
-			if (counter == 0) { // If an old Obstacle isn't concealing nor concealed....
-				tmpObst.push_back(newView.getObsts()[j]); // add all obstacles from new view     // Add the new Obstacles
+			if (counter == 0) { // If an old Surface isn't concealing nor concealed....
+				tmpObst.push_back(newView.getObsts()[j]); // add all surfaces from new view     // Add the new Surfaces
 
 			}
 		}
 
 // new and then old
-		//for(unsigned int i=0; i < Osize; i++)           // For every obstacle of the map
+		//for(unsigned int i=0; i < Osize; i++)           // For every surface of the map
 
 //{
 		//     counter=0;
 
-		// for(unsigned int j=0; j<newView.getObsts().size(); j++)         // For each obstacle of the new View
+		// for(unsigned int j=0; j<newView.getObsts().size(); j++)         // For each surface of the new View
 
 		//      {
 
-		//          if(isBehind(Obst[i], newView.getObsts()[j], rbtPos[rbtPos.size()]) || isBehind(newView.getObsts()[j], Obst[i], rbtPos[rbtPos.size()]))     // Check if any Obstacles are concealing others
+		//          if(isBehind(Obst[i], newView.getObsts()[j], rbtPos[rbtPos.size()]) || isBehind(newView.getObsts()[j], Obst[i], rbtPos[rbtPos.size()]))     // Check if any Surfaces are concealing others
 		// {
 		//          counter++;
 
@@ -149,18 +149,18 @@ void Map::update(View newView) {
 		//             cout << counter << "Counter" << endl;
 		//               if(counter == 0 ){
 //tmpObst.push_back(Obst[i]);  // Add it to the updated map
-		// If an old Obstacle isn't concealing nor concealed....
-		//add all obstacles from new view     // Add the new Obstacles
+		// If an old Surface isn't concealing nor concealed....
+		//add all surfaces from new view     // Add the new Surfaces
 
 		//           }
 		//          }
 
 // both new and old
-//for(unsigned int i=0; i < Osize1; i++)           // For every obstacle of the map
+//for(unsigned int i=0; i < Osize1; i++)           // For every surface of the map
 
 //{tmpObst.push_back(Obst[i]); 
 //}
-//           for(unsigned int j=0; j<newView.getObsts().size(); j++)         // For each obstacle of the new View
+//           for(unsigned int j=0; j<newView.getObsts().size(); j++)         // For each surface of the new View
 
 		//          {
 
@@ -171,14 +171,14 @@ void Map::update(View newView) {
 		Obst.clear();
 		Obst = tmpObst;
 		// replace the map by the updated one
-		cout << tmpObst.size() << " Obstacles in the new map" << endl;
+		cout << tmpObst.size() << " Surfaces in the new map" << endl;
 		tmpObst.clear();
 
 	}
 
 }
 
-bool Map::isBehind(Obstacle Old, Obstacle New, cv::Point3f rbtPos) {
+bool Map::isBehind(Surface Old, Surface New, cv::Point3f rbtPos) {
 	bool ret = false;
 
 	// Translate to compare as same view
@@ -267,7 +267,7 @@ void Map::display() {
 	drawing.setTo(cv::Scalar(255, 255, 255));
 	cv::Point2f P11, P21, P1, P2;
 	cv::Point2f O(0, 0);
-	Obstacle curObst1;
+	Surface curObst1;
 
 	// Draw robot positions
 	for (unsigned int i = 0; i < rbtPos.size(); i++) {
@@ -280,9 +280,9 @@ void Map::display() {
 		cv::line(drawing, rbt0, rbt3, cv::Scalar(0, 0, 0), 3, 8, 0);
 	}
 
-	// Draw Obstacles Surfaces
+	// Draw Surfaces Surfaces
 
-//cout << Obst.size() << " Obstacles drawn in new map" << endl;
+//cout << Obst.size() << " Surfaces drawn in new map" << endl;
 	for (unsigned int i = 0; i < Obst.size(); i++) {
 		// Adapt the point to the openCV Mat drawing
 		P1 = cv::Point2f(rbtPos[0].x + Obst[i].getP1().x,
@@ -298,7 +298,7 @@ void Map::display() {
 	//  {
 	// curObst1 = Obst[i];                  // Transform the coordinates to have the right frame of reference
 
-	//    if(curObst1.getPoints().size() > 4 ) // If there is enough points in 1 obstacle...
+	//    if(curObst1.getPoints().size() > 4 ) // If there is enough points in 1 surface...
 	//   {
 	//            curObst1.setSurface();                                                     // Construct a line with the points
 	// Adapt the point to the openCV Mat drawing
