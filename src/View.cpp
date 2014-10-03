@@ -60,10 +60,9 @@ void View::setView(TriclopsContext triclops, TriclopsImage16 depthImage,
 	char filename[50];
 	sprintf(filename, "%s%d%s", "../outputs/color/color-", Id, ".ppm");
 	cv::Mat mat = cv::imread(filename);
-	sprintf(filename, "%s%d%s", "../outputs/color/marked-color-", Id, ".png");
+	sprintf(filename, "%s%d%s", "../outputs/color/colorarea-", Id, ".png");
 	markAndSave(mat, filename);
 	matToColorMatrix(mat, this->colors);
-	writeColors(this->colors, "../outputs/color/read-colors.png");
 
 	for (int boundX = 0; boundX < DISPARITY_WIDTH - step; boundX += step) { //For each slice of the image
 		count++;
@@ -322,35 +321,32 @@ void View::matToColorMatrix(cv::Mat img,
 }
 
 void View::markAndSave(cv::Mat mat, const char * filename) {
-	cv::line(mat, cv::Point2f(0, DISPARITY_HEIGHT / 2),
-			cv::Point2f(DISPARITY_WIDTH, DISPARITY_HEIGHT / 2),
-			cv::Scalar(255, 255, 0), 2, 8, 0);
-	cv::line(mat, cv::Point2f(0, DISPARITY_HEIGHT / 2 + 15),
-			cv::Point2f(DISPARITY_WIDTH, DISPARITY_HEIGHT / 2 + 15),
-			cv::Scalar(255, 255, 0), 2, 8, 0);
-	imwrite(filename, mat);
+	// crop
+	cv::Rect bounds(0, boundY, DISPARITY_WIDTH, boundH);
+	cv::Mat boundedMat = mat(bounds);
+	// draw lines
+	cv::line(boundedMat, cv::Point2f(0, boundY),
+			cv::Point2f(DISPARITY_WIDTH, boundY), cv::Scalar(255, 255, 0), 2);
+	cv::line(boundedMat, cv::Point2f(0, boundY + boundH),
+			cv::Point2f(DISPARITY_WIDTH, boundY + boundH),
+			cv::Scalar(255, 255, 0), 2);
+	// save
+	imwrite(filename, boundedMat);
 }
 
 void View::saveAreaColors(std::vector<Color> areaColors,
 		const char * filename) {
-	cv::Mat mat = cv::Mat::zeros(cv::Size(sizeX, sizeY), CV_8UC3);
+	cv::Mat mat = cv::Mat::zeros(cv::Size(DISPARITY_WIDTH, boundH), CV_8UC3);
 	mat.setTo(cv::Scalar(255, 255, 255));
-
-	// draw boundaries
-	cv::line(mat, cv::Point2f(0, DISPARITY_HEIGHT / 2),
-			cv::Point2f(DISPARITY_WIDTH, DISPARITY_HEIGHT / 2),
-			cv::Scalar(255, 255, 255), 2, 8, 0);
-	cv::line(mat, cv::Point2f(0, DISPARITY_HEIGHT / 2 + 15),
-			cv::Point2f(DISPARITY_WIDTH, DISPARITY_HEIGHT / 2 + 15),
-			cv::Scalar(255, 255, 255), 2, 8, 0);
 
 	// Draw the area colors
 	int boundX = 0;
 	for (std::vector<Color>::iterator colorptr = areaColors.begin();
 			colorptr != areaColors.end(); ++colorptr) {
-		cv::Rect rect(boundX, boundY, boundW, boundH);
+		cv::Rect rect(boundX, 0, boundW, boundH);
 		cv::rectangle(mat, rect,
-				cv::Scalar(colorptr->red, colorptr->green, colorptr->blue));
+				cv::Scalar(colorptr->red, colorptr->green, colorptr->blue),
+				CV_FILLED);
 		boundX += step;
 	}
 
@@ -358,36 +354,5 @@ void View::saveAreaColors(std::vector<Color> areaColors,
 	imwrite(filename, mat);
 
 	printf("Saved area colors\n");
-}
-
-/**
- * faulty atm.
- */
-void View::writeColors(Color colors[COLOR_IMAGE_WIDTH][COLOR_IMAGE_HEIGHT],
-		const char * filename) {
-	int width = COLOR_IMAGE_WIDTH, height = COLOR_IMAGE_HEIGHT;
-	int step = 3;
-	int size = width * height * step;
-	unsigned char data[size];
-	for (int x = 0; x < width; x++) {
-		for (int y = 0; y < height; y++) {
-			data[x + y * step * width + 0] = colors[x][y].blue;
-			data[x + y * step * width + 1] = colors[x][y].green;
-			data[x + y * step * width + 2] = colors[x][y].red;
-		}
-	}
-	cv::Mat mat = cv::Mat(height, width, CV_8UC3, *data);
-	imwrite(filename, mat);
-//	printf("wrote %d x %d image with %d steps\n", mat.cols, mat.rows, mat.step[1]);
-
-// text output of pixels
-	FILE * f2 = fopen("../outputs/color/read-colors.txt", "wb");
-	for (int i = 0; i < width; i++) {
-		for (int j = 0; j < height; j++) {
-			fprintf(f2, "(%d|%d) r%d g%d b%d\n", i, j, colors[i][j].red,
-					colors[i][j].green, colors[i][j].blue);
-		}
-	}
-	fclose(f2);
 }
 

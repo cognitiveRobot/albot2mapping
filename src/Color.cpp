@@ -27,7 +27,7 @@ int Color::getRGB565() {
 
 void Color::normalize(float rgbNormalized[3]) {
 	rgbNormalized[0] = (float) red / 255;
-	rgbNormalized[2] = (float) green / 255;
+	rgbNormalized[1] = (float) green / 255;
 	rgbNormalized[2] = (float) blue / 255;
 }
 
@@ -53,18 +53,29 @@ Color Color::calculateAverageColor(std::vector<Color> colors) {
 }
 
 Color Color::mix(Color other) {
-	float cmyk1[4];
-	this->toCMYK(cmyk1);
+	/* mix with RGB */
+	return Color((this->red + other.red) / 2, (this->green + other.green) / 2,
+			(this->blue + other.blue) / 2);
 
-	float cmyk2[4];
-	other.toCMYK(cmyk2);
-
-	// Mixing colors is as simple as adding according to http://stackoverflow.com/a/10142804/2225200
-	float cmykMix[] = { cmyk1[0] + cmyk2[0], cmyk1[1] + cmyk2[1], cmyk1[2]
-			+ cmyk2[2], cmyk1[3] + cmyk2[3] };
-	Color::validateCMYK(cmykMix);
-
-	return Color::fromCMYK(cmykMix[0], cmykMix[1], cmykMix[2], cmykMix[3]);
+	/* mix with CMYK - gives same result as RGB anyways */
+//	float cmyk1[4];
+//	this->toCMYK(cmyk1);
+//
+//	float cmyk2[4];
+//	other.toCMYK(cmyk2);
+//
+//	// Mixing colors is as simple as adding according to http://stackoverflow.com/a/10142804/2225200
+////	printf("Mixing %.2f|%.2f|%.2f|%.2f with %.2f|%.2f|%.2f|%.2f\n", cmyk1[0],
+////			cmyk1[1], cmyk1[2], cmyk1[3], cmyk2[0], cmyk2[1], cmyk2[2],
+////			cmyk2[3]);
+//
+////	float cmykMix[] = { cmyk1[0] + cmyk2[0], cmyk1[1] + cmyk2[1], cmyk1[2]
+////			+ cmyk2[2], cmyk1[3] + cmyk2[3] }; // gives percentages > 100
+//	float cmykMix[] = { (cmyk1[0] + cmyk2[0]) / 2, (cmyk1[1] + cmyk2[1]) / 2,
+//			(cmyk1[2] + cmyk2[2]) / 2, (cmyk1[3] + cmyk2[3]) / 2 };
+//	Color::validateCMYK(cmykMix);
+//
+//	return Color::fromCMYK(cmykMix[0], cmykMix[1], cmykMix[2], cmykMix[3]);
 }
 
 /* Conversions */
