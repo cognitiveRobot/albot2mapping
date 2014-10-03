@@ -2,6 +2,7 @@
 #include <cstdlib> // rand
 #include <algorithm> // std::min
 #include <stdexcept> // exception
+#include <stdio.h> // sprintf
 Color::Color() {
 	this->setRGB(0, 0, 0);
 }
@@ -10,9 +11,14 @@ Color::Color(int red, int green, int blue) {
 	this->setRGB(red, green, blue);
 }
 void Color::setRGB(int red, int green, int blue) {
-//	if (red < 0 || red > 255 || green < 0 || green > 255 || blue < 0
-//			|| blue > 255)
-//		throw std::invalid_argument("red, green or blue are either < 0 or > 255");
+	if (red < 0 || red > 255 || green < 0 || green > 255 || blue < 0
+			|| blue > 255) {
+		char message[200];
+		sprintf(message,
+				"RGB %d|%d|%d is not in the range [0, 255]",
+				red, green, blue);
+		throw std::invalid_argument(message);
+	}
 	this->red = red;
 	this->green = green;
 	this->blue = blue;
@@ -33,7 +39,6 @@ void Color::normalize(float rgbNormalized[3]) {
 
 /* Averaging */
 #include <stdlib.h>
-#include <stdio.h>
 
 Color Color::calculateAverageColor(std::vector<Color> colors) {
 	if (colors.size() == 0)
@@ -131,7 +136,7 @@ void Color::validateCMYK(float cmyk[4]) {
 			|| cmyk[2] > 1.0 || cmyk[2] < 0 || cmyk[3] > 1.0 || cmyk[3] < 0) {
 		char message[200];
 		sprintf(message,
-				"CMYK %.2f|%.2f|%.2f|%.2f is not in the range [0.0 - 1.0]",
+				"CMYK %.2f|%.2f|%.2f|%.2f is not in the range [0.0, 1.0]",
 				cmyk[0], cmyk[1], cmyk[2], cmyk[3]);
 		throw std::invalid_argument(message);
 	}

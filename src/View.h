@@ -43,18 +43,18 @@ using namespace std;
 class View {
 
 private:
-	static const unsigned MINIMUM_OBSTABLE_POINTS;
+	static const unsigned MINIMUM_SURFACE_POINTS;
 	static const double DEPTH_DIFF_TRESHOLD;
 	static const int COLOR_DIFF_TRESHOLD;
+	static const int step;
 
 	int Id;
 	int boundY, boundW, boundH; // boundX declared locally since it changes
 	cv::Point3f robot;
-	vector<Surface> Obst;
+	vector<Surface> surfaces;
 	Color colors[COLOR_IMAGE_WIDTH][COLOR_IMAGE_HEIGHT];
 
 	/*Display*/
-	int step;
 	int sizeX;
 	int sizeY;
 
@@ -79,12 +79,12 @@ public:
 	Color getAverageColor(int boundX, int boundY, int boundW, int boundH);
 	Color calculateAverageColor(std::vector<Color> colors);
 	float distance(cv::Point2f A, cv::Point2f B); // Get the distance between 2 points of a snapshot to know if they belong to the same surface
-	void addObst(Surface newObst);
+	void addSurface(Surface surface);
 	void setSurfaces();                 // Set the surface for each Surface
 	void rotate();            // Rotate each Surface according to angle robot.z
 	void translate();  // Translate each Surface according to robot.x & robot.y
 	void cleanView();                   // Delete irrelevant Surfaces
-	vector<Surface> getObsts();
+	vector<Surface> getSurfaces();
 	void clearView();
 
 	void saveSurfaces(vector<Surface> surfaces, char * filename);

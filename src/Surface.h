@@ -22,14 +22,15 @@
 
 class Surface {
 private:
+	static int idCounter; // unique id counter, change after every object creation
 	int id; // unique identification of this object
+
 	std::vector<cv::Point2f> points;    // Points constituting the surfaces
 	cv::Point2f P1, P2;             // Ends of the surface's surface
-	static int idCounter; // unique id counter, change after every object creation
+	std::vector<Color> colors; // Color areas with a distance of View::step
+	Color averageColor;
 
 public:
-	Color color;
-
 	Surface();
 	~Surface();
 
@@ -48,7 +49,8 @@ public:
 
 	void setSurface(); // Surface : average line of points. It is given by it's 2 ends P1 & P2
 
-	void setColor(Color color);
+	void setColors(std::vector<Color> colors);
+	Color getAverageColor();
 };
 
 #endif /* SURFACE_H */
