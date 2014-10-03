@@ -10,10 +10,10 @@ Color::Color(int red, int green, int blue) {
 	this->setRGB(red, green, blue);
 }
 void Color::setRGB(int red, int green, int blue) {
-	if (red < 0 || red > 255 || green < 0 || green > 255 || blue < 0
-			|| blue > 255)
+//	if (red < 0 || red > 255 || green < 0 || green > 255 || blue < 0
+//			|| blue > 255)
 //		throw std::invalid_argument("red, green or blue are either < 0 or > 255");
-		this->red = red;
+	this->red = red;
 	this->green = green;
 	this->blue = blue;
 }
@@ -23,6 +23,12 @@ int Color::getRGB() {
 }
 int Color::getRGB565() {
 	return Color::rgb565FromTriplet(this->red, this->green, this->blue);
+}
+
+void Color::normalize(float rgbNormalized[3]) {
+	rgbNormalized[0] = (float) red / 255;
+	rgbNormalized[2] = (float) green / 255;
+	rgbNormalized[2] = (float) blue / 255;
 }
 
 /* Averaging */
@@ -53,9 +59,10 @@ Color Color::mix(Color other) {
 	float cmyk2[4];
 	other.toCMYK(cmyk2);
 
-	// Mixing colors is as simple as adding
+	// Mixing colors is as simple as adding according to http://stackoverflow.com/a/10142804/2225200
 	float cmykMix[] = { cmyk1[0] + cmyk2[0], cmyk1[1] + cmyk2[1], cmyk1[2]
 			+ cmyk2[2], cmyk1[3] + cmyk2[3] };
+	Color::validateCMYK(cmykMix);
 
 	return Color::fromCMYK(cmykMix[0], cmykMix[1], cmykMix[2], cmykMix[3]);
 }
@@ -63,23 +70,28 @@ Color Color::mix(Color other) {
 /* Conversions */
 
 void Color::toCMYK(float cmyk[]) {
-	float k = std::min(255 - red, std::min(255 - green, 255 - blue));
-	float c = 255 * (255 - red - k) / (255 - k);
-	float m = 255 * (255 - green - k) / (255 - k);
-	float y = 255 * (255 - blue - k) / (255 - k);
+	float rgbNormalized[3];
+	normalize(rgbNormalized);
+	float redN = rgbNormalized[0], greenN = rgbNormalized[1], blueN =
+			rgbNormalized[2];
 
-	cmyk[0] = c;
-	cmyk[1] = m;
-	cmyk[2] = y;
-	cmyk[3] = k;
+	float black = std::min(1 - redN, std::min(1 - greenN, 1 - blueN));
+	float cyan = (1 - redN - black) / (1 - black);
+	float magenta = (1 - greenN - black) / (1 - black);
+	float yellow = (1 - blueN - black) / (1 - black);
 
-//	printf("r%d g%d b%d  to  c%f m%f y%f k%f\n", red, green, blue, c, m, y, k);
+	cmyk[0] = cyan;
+	cmyk[1] = magenta;
+	cmyk[2] = yellow;
+	cmyk[3] = black;
 }
 
 Color Color::fromCMYK(float c, float m, float y, float k) {
-	int red = -((c * (255 - k)) / 255 + k - 255);
-	int green = -((m * (255 - k)) / 255 + k - 255);
-	int blue = -((y * (255 - k)) / 255 + k - 255);
+	float redNormalized = 1.0 - (c * (1.0 - k) + k);
+	float greenNormalized = 1.0 - (m * (1.0 - k) + k);
+	float blueNormalized = 1.0 - (y * (1.0 - k) + k);
+	int red = redNormalized * 255, green = greenNormalized * 255, blue =
+			blueNormalized * 255;
 	return Color(red, green, blue);
 
 //	printf("c%f m%f y%f k%f  to  r%d g%d b%d\n", c, m, y, k, rgb[0], rgb[1], rgb[2]);
@@ -101,4 +113,15 @@ Color Color::random() {
 	int green = std::rand() % 255;
 	int blue = std::rand() % 255;
 	return Color(red, green, blue);
+}
+
+void Color::validateCMYK(float cmyk[4]) {
+	if (cmyk[0] > 1.0 || cmyk[0] < 0 || cmyk[1] > 1.0 || cmyk[1] < 0
+			|| cmyk[2] > 1.0 || cmyk[2] < 0 || cmyk[3] > 1.0 || cmyk[3] < 0) {
+		char message[200];
+		sprintf(message,
+				"CMYK %.2f|%.2f|%.2f|%.2f is not in the range [0.0 - 1.0]",
+				cmyk[0], cmyk[1], cmyk[2], cmyk[3]);
+		throw std::invalid_argument(message);
+	}
 }
