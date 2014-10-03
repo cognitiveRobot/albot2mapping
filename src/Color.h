@@ -21,7 +21,8 @@ public:
 	Color mix(Color other);
 	static Color calculateAverageColor(std::vector<Color> colors);
 
-	static void toRGB(float c, float m, float y, float k, int *rgb);
+	static Color fromCMYK(float c, float m, float y, float k);
+	static Color fromCMYK(float cmyk[4]);
 	static int rgb565FromTriplet(uint8_t red, uint8_t green, uint8_t blue);
 	static Color random();
 };

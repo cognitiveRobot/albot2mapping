@@ -2,7 +2,6 @@
 #include <cstdlib> // rand
 #include <algorithm> // std::min
 #include <stdexcept> // exception
-
 Color::Color() {
 	this->setRGB(0, 0, 0);
 }
@@ -11,9 +10,10 @@ Color::Color(int red, int green, int blue) {
 	this->setRGB(red, green, blue);
 }
 void Color::setRGB(int red, int green, int blue) {
-	if(red < 0 || red > 255 || green < 0 || green > 255 || blue < 0 || blue > 255)
+	if (red < 0 || red > 255 || green < 0 || green > 255 || blue < 0
+			|| blue > 255)
 //		throw std::invalid_argument("red, green or blue are either < 0 or > 255");
-	this->red = red;
+		this->red = red;
 	this->green = green;
 	this->blue = blue;
 }
@@ -34,12 +34,12 @@ Color Color::calculateAverageColor(std::vector<Color> colors) {
 		return Color(0x0, 0x0, 0x0);
 
 	Color average;
-	for (std::vector<Color>::iterator it = colors.begin(); it != colors.end();
-			++it) {
-		if (it == colors.begin()) {
-			average = *it;
+	for (std::vector<Color>::iterator colorptr = colors.begin();
+			colorptr != colors.end(); ++colorptr) {
+		if (colorptr == colors.begin()) {
+			average = *colorptr;
 		} else {
-			average = average.mix(*it);
+			average = average.mix(*colorptr);
 		}
 	}
 //	printf("Average of %d colors: r%d g%d b%d\n", colors.size(), average.red, average.green, average.blue);
@@ -57,9 +57,7 @@ Color Color::mix(Color other) {
 	float cmykMix[] = { cmyk1[0] + cmyk2[0], cmyk1[1] + cmyk2[1], cmyk1[2]
 			+ cmyk2[2], cmyk1[3] + cmyk2[3] };
 
-	int rgb[3];
-	toRGB(cmykMix[0], cmykMix[1], cmykMix[2], cmykMix[3], rgb);
-	return Color(rgb[0], rgb[1], rgb[2]);
+	return Color::fromCMYK(cmykMix[0], cmykMix[1], cmykMix[2], cmykMix[3]);
 }
 
 /* Conversions */
@@ -75,13 +73,20 @@ void Color::toCMYK(float cmyk[]) {
 	cmyk[2] = y;
 	cmyk[3] = k;
 
-//	printf("r%d g%d b%d to c%f m%f y%f k%f\n", red, green, blue, c, m, y, k);
+//	printf("r%d g%d b%d  to  c%f m%f y%f k%f\n", red, green, blue, c, m, y, k);
 }
 
-void Color::toRGB(float c, float m, float y, float k, int rgb[]) {
-	rgb[0] = -((c * (255 - k)) / 255 + k - 255);
-	rgb[1] = -((m * (255 - k)) / 255 + k - 255);
-	rgb[2] = -((y * (255 - k)) / 255 + k - 255);
+Color Color::fromCMYK(float c, float m, float y, float k) {
+	int red = -((c * (255 - k)) / 255 + k - 255);
+	int green = -((m * (255 - k)) / 255 + k - 255);
+	int blue = -((y * (255 - k)) / 255 + k - 255);
+	return Color(red, green, blue);
+
+//	printf("c%f m%f y%f k%f  to  r%d g%d b%d\n", c, m, y, k, rgb[0], rgb[1], rgb[2]);
+}
+
+Color Color::fromCMYK(float cmyk[4]) {
+	return Color::fromCMYK(cmyk[0], cmyk[1], cmyk[2], cmyk[3]);
 }
 
 int Color::rgb565FromTriplet(uint8_t red, uint8_t green, uint8_t blue) {

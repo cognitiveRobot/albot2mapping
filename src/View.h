@@ -48,17 +48,18 @@ private:
 	static const int COLOR_DIFF_TRESHOLD;
 
 	int Id;
+	int boundY, boundW, boundH; // boundX declared locally since it changes
 	cv::Point3f robot;
 	vector<Obstacle> Obst;
 	Color colors[COLOR_IMAGE_WIDTH][COLOR_IMAGE_HEIGHT];
 
 	/*Display*/
 	int step;
-	cv::Mat drawing;
 	int sizeX;
 	int sizeY;
 
 	void readColors(char* filename);
+	void saveAreaColors(std::vector<Color> areaColors, const char * filename);
 	void matToColorMatrix(cv::Mat mat,
 			Color colors[COLOR_IMAGE_WIDTH][COLOR_IMAGE_HEIGHT]);
 	void markAndSave(cv::Mat mat, const char * filename);

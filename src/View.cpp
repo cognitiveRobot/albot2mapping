@@ -8,7 +8,12 @@ const int View::COLOR_DIFF_TRESHOLD = 100;
 
 View::View() {
 	Id = 0;
+
 	step = DISPARITY_WIDTH / 100;
+	boundW = step;
+	boundH = 25;
+	boundY = DISPARITY_HEIGHT / 2;
+
 	sizeX = 500;
 	sizeY = 500;
 }
@@ -46,25 +51,21 @@ void View::setView(TriclopsContext triclops, TriclopsImage16 depthImage,
 	int nbPoints = 0, n = 0;
 	int disparity;
 	float x, y, z, leftX, rightX;
-	int boundX, boundY, boundW, boundH;
-	boundW = step;
-	boundH = 25;
-	boundY = DISPARITY_HEIGHT / 2;
 	int count = 0;
-	Color prevColor;
+	Color prevAreaColor;
+	std::vector<Color> areaColors;
 	std::vector<Color> obstColors;
 
 	// read colors
-	char filenameColor[50];
-	sprintf(filenameColor, "%s%d%s", "../outputs/color/color-", Id, ".ppm");
-	cv::Mat mat = cv::imread(filenameColor);
-	sprintf(filenameColor, "%s%d%s", "../outputs/color/marked-color-", Id,
-			".png");
-	markAndSave(mat, filenameColor);
+	char filename[50];
+	sprintf(filename, "%s%d%s", "../outputs/color/color-", Id, ".ppm");
+	cv::Mat mat = cv::imread(filename);
+	sprintf(filename, "%s%d%s", "../outputs/color/marked-color-", Id, ".png");
+	markAndSave(mat, filename);
 	matToColorMatrix(mat, this->colors);
 	writeColors(this->colors, "../outputs/color/read-colors.png");
 
-	for (boundX = 0; boundX < DISPARITY_WIDTH - step; boundX += step) { //For each slice of the image
+	for (int boundX = 0; boundX < DISPARITY_WIDTH - step; boundX += step) { //For each slice of the image
 		count++;
 		avgZ = 0;
 		n = 0;
@@ -98,46 +99,50 @@ void View::setView(TriclopsContext triclops, TriclopsImage16 depthImage,
 		}
 		avgZ /= nbPoints;
 
-		Color currColor = getAverageColor(boundX, boundY, boundW, boundH);
-		printf("Avg color for (x=%d, w=%d, y=%d, h=%d): r%d g%d b%d\n", boundX,
-				boundY, boundW, boundH, currColor.red, currColor.green,
-				currColor.blue);
+		Color areaColor = getAverageColor(boundX, boundY, boundW, boundH);
+		areaColors.push_back(areaColor);
+//		printf("Avg color for (x=%d, w=%d, y=%d, h=%d): r%d g%d b%d\n", boundX,
+//				boundY, boundW, boundH, areaColor.red, areaColor.green,
+//				areaColor.blue);
 
 		/* Set the new points for the View */
 		cv::Point2f newPoint(boundX + 1 / 2, avgZ);
 
 		int totalColorDiff = 0;
 		if (boundX > 0) { // not the first slice
-			int redDiff = abs(currColor.red - prevColor.red);
-			int greenDiff = abs(currColor.green - prevColor.green);
-			int blueDiff = abs(currColor.blue - prevColor.blue);
+			int redDiff = abs(areaColor.red - prevAreaColor.red);
+			int greenDiff = abs(areaColor.green - prevAreaColor.green);
+			int blueDiff = abs(areaColor.blue - prevAreaColor.blue);
 			totalColorDiff = redDiff + greenDiff + blueDiff;
 		}
 		if (abs(avgZ - preAvgZ) < DEPTH_DIFF_TRESHOLD // Close enough to previous depth value
 		&& totalColorDiff < COLOR_DIFF_TRESHOLD) { // and close enough to previous color
 			tmpObst.addPoint(newPoint); // Consider it belongs to same Obstacle
-			obstColors.push_back(currColor);
+			obstColors.push_back(areaColor);
 		} else { // new obstacle
 			cv::Point2f Center((float) DISPARITY_WIDTH / 2, 0.15);
 			tmpObst.coordTransf(Center, sizeX / DISPARITY_WIDTH, 100); // Adapt the coordinates
 			Color obstColor = Color::calculateAverageColor(obstColors);
-			printf("Obstacle color: r%d g%d b%d\n", obstColor.red,
-					obstColor.green, obstColor.blue);
+//			printf("Obstacle color: r%d g%d b%d\n", obstColor.red,
+//					obstColor.green, obstColor.blue);
 			tmpObst.setColor(obstColor);
 			addObst(tmpObst); 				// Add the Obstacle to the View
 			tmpObst.clearPoints(); 			// Clear the temporary Obstacle
 			obstColors.clear(); 			// clear colors
 			tmpObst.addPoint(newPoint);
-			obstColors.push_back(currColor);
+			obstColors.push_back(areaColor);
 		}
 		preAvgZ = avgZ;
-		prevColor = currColor;
+		prevAreaColor = areaColor;
 	}
 
+	// save area colors
+	sprintf(filename, "%s%d%s", "../outputs/color/areacolors-", Id, ".jpg");
+	saveAreaColors(areaColors, filename);
+
 	//save surfaces like laser
-	char sname[50];
-	sprintf(sname, "%s%d", "../outputs/surfaces/surfaces-", Id);
-	saveSurfaces(Obst, sname);
+	sprintf(filename, "%s%d", "../outputs/surfaces/surfaces-", Id);
+	saveSurfaces(Obst, filename);
 
 	// Update the position of the robot for this new view
 	robot.x = robotPos.x;
@@ -160,7 +165,6 @@ Color View::getAverageColor(int boundX, int boundY, int boundW, int boundH) {
 //			avgColor.green, avgColor.blue);
 	return avgColor;
 }
-
 
 void View::setSurfaces() {
 	for (unsigned int i = 0; i < Obst.size(); i++) { // For each obstacle
@@ -211,7 +215,7 @@ void View::clearView() {
 
 cv::Mat View::display() {
 	vector<Obstacle> tmp1Obst;  // Temporary obstacles vector to update Obst
-	drawing = cv::Mat::zeros(cv::Size(sizeX, sizeY), CV_8UC3);
+	cv::Mat drawing = cv::Mat::zeros(cv::Size(sizeX, sizeY), CV_8UC3);
 	drawing.setTo(cv::Scalar(255, 255, 255));
 	cv::Point2f P;
 	Obstacle curObst;
@@ -253,9 +257,7 @@ cv::Mat View::display() {
 							curObst.color.blue), 3, 8, 0); // Draw that line
 			numline++;
 
-			//tmp1Obst.push_back(Obst[i]);
 		}
-		//curObst = tmp1Obst[i];
 
 		// Draw the points
 		//cout << curObst.getPoints().size() << "Obstacles points in this view" << endl;
@@ -267,8 +269,6 @@ cv::Mat View::display() {
 
 	}
 	cout << numline << " Number of lines in this view" << endl;
-	//Obst.clear();
-	//Obst = tmp1Obst;
 
 	// Display the view in a file
 	char filename[50];
@@ -321,6 +321,45 @@ void View::matToColorMatrix(cv::Mat img,
 	}
 }
 
+void View::markAndSave(cv::Mat mat, const char * filename) {
+	cv::line(mat, cv::Point2f(0, DISPARITY_HEIGHT / 2),
+			cv::Point2f(DISPARITY_WIDTH, DISPARITY_HEIGHT / 2),
+			cv::Scalar(255, 255, 0), 2, 8, 0);
+	cv::line(mat, cv::Point2f(0, DISPARITY_HEIGHT / 2 + 15),
+			cv::Point2f(DISPARITY_WIDTH, DISPARITY_HEIGHT / 2 + 15),
+			cv::Scalar(255, 255, 0), 2, 8, 0);
+	imwrite(filename, mat);
+}
+
+void View::saveAreaColors(std::vector<Color> areaColors,
+		const char * filename) {
+	cv::Mat mat = cv::Mat::zeros(cv::Size(sizeX, sizeY), CV_8UC3);
+	mat.setTo(cv::Scalar(255, 255, 255));
+
+	// draw boundaries
+	cv::line(mat, cv::Point2f(0, DISPARITY_HEIGHT / 2),
+			cv::Point2f(DISPARITY_WIDTH, DISPARITY_HEIGHT / 2),
+			cv::Scalar(255, 255, 255), 2, 8, 0);
+	cv::line(mat, cv::Point2f(0, DISPARITY_HEIGHT / 2 + 15),
+			cv::Point2f(DISPARITY_WIDTH, DISPARITY_HEIGHT / 2 + 15),
+			cv::Scalar(255, 255, 255), 2, 8, 0);
+
+	// Draw the area colors
+	int boundX = 0;
+	for (std::vector<Color>::iterator colorptr = areaColors.begin();
+			colorptr != areaColors.end(); ++colorptr) {
+		cv::Rect rect(boundX, boundY, boundW, boundH);
+		cv::rectangle(mat, rect,
+				cv::Scalar(colorptr->red, colorptr->green, colorptr->blue));
+		boundX += step;
+	}
+
+	// Display the view in a file
+	imwrite(filename, mat);
+
+	printf("Saved area colors\n");
+}
+
 /**
  * faulty atm.
  */
@@ -350,15 +389,5 @@ void View::writeColors(Color colors[COLOR_IMAGE_WIDTH][COLOR_IMAGE_HEIGHT],
 		}
 	}
 	fclose(f2);
-}
-
-void View::markAndSave(cv::Mat mat, const char * filename) {
-	cv::line(mat, cv::Point2f(0, DISPARITY_HEIGHT / 2),
-			cv::Point2f(DISPARITY_WIDTH, DISPARITY_HEIGHT / 2),
-			cv::Scalar(255, 255, 0), 2, 8, 0);
-	cv::line(mat, cv::Point2f(0, DISPARITY_HEIGHT / 2 + 15),
-			cv::Point2f(DISPARITY_WIDTH, DISPARITY_HEIGHT / 2 + 15),
-			cv::Scalar(255, 255, 0), 2, 8, 0);
-	imwrite(filename, mat);
 }
 

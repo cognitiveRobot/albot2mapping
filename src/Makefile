@@ -72,13 +72,15 @@ SRC = Robot.cpp \
 	Camera.cpp \
 	Map.cpp \
 	Obstacle.cpp View.cpp \
-	ImageProcessing.cpp Color.cpp \
-	main.cpp 
+	ImageProcessing.cpp Color.cpp
+	
+SRC_MAIN = $(SRC) main.cpp
 
+SRC_TEST_COLOR = $(SRC) test-color.cpp
 
 # executable name and contents
 EXEC		= guideAndMap
-
+EXEC_TEST_COLOR = test-color
 
 
 
@@ -89,7 +91,10 @@ all: $(EXEC)
 #to reset the camera
 #	../../../libdc1394-2.0.2/examples/dc1394_reset_bus
 
-$(EXEC): $(SRC:%.cpp=../obj/%.o)
+$(EXEC): $(SRC_MAIN:%.cpp=../obj/%.o)
+	$(CXX) $(LDFLAGS) -o $@ $^ $(LIBS)
+	
+$(EXEC_TEST_COLOR): $(SRC_TEST_COLOR:%.cpp=../obj/%.o)
 	$(CXX) $(LDFLAGS) -o $@ $^ $(LIBS)
 
 
@@ -111,7 +116,7 @@ cleanmaps:
 
 #####################################################################
 #
-# $Author: Md Zulfikar Hossain (source: Guillaume Diallo-Mulliez)
+# $Authors: Md Zulfikar Hossain and Martin Schrimpf (source: Guillaume Diallo-Mulliez)
 # $Date: 28/08/2014
 #
 #####################################################################
