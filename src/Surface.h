@@ -25,6 +25,8 @@ private:
 	static int idCounter; // unique id counter, change after every object creation
 	int id; // unique identification of this object
 
+	static int getUniqueId();
+
 	std::vector<cv::Point2f> points;    // Points constituting the surfaces
 	cv::Point2f P1, P2;             // Ends of the surface's surface
 	std::vector<Color> colors; // Color areas with a width of View::step
@@ -34,13 +36,14 @@ public:
 	Surface();
 	~Surface();
 
-	static int getUniqueId();
+	int getId();
 
 	void addPoint(cv::Point2f newPoint);
 	void coordTransf(cv::Point2f newCenter, float hX, float hY); // Transforming coordinates of the points into the new frame or reference centered on newCenter and with the axes being Xax*x and Yax*y
 	void rotate(cv::Point3f Center); // Rotate P1 & P2 according to the angle Center.z
 	std::vector<cv::Point2f> getPoints();
-	void clearPoints();
+	/** internally re-creates this surface, resetting the points and assigning a new id */
+	void reset();
 
 	void setP1(float X, float Y);
 	void setP2(float X, float Y);
@@ -50,6 +53,7 @@ public:
 	void setSurface(); // Surface : average line of points. It is given by it's 2 ends P1 & P2
 
 	void setColors(std::vector<Color> colors);
+	std::vector<Color> getColors();
 	Color getAverageColor();
 };
 

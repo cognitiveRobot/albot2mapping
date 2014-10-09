@@ -71,6 +71,7 @@ CXX = g++-4.4
 SRC = Robot.cpp \
 	Camera.cpp \
 	Map.cpp \
+	SameObjectFinderColor.cpp \
 	Surface.cpp View.cpp \
 	ImageProcessing.cpp Color.cpp
 	

@@ -57,6 +57,8 @@ void Map::rotate(cv::Point2f* target, cv::Point2f Center, float angle) {
 }
 
 void Map::update(View newView) {
+	currentView = newView;
+
 	// Robot
 	cv::Point3f tmpPos;
 	cv::Point3f O(sizeX / 2, sizeY / 2, 0);
@@ -318,4 +320,8 @@ void Map::display() {
 	cv::imwrite(filename, drawing);
 
 	M++;
+}
+
+View Map::getView() {
+	return currentView;
 }

@@ -2,6 +2,8 @@
 
 /* Functions definitions for Surfaces class */
 
+int Surface::idCounter = 0;
+
 Surface::Surface() {
 	this->id = Surface::getUniqueId();
 }
@@ -9,10 +11,13 @@ Surface::~Surface() {
 
 }
 
-int Surface::idCounter = 0;
+int Surface::getId() {
+	printf("this id %d\n", this->id);
+	return this->id;
+}
 
 int Surface::getUniqueId() {
-	return Surface::idCounter++;
+	return ++Surface::idCounter;
 }
 
 void Surface::addPoint(cv::Point2f newPoint) {
@@ -84,8 +89,9 @@ std::vector<cv::Point2f> Surface::getPoints() {
 	return points;
 }
 
-void Surface::clearPoints() {
+void Surface::reset() {
 	points.clear();
+	this->id = Surface::getUniqueId();
 }
 
 void Surface::setP1(float X, float Y) {
@@ -145,4 +151,8 @@ void Surface::setColors(std::vector<Color> colors) {
 
 Color Surface::getAverageColor() {
 	return this->averageColor;
+}
+
+std::vector<Color> Surface::getColors() {
+	return colors;
 }

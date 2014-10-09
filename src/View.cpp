@@ -45,7 +45,7 @@ void View::setView(TriclopsContext triclops, TriclopsImage16 depthImage,
 	cout << endl << "Getting view from image" << endl;
 
 	cv::RNG rng(time (NULL));
-	Surface tmpSurface = Surface();
+	Surface tmpSurface;
 	double avgZ = 0;
 	double preAvgZ = 0;
 	int nbPoints = 0, n = 0;
@@ -126,7 +126,7 @@ void View::setView(TriclopsContext triclops, TriclopsImage16 depthImage,
 //					surfaceColor.green, surfaceColor.blue);
 			tmpSurface.setColors(surfaceColors);
 			addSurface(tmpSurface); 			// Add the Surface to the View
-			tmpSurface.clearPoints(); 			// Clear the temporary Surface
+			tmpSurface.reset(); 			// Clear the temporary Surface
 			surfaceColors.clear(); 			// clear colors
 			tmpSurface.addPoint(newPoint);
 			surfaceColors.push_back(areaColor);
