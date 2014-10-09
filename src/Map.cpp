@@ -67,25 +67,25 @@ void Map::update(View newView) {
 	int counter;
 	unsigned int Osize, Osize1; // Original size of Obst before adding new Surfaces to the map
 
-	cout << Obst.size() << " Intial Surfaces in the map" << endl;
+	cout << surfaces.size() << " Initial Surfaces in the map" << endl;
 	/* Adapt newView to compare Surfaces to previous ones */
 	newView.setSurfaces();
 	newView.rotate();
 	newView.translate();
 
-	if (Obst.size() == 0) { // If the map is empty, place the robot in initial position and add surfaces
+	if (surfaces.size() == 0) { // If the map is empty, place the robot in initial position and add surfaces
 		// Set robot position on the map and add it to rbtPos
-		cout << Obst.size() << "No Surface in the map" << endl;
+		cout << surfaces.size() << "No Surface in the map" << endl;
 		tmpPos = newView.getRobotPos();
 		coordTransf(&tmpPos, O, (double) 1 / 10, (double) -1 / 10);
 		newView.setRobotPos(tmpPos.x, tmpPos.y, tmpPos.z);
 		rbtPos.push_back(tmpPos);
 
 		// Add the Surfaces to the map
-		Obst = newView.getObsts();
+		surfaces = newView.getSurfaces();
 
 		newView.clearView();
-		cout << Obst.size() << " start Surface in the map" << endl;
+		cout << surfaces.size() << " start Surface in the map" << endl;
 	} else                            // Else compare surfaces
 	{
 
@@ -96,18 +96,18 @@ void Map::update(View newView) {
 		newView.setRobotPos(tmpPos.x, tmpPos.y, tmpPos.z);
 		rbtPos.push_back(tmpPos);
 
-		Osize = Obst.size();
-		Osize1 = Obst.size();
+		Osize = surfaces.size();
+		Osize1 = surfaces.size();
 		//old and then new
-		for (unsigned int j = 0; j < newView.getObsts().size(); j++) { // For each surface of the new View
+		for (unsigned int j = 0; j < newView.getSurfaces().size(); j++) { // For each surface of the new View
 
 			counter = 0;
 
 			for (unsigned int i = 0; i < Osize; i++) { // For every surface of the map
 
-				if (isBehind(Obst[i], newView.getObsts()[j],
+				if (isBehind(surfaces[i], newView.getSurfaces()[j],
 						rbtPos[rbtPos.size()])
-						|| isBehind(newView.getObsts()[j], Obst[i],
+						|| isBehind(newView.getSurfaces()[j], surfaces[i],
 								rbtPos[rbtPos.size()])) // Check if any Surfaces are concealing others
 								{
 					counter++;
@@ -115,13 +115,13 @@ void Map::update(View newView) {
 				}
 				if (j == 0) {
 
-					tmpObst.push_back(Obst[i]);  // Add it to the updated map
+					tmpObst.push_back(surfaces[i]);  // Add it to the updated map
 
 				}
 			}
 
 			if (counter == 0) { // If an old Surface isn't concealing nor concealed....
-				tmpObst.push_back(newView.getObsts()[j]); // add all surfaces from new view     // Add the new Surfaces
+				tmpObst.push_back(newView.getSurfaces()[j]); // add all surfaces from new view     // Add the new Surfaces
 
 			}
 		}
@@ -132,23 +132,23 @@ void Map::update(View newView) {
 //{
 		//     counter=0;
 
-		// for(unsigned int j=0; j<newView.getObsts().size(); j++)         // For each surface of the new View
+		// for(unsigned int j=0; j<newView.getSurfaces().size(); j++)         // For each surface of the new View
 
 		//      {
 
-		//          if(isBehind(Obst[i], newView.getObsts()[j], rbtPos[rbtPos.size()]) || isBehind(newView.getObsts()[j], Obst[i], rbtPos[rbtPos.size()]))     // Check if any Surfaces are concealing others
+		//          if(isBehind(surfaces[i], newView.getSurfaces()[j], rbtPos[rbtPos.size()]) || isBehind(newView.getSurfaces()[j], surfaces[i], rbtPos[rbtPos.size()]))     // Check if any Surfaces are concealing others
 		// {
 		//          counter++;
 
 		//          }
 //if(i == 0 ){ 
-//tmpObst.push_back(newView.getObsts()[j]);
+//surfaces.push_back(newView.getSurfaces()[j]);
 
 		//             }
 		//             }
 		//             cout << counter << "Counter" << endl;
 		//               if(counter == 0 ){
-//tmpObst.push_back(Obst[i]);  // Add it to the updated map
+//tmpObst.push_back(surfaces[i]);  // Add it to the updated map
 		// If an old Surface isn't concealing nor concealed....
 		//add all surfaces from new view     // Add the new Surfaces
 
@@ -158,18 +158,18 @@ void Map::update(View newView) {
 // both new and old
 //for(unsigned int i=0; i < Osize1; i++)           // For every surface of the map
 
-//{tmpObst.push_back(Obst[i]); 
+//{tmpObst.push_back(surfaces[i]);
 //}
-//           for(unsigned int j=0; j<newView.getObsts().size(); j++)         // For each surface of the new View
+//           for(unsigned int j=0; j<newView.getSurfaces().size(); j++)         // For each surface of the new View
 
 		//          {
 
-//tmpObst.push_back(newView.getObsts()[j]);
+//tmpObst.push_back(newView.getSurfaces()[j]);
 
 //                  }  
 
-		Obst.clear();
-		Obst = tmpObst;
+		surfaces.clear();
+		surfaces = tmpObst;
 		// replace the map by the updated one
 		cout << tmpObst.size() << " Surfaces in the new map" << endl;
 		tmpObst.clear();
@@ -282,21 +282,21 @@ void Map::display() {
 
 	// Draw Surfaces Surfaces
 
-//cout << Obst.size() << " Surfaces drawn in new map" << endl;
-	for (unsigned int i = 0; i < Obst.size(); i++) {
+//cout << surfaces.size() << " Surfaces drawn in new map" << endl;
+	for (unsigned int i = 0; i < surfaces.size(); i++) {
 		// Adapt the point to the openCV Mat drawing
-		P1 = cv::Point2f(rbtPos[0].x + Obst[i].getP1().x,
-				rbtPos[0].y - Obst[i].getP1().y);
-		P2 = cv::Point2f(rbtPos[0].x + Obst[i].getP2().x,
-				rbtPos[0].y - Obst[i].getP2().y);
+		P1 = cv::Point2f(rbtPos[0].x + surfaces[i].getP1().x,
+				rbtPos[0].y - surfaces[i].getP1().y);
+		P2 = cv::Point2f(rbtPos[0].x + surfaces[i].getP2().x,
+				rbtPos[0].y - surfaces[i].getP2().y);
 		cv::line(drawing, P1, P2, cv::Scalar(0, 0, 255), 3, 8, 0); // Draw the actual line
 	}
 
 //new codes for consistency  
 //unsigned int numline1 = 0;
-//for (unsigned int i = 0; i<Obst.size(); i++)
+//for (unsigned int i = 0; i<surfaces.size(); i++)
 	//  {
-	// curObst1 = Obst[i];                  // Transform the coordinates to have the right frame of reference
+	// curObst1 = surfaces[i];                  // Transform the coordinates to have the right frame of reference
 
 	//    if(curObst1.getPoints().size() > 4 ) // If there is enough points in 1 surface...
 	//   {

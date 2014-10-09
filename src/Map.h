@@ -25,7 +25,7 @@ class Map
 private:
      
     vector <View> Views;
-    vector <Surface> Obst;
+    vector <Surface> surfaces;
     vector <cv::Point3f> rbtPos;
     cv::Mat drawing;
     int sizeX;

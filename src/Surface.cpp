@@ -1,6 +1,5 @@
 #include "Surface.h"
 
-
 /* Functions definitions for Surfaces class */
 
 Surface::Surface() {
@@ -139,6 +138,11 @@ void Surface::setSurface() {
 
 }
 
-void Surface::setColor(Color color) {
-	this->color = color;
+void Surface::setColors(std::vector<Color> colors) {
+	this->colors = colors;
+	this->averageColor = Color::calculateAverageColor(this->colors);
+}
+
+Color Surface::getAverageColor() {
+	return this->averageColor;
 }
