@@ -142,8 +142,6 @@ int main(int argc, char** argv) {
 
 		std::map<int, int> sameSurfaceIds = sameObjectFinder.findSameSurfaces(
 				curMap.getView().getSurfaces(), curView.getSurfaces());
-		printf("%d same surface ids found:\n", sameSurfaceIds.size());
-		print(sameSurfaceIds);
 
 		curMap.update(curView);     // Update the map according to the new view
 		curMap.display();               // Display Map in output file
@@ -155,11 +153,4 @@ int main(int argc, char** argv) {
 	cout << endl;
 
 	return 0;
-}
-
-void print(std::map<int, int> map) {
-	for (std::map<int, int>::const_iterator iter = map.begin();
-			iter != map.end(); iter++) {
-		printf("[%d] %d\n", iter->first, iter->second);
-	}
 }

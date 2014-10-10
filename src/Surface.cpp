@@ -12,7 +12,6 @@ Surface::~Surface() {
 }
 
 int Surface::getId() {
-	printf("this id %d\n", this->id);
 	return this->id;
 }
 

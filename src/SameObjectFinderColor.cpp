@@ -1,10 +1,22 @@
 #include "SameObjectFinderColor.h"
 #include <math.h>
 
+void print(std::map<int, int> matchIds, std::map<int, float> matchValues) {
+	std::map<int, int>::const_iterator idIter = matchIds.begin();
+	std::map<int, float>::const_iterator valIter = matchValues.begin();
+	while (idIter != matchIds.end() && valIter != matchValues.end()) {
+		printf("[%d] %d (value %.2f)\n", idIter->first, idIter->second,
+				valIter->second);
+		idIter++;
+		valIter++;
+	}
+}
+
 std::map<int, int> SameObjectFinderColor::findSameSurfaces(
 		std::vector<Surface> surfaces1, std::vector<Surface> surfaces2) {
 	std::map<int, int> bestMatchIds;
 	std::map<int, float> bestMatchValues;
+	// TODO: handle >1 surfaces matching with the same surface
 	printf("%d old surfaces, %d new ones\n", surfaces1.size(),
 			surfaces2.size());
 	for (std::vector<Surface>::size_type i1 = 0; i1 < surfaces1.size(); i1++) {
@@ -12,8 +24,7 @@ std::map<int, int> SameObjectFinderColor::findSameSurfaces(
 				i2++) {
 			float matchValue = match(surfaces1[i1], surfaces2[i2]);
 			int s1Id = surfaces1[i1].getId(), s2Id = surfaces2[i2].getId();
-			printf("Comparing s1[index %d] #%d with s2[index %d] #%d\n", i1, s1Id, i2,
-					s2Id);
+//			printf("Comparing s1 #%d with s2 #%d\n", s1Id, s2Id);
 			if (bestMatchValues.count(s1Id) == 0 // not yet assigned
 			|| matchValue > bestMatchValues[s1Id]) { // or worse value
 				bestMatchIds[s1Id] = s2Id;
@@ -21,6 +32,8 @@ std::map<int, int> SameObjectFinderColor::findSameSurfaces(
 			}
 		}
 	}
+	printf("%d same surface ids found:\n", bestMatchIds.size());
+	print(bestMatchIds, bestMatchValues);
 	return bestMatchIds;
 }
 
