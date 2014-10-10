@@ -40,7 +40,7 @@
 #include "Map.h"
 #include "View.h"
 #include "ImageProcessing.h"
-#include "SameObjectFinderColor.h"
+#include "SameSurfaceFinderColor.h"
 
 /* ------------------------- Defines ------------------------- */
 #define DISPARITY_HEIGHT 240.
@@ -89,7 +89,7 @@ int main(int argc, char** argv) {
 
 	Albot.saveTravelInfo(0, 0, "../outputs/surfaces/coordTrans-0");
 
-	SameObjectFinderColor sameObjectFinder;
+	SameSurfaceFinderColor sameSurfaceFinder;
 
 	/*------------------------------------------ Construction & Initialization ------------------------------------------ */
 
@@ -140,7 +140,7 @@ int main(int argc, char** argv) {
 				Albot.getPos());            // Set view from camera photograph
 		curView.display();              // Display View in output file
 
-		std::map<int, int> sameSurfaceIds = sameObjectFinder.findSameSurfaces(
+		std::map<int, int> sameSurfaceIds = sameSurfaceFinder.findSameSurfaces(
 				curMap.getView().getSurfaces(), curView.getSurfaces());
 
 		curMap.update(curView);     // Update the map according to the new view

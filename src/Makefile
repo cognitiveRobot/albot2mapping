@@ -71,7 +71,7 @@ CXX = g++-4.4
 SRC = Robot.cpp \
 	Camera.cpp \
 	Map.cpp \
-	SameObjectFinderColor.cpp \
+	SameSurfaceFinderColor.cpp \
 	Surface.cpp View.cpp \
 	ImageProcessing.cpp Color.cpp
 	
@@ -79,9 +79,12 @@ SRC_MAIN = $(SRC) main.cpp
 
 SRC_TEST_COLOR = $(SRC) test-color.cpp
 
+SRC_TEST_SURFACEFINDER = $(SRC) test-surfacefinder.cpp
+
 # executable name and contents
 EXEC		= guideAndMap
 EXEC_TEST_COLOR = test-color
+EXEC_TEST_SURFACEFINDER = test-surfacefinder
 
 
 
@@ -96,6 +99,9 @@ $(EXEC): $(SRC_MAIN:%.cpp=../obj/%.o)
 	$(CXX) $(LDFLAGS) -o $@ $^ $(LIBS)
 	
 $(EXEC_TEST_COLOR): $(SRC_TEST_COLOR:%.cpp=../obj/%.o)
+	$(CXX) $(LDFLAGS) -o $@ $^ $(LIBS)
+	
+$(EXEC_TEST_SURFACEFINDER): $(SRC_TEST_SURFACEFINDER:%.cpp=../obj/%.o)
 	$(CXX) $(LDFLAGS) -o $@ $^ $(LIBS)
 
 
