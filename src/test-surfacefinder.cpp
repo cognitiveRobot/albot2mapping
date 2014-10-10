@@ -16,8 +16,6 @@ const Color purple(255, 0, 255);
 const Color cyan(0, 255, 255);
 const Color white(255, 255, 255);
 
-const std::map<Color> knownColors;
-
 Surface find(std::vector<Surface> surfaces, int id) {
 	for (std::vector<Surface>::size_type i = 0; i < surfaces.size(); i++) {
 		if (surfaces[i].getId() == id)
@@ -46,6 +44,13 @@ int main(int argc, char *argv[]) {
 	tmpSurface.reset();
 	colors.push_back(red);
 	colors.push_back(yellow);
+	tmpSurface.setColors(colors);
+	surfaces1.push_back(tmpSurface);
+
+	colors.clear();
+	tmpSurface.reset();
+	colors.push_back(red);
+	colors.push_back(yellow);
 	colors.push_back(cyan);
 	tmpSurface.setColors(colors);
 	surfaces1.push_back(tmpSurface);
@@ -70,6 +75,7 @@ int main(int argc, char *argv[]) {
 	tmpSurface.reset();
 	colors.push_back(red);
 	colors.push_back(yellow);
+	colors.push_back(cyan);
 	tmpSurface.setColors(colors);
 	surfaces2.push_back(tmpSurface);
 

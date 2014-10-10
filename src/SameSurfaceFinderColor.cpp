@@ -2,6 +2,8 @@
 #include <math.h>
 #include <stack>
 
+float SameSurfaceFinderColor::MINIMUM_MATCH_VALUE = 100; // chosen rather arbitrarily so far
+
 void print(std::map<int, int> matchIds, std::map<int, float> matchValues) {
 	std::map<int, int>::const_iterator idIter = matchIds.begin();
 	std::map<int, float>::const_iterator valIter = matchValues.begin();
@@ -18,15 +20,19 @@ std::map<int, int> SameSurfaceFinderColor::findSameSurfaces(
 	std::map<int, int> bestMatchIds12; // maps from surfaces1 ids to surfaces2 ids
 	std::map<int, int> bestMatchIds21; // maps from surfaces2 ids to surfaces1 ids
 	std::map<int, float> bestMatchValues;
-	// TODO: handle >1 surfaces matching with the same surface
+
 	printf("%d old surfaces, %d new ones\n", surfaces1.size(),
 			surfaces2.size());
 
+	// hold a stack of surfaces1 that have yet to find a perfect partner
+	// if a s1 is replaced by another s1', s1 will be re-added to the stack
 	std::stack<Surface> surfaces1ToHandle;
 	for (std::vector<Surface>::size_type i1 = 0; i1 < surfaces1.size(); i1++) {
 		surfaces1ToHandle.push(surfaces1[i1]);
 	}
 
+	// compare all surfaces with each other
+	// iterating until a perfect partner has been found for everyone
 	while (!surfaces1ToHandle.empty()) {
 		Surface s1 = surfaces1ToHandle.top();
 		surfaces1ToHandle.pop();
@@ -35,7 +41,6 @@ std::map<int, int> SameSurfaceFinderColor::findSameSurfaces(
 		for (std::vector<Surface>::size_type i2 = 0; i2 < surfaces2.size();
 				i2++) {
 			int s2Id = surfaces2[i2].getId();
-			printf("Comparing s1 #%d with s2 #%d\n", s1Id, s2Id);
 			float matchValue = match(s1, surfaces2[i2]);
 			if (bestMatchValues.count(s1Id) != 0 // already assigned
 			&& bestMatchValues[s1Id] >= matchValue) { // and new value not better
