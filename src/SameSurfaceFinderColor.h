@@ -5,7 +5,7 @@
 
 class SameSurfaceFinderColor: public SameSurfaceFinder {
 private:
-	const float SameSurfaceFinderColor::MINIMUM_MATCH_VALUE;
+//	const float SameSurfaceFinderColor::MINIMUM_MATCH_VALUE;
 
 	float match(Surface surface1, Surface surface2);
 	float match(Color c1, Color c2);

@@ -2,7 +2,7 @@
 #include <math.h>
 #include <stack>
 
-float SameSurfaceFinderColor::MINIMUM_MATCH_VALUE = 100; // chosen rather arbitrarily so far
+//float SameSurfaceFinderColor::MINIMUM_MATCH_VALUE = 100; // chosen rather arbitrarily so far
 
 void print(std::map<int, int> matchIds, std::map<int, float> matchValues) {
 	std::map<int, int>::const_iterator idIter = matchIds.begin();
@@ -18,11 +18,13 @@ void print(std::map<int, int> matchIds, std::map<int, float> matchValues) {
 std::map<int, int> SameSurfaceFinderColor::findSameSurfaces(
 		std::vector<Surface> surfaces1, std::vector<Surface> surfaces2) {
 	std::map<int, int> bestMatchIds12; // maps from surfaces1 ids to surfaces2 ids
-	std::map<int, int> bestMatchIds21; // maps from surfaces2 ids to surfaces1 ids
-	std::map<int, float> bestMatchValues;
+	std::map<int, Surface> bestMatches21; // maps from surfaces2 ids to surfaces1
+	std::map<int, float> bestMatchValues12, bestMatchValues21;
 
 	printf("%d old surfaces, %d new ones\n", surfaces1.size(),
 			surfaces2.size());
+
+	// TODO: two s1 map to same s2
 
 	// hold a stack of surfaces1 that have yet to find a perfect partner
 	// if a s1 is replaced by another s1', s1 will be re-added to the stack
@@ -40,30 +42,35 @@ std::map<int, int> SameSurfaceFinderColor::findSameSurfaces(
 
 		for (std::vector<Surface>::size_type i2 = 0; i2 < surfaces2.size();
 				i2++) {
-			int s2Id = surfaces2[i2].getId();
-			float matchValue = match(s1, surfaces2[i2]);
-			if (bestMatchValues.count(s1Id) != 0 // already assigned
-			&& bestMatchValues[s1Id] >= matchValue) { // and new value not better
+			Surface s2 = surfaces2[i2];
+			int s2Id = s2.getId();
+			float matchValue = match(s1, s2);
+			if (bestMatchIds12.count(s1Id) != 0 // s2 match for s1 already assigned
+			&& bestMatchValues12[s1Id] >= matchValue) { // and new value not better
 				continue;
 			}
-			if (bestMatchIds21.count(s2Id) != 0) { // match already exists
-				int currentS2S1Match = bestMatchIds21[s2Id]; // s1 match for this s2
-				float currentMatchValue = bestMatchValues[currentS2S1Match];
+			if (bestMatches21.count(s2Id) != 0) { // s1 match already exists
+				Surface currentS1Match = bestMatches21[s2Id]; // s1 match for this s2
+				int currentS1MatchId = currentS1Match.getId();
+				float currentMatchValue = bestMatchValues12[currentS1MatchId];
 				if (currentMatchValue >= matchValue) { // not good enough
 					continue;
 				} else { // new match is better
-					surfaces1ToHandle.push(surfaces1[currentS2S1Match]); // back on stack
+					bestMatchIds12.erase(currentS1MatchId);
+					bestMatches21.erase(s2Id);
+					bestMatchValues12.erase(currentS1MatchId);
+					surfaces1ToHandle.push(currentS1Match); // back on stack
 				}
 			}
 
 			bestMatchIds12[s1Id] = s2Id;
-			bestMatchIds21[s2Id] = s1Id;
-			bestMatchValues[s1Id] = matchValue;
+			bestMatches21[s2Id] = s1;
+			bestMatchValues12[s1Id] = matchValue;
 		}
 	}
 
 	printf("%d same surface ids found:\n", bestMatchIds12.size());
-	print(bestMatchIds12, bestMatchValues);
+	print(bestMatchIds12, bestMatchValues12);
 	return bestMatchIds12;
 }
 
