@@ -32,8 +32,7 @@
 using namespace std;
 //using namespace cv;
 
-#define DISPARITY_HEIGHT 240.
-#define DISPARITY_WIDTH 320.
+
 
 /* View class contains :
  * Robot position and orientation
@@ -41,55 +40,70 @@ using namespace std;
  */
 
 class View {
-
 private:
-	static const unsigned MINIMUM_SURFACE_POINTS;
-	static const double DEPTH_DIFF_TRESHOLD;
-	static const int COLOR_DIFF_TRESHOLD;
-	static const int step;
+//    static const unsigned MINIMUM_SURFACE_POINTS;
+//    static const double DEPTH_DIFF_TRESHOLD;
+//    static const int COLOR_DIFF_TRESHOLD;
+    static const int step;
 
-	int Id;
-	int boundY, boundW, boundH; // boundX declared locally since it changes
-	cv::Point3f robot;
-	vector<Surface> surfaces;
-	Color colors[COLOR_IMAGE_WIDTH][COLOR_IMAGE_HEIGHT];
+    int Id;
+    int boundY, boundW, boundH; // boundX declared locally since it changes
+    cv::Point3f robot;
+    vector<Surface> surfaces;
 
-	/*Display*/
-	int sizeX;
-	int sizeY;
+    vector<Surface> landmarks;
 
-	void readColors(char* filename);
-	void saveAreaColors(std::vector<Color> areaColors, const char * filename);
-	void matToColorMatrix(cv::Mat mat,
-			Color colors[COLOR_IMAGE_WIDTH][COLOR_IMAGE_HEIGHT]);
-	void markAndSave(cv::Mat mat, const char * filename);
-	void writeColors(Color colors[COLOR_IMAGE_WIDTH][COLOR_IMAGE_HEIGHT],
-			const char * filename);
+    //contains color info of all pixels of ROI image
+    Color colors[COLOR_IMAGE_WIDTH][COLOR_IMAGE_HEIGHT];
+
+    /*Display*/
+    int sizeX;
+    int sizeY;
+
+    void readColors(char* filename);
+    void saveAreaColors(std::vector<Color> areaColors, const char * filename);
+    void matToColorMatrix(cv::Mat mat,
+            Color colors[COLOR_IMAGE_WIDTH][COLOR_IMAGE_HEIGHT]);
+    void markAndSave(cv::Mat mat, const char * filename);
+    void writeColors(Color colors[COLOR_IMAGE_WIDTH][COLOR_IMAGE_HEIGHT],
+            const char * filename);
+
+
 
 public:
-	View();
-	~View();
+    View();
+    View(vector<Surface> someSurfaces);
+    ~View();
 
-	void setId(int value);
-	int getId();
-	void setRobotPos(float X, float Y, float angle);
-	cv::Point3f getRobotPos();
-	void setView(TriclopsContext triclops, TriclopsImage16 depthImage,
-			cv::Point3f robotPos);        // Setting View from camera photograph
-	Color getAverageColor(int boundX, int boundY, int boundW, int boundH);
-	Color calculateAverageColor(std::vector<Color> colors);
-	float distance(cv::Point2f A, cv::Point2f B); // Get the distance between 2 points of a snapshot to know if they belong to the same surface
-	void addSurface(Surface surface);
-	void setSurfaces();                 // Set the surface for each Surface
-	void rotate();            // Rotate each Surface according to angle robot.z
-	void translate();  // Translate each Surface according to robot.x & robot.y
-	void cleanView();                   // Delete irrelevant Surfaces
-	vector<Surface> getSurfaces();
-	void clearView();
+    void setId(int value);
+    int getId();
+    void setRobotPos(float X, float Y, float angle);
+    cv::Point3f getRobotPos();
+    void setView(TriclopsContext triclops, TriclopsImage16 depthImage,
+            cv::Point3f robotPos); // Setting View from camera photograph
+    Color getAverageColor(int boundX, int boundY, int boundW, int boundH);
+    Color calculateAverageColor(std::vector<Color> colors);
+    float distance(cv::Point2f A, cv::Point2f B); // Get the distance between 2 points of a snapshot to know if they belong to the same surface
+    void addSurface(Surface surface);//add a single surface to the existing list.
+    void addSurfaces(vector<Surface> someSurfaces);//add few surfaces to the existing list.
+    void setSurfaces(); // Set the surface for each Surface
+    void rotate(); // Rotate each Surface according to angle robot.z
+    void translate(); // Translate each Surface according to robot.x & robot.y
+    void cleanView(); // Delete irrelevant Surfaces
+    vector<Surface> getSurfaces() const;
+    void clearView();
 
-	void saveSurfaces(vector<Surface> surfaces, char * filename);
+    void saveSurfaces(vector<Surface> surfaces, char * filename);
 
-	cv::Mat display();
+    bool markLandmarks();
+    vector<Surface> getLandmarks() const;
+    void setLandmarks(vector<Surface> someLandmarks);
+
+    //old method to save view in a jpg file.
+    cv::Mat display();
+    
+    //save view to a jpg file.
+    void printView();
 
 };
 

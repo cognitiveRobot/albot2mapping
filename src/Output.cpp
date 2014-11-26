@@ -1,14 +1,12 @@
 #include "Output.h"
 #define _USE_MATH_DEFINES
 
-Output::Output()
-{
-    
+Output::Output() {
+
 }
 
-Output::~Output()
-{
-    
+Output::~Output() {
+
 }
 
 int Output::writePpm(char* szFilename, unsigned char* pucBuffer, int width, int height) {
@@ -36,9 +34,9 @@ int Output::writePpm(char* szFilename, unsigned char* pucBuffer, int width, int 
 
 
 
-    
-    
-    
+
+
+
 
 
 

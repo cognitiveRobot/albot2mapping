@@ -38,36 +38,30 @@
 using namespace std;
 //using namespace cv;
 
-
-
-
-
-
 /* View class contains :
  * Robot position and orientation
  * Vector of surfaces
-*/
+ */
 
-class ImageProcessing
-{
-    
+class ImageProcessing {
 private:
-    
-    
+
+
 public:
     void buildAPointCloud();
-        
+
+    void visualizePointCloud(const char * filename);
     void visualizePointCloud(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud);
     void visualizePointCloud(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud);
 
-    
+
     void segRegionGrowing();
-   
+
     void segEuclideanClusters();
-    
+
     int getMaxMin(double value[], int valueSize, int maxmin);
     void getDisparity();
-    
+
 };
 
 void waitHere();

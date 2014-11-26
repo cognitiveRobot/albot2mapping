@@ -34,6 +34,13 @@
 #include <opencv2/opencv.hpp>
 //#include <mrpt/bayes/CParticleFilterCapable.h>
 
+
+/* -------------------------Segmentation includes ------------------------- */
+#include "../include/segmentation/image.h"
+#include "../include/segmentation/misc.h"
+#include "../include/segmentation/pnmfile.h"
+#include "../include/segmentation/segment-image.h"
+
 /* ------------------------- Headers ------------------------ */
 #include "Camera.h"
 #include "Robot.h"
@@ -41,12 +48,11 @@
 #include "View.h"
 #include "ImageProcessing.h"
 #include "SameSurfaceFinderColor.h"
+#include "SameSurfaceFinderOdo.h"
+#include "Printer.h"
 
 /* ------------------------- Defines ------------------------- */
-#define DISPARITY_HEIGHT 240.
-#define DISPARITY_WIDTH 320.
-#define RECTIFIED_HEIGHT 768.
-#define RECTIFIED_WIDTH 1024.
+
 #define _HANDLE_TRICLOPS_ERROR( function, error ) \
 { \
    if( error != TriclopsErrorOk ) \
@@ -69,88 +75,95 @@ using namespace std;
 void print(std::map<int, int> map);
 
 int main(int argc, char** argv) {
+    /*------------------------------------------ Variables declaration ------------------------------------------ */
 
-//    //pcl test
-//	ImageProcessing imgPro;
-////        imgPro.buildAPointCloud();
-////        imgPro.visualizePointCloud();
-//        imgPro.segRegionGrowing();
-//        imgPro.segEuclideanClusters();
-//        waitHere();
+    Robot Albot;
+    ArSimpleConnector connector(&argc, argv);
 
-	/*------------------------------------------ Variables declaration ------------------------------------------ */
+    Camera Bumblebee;
+    View curView;
+    Map curMap(1500, 1500);
 
-	Robot Albot;
-	ArSimpleConnector connector(&argc, argv);
+    Printer printer;
 
-	Camera Bumblebee;
-	View curView;
-	Map curMap(1500, 1500);
+    Albot.saveTravelInfo(0, 0, "../outputs/surfaces/coordTrans-0");
 
-	Albot.saveTravelInfo(0, 0, "../outputs/surfaces/coordTrans-0");
+    SameSurfaceFinderColor sameSurfaceFinder;
+    SameSurfaceFinderOdo sameSurfaceFinderOdo;
 
-	SameSurfaceFinderColor sameSurfaceFinder;
+    /*------------------------------------------ Construction & Initialization ------------------------------------------ */
 
-	/*------------------------------------------ Construction & Initialization ------------------------------------------ */
+    Albot.connect(argc, argv, &connector);
 
-	Albot.connect(argc, argv, &connector);
+    Bumblebee.initialize();
+    Bumblebee.setV(0);
 
-	Bumblebee.initialize();
-	Bumblebee.setV(0);
+    /*------------------------------------------ Start Xploring ------------------------------------------ */
 
-	/*------------------------------------------ Start Xploring ------------------------------------------ */
+    /* -------- Initialization : View 0 ------- */
+    Bumblebee.getImage(); // Acquire image from Camera
+    // View
+    curView.setView(Bumblebee.getTriclops(), Bumblebee.getDepthImage(), Albot.getPos()); // Set view from camera photograph
 
-	/* -------- Initialization : View 0 ------- */
-	Bumblebee.getImage();               // Acquire image from Camera
+    Bumblebee.getImage(); // Acquire image from Camera
+    // View
+    curView.setView(Bumblebee.getTriclops(), Bumblebee.getDepthImage(), Albot.getPos()); // Set view from camera photograph
 
-	// View
-	curView.setView(Bumblebee.getTriclops(), Bumblebee.getDepthImage(),
-			Albot.getPos());        // Set view from camera photograph
 
-	curView.display();                  // Display View in output file
-	// Map
-	curMap.update(curView); // Update the map according to the new view
-	curMap.display();                   // Display Map in output file
 
-	/* -------- Loop ------- */
-	char tkStep;
-	cout << endl << endl << "Take first step? (y/n) ";   // Ask user if continue
-	cin >> tkStep;
-	while (tkStep != 'n' && tkStep != 'N') {
-		/* Increment counters */
-		Bumblebee.incV();
-		curView.setId(curView.getId() + 1);
+    curView.markLandmarks();
 
-		cout << endl << "=================================================="
-				<< endl << endl;
-		cout << "View no. " << Bumblebee.getV() << ":" << endl;
+    curView.printView();
 
-		/* Move Albot using user input */
-		if (Bumblebee.getV() != 0) {
-			Albot.move();
-		}
+    //  curView.display(); // Display View in output file
 
-		/* This part is unresolved : we must acquire 2 times the image or the camera gives the previous View instead of the new */
-		Bumblebee.getImage();
-		curView.setView(Bumblebee.getTriclops(), Bumblebee.getDepthImage(),
-				Albot.getPos());
+    // Map
+    curMap.update(curView); // Update the map according to the new view
+    curMap.display(); // Display Map in output file
 
-		Bumblebee.getImage();           // Acquire image from camera
-		curView.setView(Bumblebee.getTriclops(), Bumblebee.getDepthImage(),
-				Albot.getPos());            // Set view from camera photograph
-		curView.display();              // Display View in output file
+    /* -------- Loop ------- */
+    char tkStep;
+    cout << endl << endl << "Take first step? (y/n) "; // Ask user if continue
+    cin >> tkStep;
+    while (tkStep != 'n' && tkStep != 'N') {
+        /* Increment counters */
+        Bumblebee.incV();
+        curView.setId(curView.getId() + 1);
 
-		std::map<int, int> sameSurfaceIds = sameSurfaceFinder.findSameSurfaces(
-				curMap.getView().getSurfaces(), curView.getSurfaces());
+        cout << endl << "=================================================="
+                << endl << endl;
+        cout << "View no. " << Bumblebee.getV() << ":" << endl;
 
-		curMap.update(curView);     // Update the map according to the new view
-		curMap.display();               // Display Map in output file
+        /* Move Albot using user input */
+        if (Bumblebee.getV() != 0) {
+            Albot.move();
+        }
 
-		cout << endl << endl << "Take another step? (y/n) "; // Ask user if continue
-		cin >> tkStep;
+        /* This part is unresolved : we must acquire 2 times the image or the camera gives the previous View instead of the new */
+        Bumblebee.getImage();
+        curView.setView(Bumblebee.getTriclops(), Bumblebee.getDepthImage(), Albot.getPos());
 
-	}
-	cout << endl;
+        Bumblebee.getImage(); // Acquire image from camera
+        curView.setView(Bumblebee.getTriclops(), Bumblebee.getDepthImage(), Albot.getPos()); // Set view from camera photograph
 
-	return 0;
+        curView.markLandmarks();
+        // curView.display(); // Display View in output file
+        curView.printView();
+
+        std::map<int, int> sameSurfaceIds = sameSurfaceFinder.findSameSurfaces(
+                curMap.getView().getSurfaces(), curView.getSurfaces());
+
+        SameSurfaceInfo recognizedSurfaceInfo = sameSurfaceFinderOdo.recognizeSameSurface(
+                curMap.getView().getLandmarks(), curView.getLandmarks(), Albot.getLastLocomotion());
+
+        curMap.update(curView); // Update the map according to the new view
+        curMap.display(); // Display Map in output file
+
+        cout << endl << endl << "Take another step? (y/n) "; // Ask user if continue
+        cin >> tkStep;
+
+    }
+    cout << endl;
+
+    return 0;
 }

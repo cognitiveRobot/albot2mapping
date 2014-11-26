@@ -42,7 +42,6 @@
 //#include <mrpt/bayes/CParticleFilterCapable.h>
 
 /* ------------------------- PCL includes ------------------------- */
-#include <iostream>
 #include <pcl/io/pcd_io.h>
 #include <pcl/point_types.h>
 
@@ -50,10 +49,7 @@
 #include "Robot.h"
 
 /* ------------------------- Defines ------------------------- */
-#define DISPARITY_HEIGHT 240.
-#define DISPARITY_WIDTH 320.
-#define RECTIFIED_HEIGHT 768.
-#define RECTIFIED_WIDTH 1024.
+
 #define _HANDLE_TRICLOPS_ERROR( function, error ) \
 { \
    if( error != TriclopsErrorOk ) \
@@ -69,21 +65,18 @@
 using namespace std;
 //using namespace cv;   //bcz of error: reference to ‘flann’ is ambiguous
 
-
-class Camera
-{
-    
+class Camera {
 private:
-    
+
     /* Camera variables for initialization */
     dc1394camera_t* camera;
     dc1394error_t err;
     dc1394_t * d;
     dc1394camera_list_t * list;
-    
+
     unsigned int Id;
     PGRStereoCamera_t stereoCamera;
-    
+
     /* Triclops variables */
     TriclopsError error;
     TriclopsContext triclops;
@@ -93,8 +86,8 @@ private:
     TriclopsImage rectifiedImage;
     TriclopsColorImage rectifiedColor;
     pcl::PointCloud<pcl::PointXYZ> pointCloud;
-    
-    
+
+
     // Buffers to hold the de-interleaved images
     unsigned char* pucDeInterlacedBuffer;
     unsigned char* pucRGBBuffer;
@@ -102,51 +95,51 @@ private:
     unsigned char* pucRightRGB;
     unsigned char* pucLeftRGB;
     unsigned char* pucCenterRGB;
-    
-    
+
+
     /* Variables for output display */
     char filenameDepth[50], filenameRectified[50], filenameColor[50];
-    
-    
+
+
     /* Mapping variables */
     int v;
-    
-    
-    
-    
+
+
+
+
 public:
-    
+
     /* Constructor */
     Camera();
-    
+
     /* Destructor */
     ~Camera();
-    
-    
+
+
     /* Mapping related functions */
     void setV(int newV);
     int getV();
     void incV();
-    
-    
+
+
     /* Camera related functions */
-    
-    void initialize();                          //Initialize the camera
-    
-    void getImage();                        // Acquire image from Camera
-    
-    void cleanup_and_exit(dc1394camera_t* camera);            //Clean the camera and exit
-    
-    
-    
-    
+
+    void initialize(); //Initialize the camera
+
+    void getImage(); // Acquire image from Camera
+
+    void cleanup_and_exit(dc1394camera_t* camera); //Clean the camera and exit
+
+
+
+
     void convertColorTriclopsInput(TriclopsInput* colorInput, unsigned char* pucRGB);
-    
-    
+
+
     void deleteBuff();
-    
+
     void savePointCloud(TriclopsContext triclops, TriclopsImage16 depthImage);
-    
+
     /* Outputs */
     // Image buffers
     unsigned char* getDeInterlacedBuffer();
@@ -155,11 +148,11 @@ public:
     unsigned char* getRightRGB();
     unsigned char* getLeftRGB();
     unsigned char* getCenterRGB();
-    
+
 
     // Cameras
     PGRStereoCamera_t getStereoCam();
-    
+
     // Triclops outputs
     TriclopsError getError();
     TriclopsContext getTriclops();
@@ -168,8 +161,8 @@ public:
     TriclopsImage16 getDepthImage();
     TriclopsImage getRectifiedImage();
     TriclopsColorImage getRectifiedColor();
-    
-    
+
+
 };
 
 #endif	/* CAMERA_H */

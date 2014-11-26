@@ -15,18 +15,21 @@
 
 ROOT_INCLUDE = /usr/local/include
 ROOT_LIB = /usr/local/lib
+
 LOCALLIB = ../include/pgrlibdcstereo
 
 # compilation flags
 CPPFLAGS += -I.
 
 # libdc1394 installed in /usr/local/include location
-CPPFLAGS += -I$(ROOT_INCLUDE)/dc1394
-CPPFLAGS += -I$(LOCALLIB)
-CPPFLAGS += -I$(ROOT_INCLUDE)/triclops
-CPPFLAGS += -I/usr/local/include/opencv2
-CPPFLAGS += -I/usr/local/Aria/include
+CPPFLAGS += -I$(ROOT_INCLUDE)/dc1394	#camera
+CPPFLAGS += -I$(ROOT_INCLUDE)/triclops	#camera
 
+CPPFLAGS += -I$(LOCALLIB)
+
+CPPFLAGS += -I/usr/local/Aria/include	#Aria Robot
+
+CPPFLAGS += -I/usr/local/include/opencv2    # openCV
 
 CPPFLAGS += -I/usr/include/pcl-1.7	#pcl
 CPPFLAGS += -I/usr/include/eigen3	#pcl	
@@ -39,28 +42,21 @@ CPPFLAGS += -c -O1 -Wall -fPIC
 #CPPFLAGS += -Wall -O3
 
 LDFLAGS	+= -L.
+LDFLAGS	+= -L$(ROOT_LIB)
 LDFLAGS	+= -L$(ROOT_LIB)/triclops
-LDFLAGS += -L$(LOCALLIB)
-LDFLAGS += -L$(ROOT_LIB)
-LDFLAGS += -L/usr/local/Aria/lib 
-LDFLAGS += -O1 -lAria -lpthread -ldl -lrt 
-LIBS    += -ldc1394 -lraw1394 -pthread
+
+LDFLAGS	+= -L$(LOCALLIB)
+
+LDFLAGS	+= -L/usr/local/Aria/lib	    #Aria Robot
+LDFLAGS    += -O1 -lAria -lpthread -ldl -lrt 
+
+LIBS	+= -ldc1394 -lraw1394 -pthread
 LIBS	+= -lpgrlibdcstereo -ltriclops -lpnmutils -lflycapture -lflycapture2bridge -lm
 LIBS	+= `pkg-config --libs opencv` #mrpt-base mrpt-slam`
 
-LIBS	+= -lpcl_io -lboost_system -lpcl_common -lpcl_filters -lpcl_segmentation -lpcl_visualization -lvtkCommon -lvtkFiltering -lvtkRendering -lvtkGraphics	
-
+LIBS	+= -lpcl_io -lboost_system -lpcl_common -lpcl_filters -lpcl_segmentation -lpcl_visualization -lvtkCommon -lvtkFiltering -lvtkRendering -lvtkGraphics
 LIBS	+= -lpcl_search -lpcl_kdtree -lpcl_octree -lpcl_features -lpcl_keypoints -lpcl_registration -lpcl_apps -lpcl_sample_consensus -lpcl_surface
 #pcl . added all to avoid linking problem in the future.
-
-
-
-
-
-
-
-
-
 
 
 
@@ -68,48 +64,63 @@ CXX = g++-4.4
 
 
 # Sources files
-SRC = Robot.cpp \
+LIBSRCS = \
+	Robot.cpp \
 	Camera.cpp \
 	Map.cpp \
 	SameSurfaceFinderColor.cpp \
-	Surface.cpp View.cpp \
-	ImageProcessing.cpp Color.cpp
+	SameSurfaceFinderOdo.cpp \
+	Surface.cpp \
+	View.cpp \
+	ImageProcessing.cpp \
+	Color.cpp \
+	Printer.cpp \
+	PathFinder.cpp
 	
-SRC_MAIN = $(SRC) main.cpp
-
-SRC_TEST_COLOR = $(SRC) test-color.cpp
-
-SRC_TEST_SURFACEFINDER = $(SRC) test-surfacefinder.cpp
-
-# executable name and contents
-EXEC		= guideAndMap
-EXEC_TEST_COLOR = test-color
-EXEC_TEST_SURFACEFINDER = test-surfacefinder
+PROGSRCS= \
+	main.cpp \
+	AutoXplorationNMapping.cpp \
+	robotControl.cpp \
+	gotoActionExample.cpp
+#	test-color.cpp \
+#	test-surfacefinder.cpp \
 
 
+LIBOBJS = $(LIBSRCS:%.cpp=../obj/%.o)
+PROGOBJS = $(PROGSRCS:%.cpp=../obj/%.o)
+LIBDEPS = $(PROGOBJS:.o=.o.d)
+PROGDEPS = $(LIBOBJS:.o=.o.d)
+
+PROG = $(PROGSRCS:%.cpp=../src/%)
+
+
+all: $(LIBOBJS) $(PROGOBJS) $(PROG)
 
 
 
-all: $(EXEC)
-
-#to reset the camera
-#	../../../libdc1394-2.0.2/examples/dc1394_reset_bus
-
-$(EXEC): $(SRC_MAIN:%.cpp=../obj/%.o)
-	$(CXX) $(LDFLAGS) -o $@ $^ $(LIBS)
+# Linking: for each executable, link its o file together with all the non-executable o files
+#linking commond have to be as below in albot2. Not like cogMap(mhossain) project makefile.
+../src/%: $(LIBOBJS) $(PROGOBJS)
+	@echo "---------------------------------------------------------------"
+	@echo Building $*
+	@echo " "
 	
-$(EXEC_TEST_COLOR): $(SRC_TEST_COLOR:%.cpp=../obj/%.o)
-	$(CXX) $(LDFLAGS) -o $@ $^ $(LIBS)
-	
-$(EXEC_TEST_SURFACEFINDER): $(SRC_TEST_SURFACEFINDER:%.cpp=../obj/%.o)
-	$(CXX) $(LDFLAGS) -o $@ $^ $(LIBS)
+	$(CXX) $(LDFLAGS) -o ../src/$* ../obj/$*.o $(LIBOBJS) $(LIBS)
+	@echo " "
+	@echo "		!!DONE!!			"
+	@echo " "
 
+# Compiling: first make dependencies, then compile all cpp files
+../obj/%.o: %.cpp
+	@echo "---------------------------------------------------------------"
+	@echo Compiling $<
+	@echo " "
+	$(CXX) $(CPPFLAGS) $< -MM -MT $@ -MF $@.d
+	$(CXX) $(CPPFLAGS) $< -o $@
 
-../obj/%.o:%.cpp
-	$(CXX) -c $(CXXFLAGS) $(CPPFLAGS) $*.cpp -o ../obj/$*.o
 
 clean:
-	rm -f *~ ../obj/*.o *.d $(EXEC) *.pgm *.ppm
+	rm -f $(LIBOBJS) $(PROGOBJS) $(LIBDEPS) $(PROGDEPS) $(PROG)
 cleanimages:
 	rm -f ../outputs/depth/*
 	rm -f ../outputs/Views/*
@@ -120,6 +131,10 @@ cleanmaps:
 	rm -f ../outputs/Maps/*
 
 
+
+# Include the dependencies so the cpp files are recompiled if headers change
+-include $(LIBDEPS)
+-include $(PROGDEPS)
 
 #####################################################################
 #
