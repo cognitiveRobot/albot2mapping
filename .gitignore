@@ -1,0 +1,27 @@
+/build/
+
+*.o
+*.d
+*.jpg
+coordTrans-*
+surfaces-*
+*.pcd
+*.pgm
+*.ppm
+*~
+
+#exe files
+AutoXplorationNMapping
+gotoActionExample
+main
+robotControl
+
+#to ignore a file (most probably belongs to netbeans
+.dep.inc
+
+
+#to ignore folders
+outputs/
+nbproject/
+include/
+src/.idea
