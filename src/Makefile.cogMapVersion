@@ -1,0 +1,129 @@
+
+#####################################################################
+# Copyright (c) 2008 Point Grey Research Inc.
+#
+# This Makefile is free software; Point Grey Research Inc.
+# gives unlimited permission to copy and/or distribute it,
+# with or without modifications, as long as this notice is preserved.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY, to the extent permitted by law; without
+# even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+# PARTICULAR PURPOSE.
+#
+#####################################################################
+
+ROOT_INCLUDE = /usr/local/include
+ROOT_LIB = /usr/local/lib
+LOCALLIB = ../include/pgrlibdcstereo
+
+# compilation flags
+CPPFLAGS += -I.
+
+# libdc1394 installed in /usr/local/include location
+CPPFLAGS += -I$(ROOT_INCLUDE)/dc1394
+CPPFLAGS += -I$(LOCALLIB)
+CPPFLAGS += -I$(ROOT_INCLUDE)/triclops
+CPPFLAGS += -I/usr/local/include/opencv2
+CPPFLAGS += -I/usr/local/Aria/include
+
+
+CPPFLAGS += -I/usr/include/pcl-1.7	#pcl
+CPPFLAGS += -I/usr/include/eigen3	#pcl	
+CPPFLAGS += -I/usr/include/vtk-5.8	#pcl
+#CPPFLAGS += `pkg-config --cflags mrpt-base mrpt-slam`
+#CPPFLAGS += `pkg-config cvblob --cflags`
+CPPFLAGS += -Wall -g
+CPPFLAGS += -DLINUX
+CPPFLAGS += -c -O1 -Wall -fPIC 
+#CPPFLAGS += -Wall -O3
+
+LDFLAGS	+= -L.
+LDFLAGS	+= -L$(ROOT_LIB)/triclops
+LDFLAGS += -L$(LOCALLIB)
+LDFLAGS += -L$(ROOT_LIB)
+LDFLAGS += -L/usr/local/Aria/lib 
+LDFLAGS += -O1 -lAria -lpthread -ldl -lrt 
+LDFLAGS    += -ldc1394 -lraw1394 -pthread
+LDFLAGS	+= -lpgrlibdcstereo -ltriclops -lpnmutils -lflycapture -lflycapture2bridge -lm
+
+
+LDFLAGS	+= -lpcl_io -lboost_system -lpcl_common -lpcl_filters -lpcl_segmentation -lpcl_visualization -lvtkCommon -lvtkFiltering -lvtkRendering -lvtkGraphics	
+
+LDFLAGS	+= -lpcl_search -lpcl_kdtree -lpcl_octree -lpcl_features -lpcl_keypoints -lpcl_registration -lpcl_apps -lpcl_sample_consensus -lpcl_surface
+
+LDFLAGS	+= `pkg-config --libs opencv` #mrpt-base mrpt-slam`
+#pcl . added all to avoid linking problem in the future.
+
+
+CXX = g++-4.4
+
+
+# Sources files
+LIBSRCS = \
+	Robot.cpp \
+	Camera.cpp \
+	Map.cpp \
+	SameSurfaceFinderColor.cpp \
+	SameSurfaceFinderOdo.cpp \
+	Surface.cpp \
+	View.cpp \
+	ImageProcessing.cpp \
+	Color.cpp
+	
+PROGSRCS= \
+	main.cpp \
+	test-color.cpp \
+	test-surfacefinder.cpp \
+	robotControl.cpp
+
+LIBOBJS = $(LIBSRCS:%.cpp=obj/%.o)
+PROGOBJS = $(PROGSRCS:%.cpp=obj/%.o)
+LIBDEPS = $(PROGOBJS:.o=.o.d)
+PROGDEPS = $(LIBOBJS:.o=.o.d)
+
+PROG = $(PROGSRCS:%.cpp=../src/%)
+
+
+all: $(LIBOBJS) $(PROGOBJS) $(PROG)
+
+
+
+# Linking: for each executable, link its o file together with all the non-executable o files
+../src/%: $(LIBOBJS) $(PROGOBJS)
+	@echo "---------------------------------------------------------------"
+	@echo Building $*
+	@echo " "
+	$(CXX) $(LDFLAGS) obj/$*.o $(LIBOBJS) -o ../src/$*
+	@echo " "
+	@echo "------------------------Operation Successful-------------------"
+	@echo " "
+
+# Compiling: first make dependencies, then compile all cpp files
+obj/%.o: %.cpp
+	@echo "---------------------------------------------------------------"
+	@echo Compiling $<
+	@echo " "
+	$(CXX) $(CPPFLAGS) $< -MM -MT $@ -MF $@.d
+	$(CXX) $(CPPFLAGS) $< -o $@
+
+
+clean:
+	rm -f $(LIBOBJS) $(PROGOBJS) $(LIBDEPS) $(PROGDEPS) $(PROG)
+cleanimages:
+	rm -f ../outputs/depth/*
+	rm -f ../outputs/Views/*
+	rm -f ../outputs/Maps/*
+	rm -f ../outputs/rectified/*
+	
+cleanmaps:
+	rm -f ../outputs/Maps/*
+
+
+
+#####################################################################
+#
+# $Authors: Md Zulfikar Hossain and Martin Schrimpf (source: Guillaume Diallo-Mulliez)
+# $Date: 28/08/2014
+#
+#####################################################################
