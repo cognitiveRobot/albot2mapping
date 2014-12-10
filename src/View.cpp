@@ -37,7 +37,7 @@ void View::setId(int value) {
     Id = value;
 }
 
-int View::getId() {
+int View::getId() const{
     return Id;
 }
 
@@ -50,6 +50,13 @@ void View::setRobotPos(float X, float Y, float angle) {
 cv::Point3f View::getRobotPos() {
     return robot;
 }
+
+ void View::setRobotSurfaces(const vector<Surface> & surfaces) {
+     this->robotSurfaces = surfaces;
+ }
+    vector<Surface> View::getRobotSurfaces() const{
+        return robotSurfaces;
+    }
 
 void View::setView(TriclopsContext triclops, TriclopsImage16 depthImage,
         cv::Point3f robotPos) {
@@ -137,7 +144,10 @@ void View::setView(TriclopsContext triclops, TriclopsImage16 depthImage,
             //			printf("Surface color: r%d g%d b%d\n", surfaceColor.red,
             //					surfaceColor.green, surfaceColor.blue);
             tmpSurface.setColors(surfaceColors);
+            if(tmpSurface.getPoints().size() > 1) {
+            tmpSurface.setSurfaceSimple();
             addSurface(tmpSurface); // Add the Surface to the View
+            }
             tmpSurface.reset(); // Clear the temporary Surface
             surfaceColors.clear(); // clear colors
             tmpSurface.addPoint(newPoint);
@@ -185,6 +195,10 @@ void View::setSurfaces() {
         if (this->surfaces[i].getPoints().size() >= MINIMUM_SURFACE_POINTS) // If the Surface is relevant
             this->surfaces[i].setSurface(); // Set surface
     }
+}
+
+void View::setSurfaces(const vector<Surface> & someSurfaces) {
+    this->surfaces = someSurfaces;
 }
 
 void View::rotate() {
@@ -331,6 +345,7 @@ void View::saveSurfaces(vector<Surface> surfaces, char * filename) {
     // outFile << fixed;
     //outFile.precision(10);
 
+    
     for (int i = 0; i < int(surfaces.size()); i++) {
         //outFile << surfaces[i].getID() << " ";
         if (surfaces[i].getPoints().size() >= MINIMUM_SURFACE_POINTS) {
@@ -423,8 +438,8 @@ bool View::markLandmarks() {
             surfDirection.set(0, 0, tempSurf.midPoint().x, tempSurf.midPoint().y);
             // surfDirection.display();
             dirAngle = abs(curRobotPose.getAngleWithSurface(surfDirection));
-            cout << "dirAngle: " << dirAngle << endl;
-            cout << "Dist: " << surfDirection.length() << endl;
+            //cout << "dirAngle: " << dirAngle << endl;
+            //cout << "Dist: " << surfDirection.length() << endl;
 
             if (dirAngle < LANDMARK_DIRECTION)//&& surfDirection.length() < LANDMARK_DISTANCE)
                 landmarks.push_back(tempSurf);

@@ -46,7 +46,9 @@ public:
     cv::Point2f midPoint();
 
     void addPoint(cv::Point2f newPoint);
-    void coordTransf(cv::Point2f newCenter, float hX, float hY); // Transforming coordinates of the points into the new frame or reference centered on newCenter and with the axes being Xax*x and Yax*y
+    
+    // Transforming coordinates of the points into the new frame or reference centered on newCenter and with the axes being Xax*x and Yax*y
+    void coordTransf(cv::Point2f newCenter, float hX, float hY); 
     void rotate(cv::Point3f Center); // Rotate P1 & P2 according to the angle Center.z
     std::vector<cv::Point2f> getPoints() const;
     /** internally re-creates this surface, resetting the points and assigning a new id */
@@ -54,7 +56,10 @@ public:
     
     //transforms and returns this surface P1 and P2 (which are in old coordinate) to a new coordinate
     //whose center and angle with respect to old coordinate frame are given.
+    //from pv on to cv.
     Surface transFrom(double newX, double newY, double angle);
+    
+    Surface transformB(double newX, double newY, double angle);
 
     void set(float X1, float Y1, float X2, float Y2);
     void setP1(float X, float Y);

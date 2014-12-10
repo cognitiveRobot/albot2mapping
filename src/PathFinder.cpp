@@ -15,9 +15,18 @@ PathFinder::~PathFinder() {}
 
 bool PathFinder::findNextGoal(const View& cView, AngleAndDistance & nG) {
     cout<<endl<<endl<<"----Finding Next Destination----"<<endl;
+    cout<<cView.getId()<<endl;
+    if(nG.distance < 1 && cView.getId() == 0) {
+        cout<<BOLDGREEN<<"Looging for first goal point"<<RESET<<endl;
+    }
     std::vector<Surface> landmarks = cView.getLandmarks();
     
     cout<<"Number of Landmarks in this view: "<<landmarks.size()<<endl;
+    if(landmarks.size() == 0) {
+        cout<<BOLDRED<<"Couldn't find any landmark from here!!!"<<RESET<<endl;
+        return false;
+    }
+   
     
     std::sort(landmarks.begin(), landmarks.end(), SortBasedOnLength);
     
@@ -36,7 +45,7 @@ bool PathFinder::findNextGoal(const View& cView, AngleAndDistance & nG) {
     cout<<"Distance to target landmark: "<<nextGoalDir.length()<<endl;
     //setting output.
     nG.angle = robotFacing.getAngleWithSurface(nextGoalDir);
-    nG.distance = nextGoalDir.length() - 50;
+    nG.distance = nextGoalDir.length() - 70;
     
 //    cout<<"Angle to next goal: "<<nG.angle<<endl;
 //    cout<<"Distance to next goal: "<<nG.distance<<endl;

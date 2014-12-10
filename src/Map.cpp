@@ -1,4 +1,7 @@
 #include "Map.h"
+#include "PointAndSurface.h"
+#include "GeometryFuncs.h"
+#include "ImageProcessing.h"
 
 Map::Map(int _sizeX, int _sizeY) :
 sizeX(_sizeX), sizeY(_sizeY) {
@@ -9,6 +12,21 @@ sizeX(_sizeX), sizeY(_sizeY) {
 
 Map::~Map() {
 
+}
+
+void Map::initializeMap(const View & firstView) {
+    map.clear(); //make sure the map is empty.
+    map.push_back(firstView);//add the first view.
+    
+    pathSegments.clear(); //make sure the pathsegments is empty.
+}
+
+void Map::addPathSegment(const AngleAndDistance & lastPathSegment) {
+    pathSegments.push_back(lastPathSegment);
+}
+
+vector<AngleAndDistance> Map::getPathSegments() const {
+    return pathSegments;
 }
 
 void Map::coordTransf(cv::Point3f *target, cv::Point3f newCenter, double hX,
@@ -54,6 +72,175 @@ void Map::rotate(cv::Point2f* target, cv::Point2f Center, float angle) {
     target->x = target->x + Center.x;
     target->y = Center.y - target->y;
 
+}
+
+vector<Surface> Map::transformToGlobalMap(const vector<Surface>& rpSurfaces, 
+        const vector<AngleAndDistance>& allPathSegments) {
+    
+    vector<Surface> transformed = rpSurfaces;
+    double newX, newY, angle;
+    for (unsigned int i = allPathSegments.size(); i-- > 0;) {
+        cout << i << " angle: " << allPathSegments[i].angle << " dist: " << allPathSegments[i].distance << endl;
+        angle = allPathSegments[i].angle * CONVERT_TO_RADIAN; // degree to randian.
+        //find cv center in the pv coordinate frame.
+        //need to convert robot position from mm to cm.
+        newX = (allPathSegments[i].distance / 10.0) * sin(-angle); //x= d*cos(th) = d*cos(90-angle) = d*sin(angle) //as aris give - value for right turn
+        newY = (allPathSegments[i].distance / 10.0) * cos(-angle); //y=d*sin(th)=d*sin(90-angle)=d*cos(angle)
+
+        //transforming robot
+        for (unsigned int i = 0; i < transformed.size(); i++) {
+            transformed[i] = transformed[i].transformB(newX, newY, angle);
+
+        }
+
+    }
+
+    return transformed;
+}
+
+void Map::addCVUsingOdo(const View & curView, const AngleAndDistance & homeInfo) {
+    cout << "Add curView to the map." << endl;
+    vector<Surface> transformedSurfaces;
+
+    cout << "@Home: " << homeInfo.angle << " " << homeInfo.distance << endl;
+    vector<AngleAndDistance> allPathSegments = this->getPathSegments();
+    cout << "Num of pathSegments: " << allPathSegments.size() << endl;
+    
+    //transforming surfaces
+    vector<Surface> cvSurfaces = curView.getSurfaces();
+    vector<Surface> rpSurfaces = curView.getRobotSurfaces();
+    cout << "CV size: " << cvSurfaces.size() << endl;
+
+    double newX, newY, angle;
+    for (unsigned int i = allPathSegments.size(); i --> 0;) {
+        cout << i << " angle: " << allPathSegments[i].angle << " dist: " << allPathSegments[i].distance << endl;
+        angle = allPathSegments[i].angle * CONVERT_TO_RADIAN; // degree to randian.
+        //find cv center in the pv coordinate frame.
+        //need to convert robot position from mm to cm.
+        newX = (allPathSegments[i].distance / 10.0) * sin(-angle); //x= d*cos(th) = d*cos(90-angle) = d*sin(angle) //as aris give - value for right turn
+        newY = (allPathSegments[i].distance / 10.0) * cos(-angle); //y=d*sin(th)=d*sin(90-angle)=d*cos(angle)
+
+        //transform cv on to map.
+    for (unsigned int i = 0; i < cvSurfaces.size(); i++) {
+        cvSurfaces[i] = cvSurfaces[i].transformB(newX, newY, angle);
+        
+    }
+           //transforming robot
+         for (unsigned int i = 0; i < rpSurfaces.size(); i++) {
+             rpSurfaces[i] = rpSurfaces[i].transformB(newX, newY, angle);
+
+    }
+
+    }
+
+
+
+    //cout << "RobotPos: " << newX << " " << newY << endl;
+
+    
+    
+
+    View tranView;
+    tranView.setSurfaces(cvSurfaces);   
+    tranView.setRobotSurfaces(rpSurfaces);
+
+    map.push_back(tranView);
+}
+
+void Map::cleanMapUsingOdo(const View & curView, const AngleAndDistance & homeInfo) {
+    cout << "Cleaning the map." << endl;
+    vector<Surface> transformedSurfaces;
+
+    double angle = homeInfo.angle * CONVERT_TO_RADIAN; // degree to randian.
+    //find cv center in the pv coordinate frame.
+    //need to convert robot position from mm to cm.
+    double newX = (homeInfo.distance / 10.0) * sin(-angle); //x= d*cos(th) = d*cos(90-angle) = d*sin(angle) //as aris give - value for right turn
+    double newY = (homeInfo.distance / 10.0) * cos(-angle); //y=d*sin(th)=d*sin(90-angle)=d*cos(angle)
+
+    //transforming surfaces
+    vector<Surface> cvSurfaces = curView.getSurfaces();
+
+    cout << "cvSurfaces: " << cvSurfaces.size() << endl;
+
+    //find cv boundary
+    vector<double> boundariesOfCV = findBoundariesOfCV(cvSurfaces, 20.0);
+
+    //for printing only
+    vector<Surface> boundaryLines;
+    boundaryLines.push_back(Surface(0, 0, boundariesOfCV[0], boundariesOfCV[1]));
+    boundaryLines.push_back(Surface(boundariesOfCV[0], boundariesOfCV[1], boundariesOfCV[0], boundariesOfCV[4]));
+    boundaryLines.push_back(Surface(boundariesOfCV[0], boundariesOfCV[4], boundariesOfCV[2], boundariesOfCV[4]));
+    boundaryLines.push_back(Surface(boundariesOfCV[2], boundariesOfCV[4], boundariesOfCV[2], boundariesOfCV[3]));
+    boundaryLines.push_back(Surface(boundariesOfCV[2], boundariesOfCV[3], 0, 0));
+
+    for (unsigned int i = 0; i < boundaryLines.size(); i++) {
+        transformedSurfaces.push_back(boundaryLines[i].transformB(newX, newY, angle));
+    }
+
+    //making polygon from cv.
+    vector<SurfaceT> polygon;
+    for (unsigned int i = 0; i < transformedSurfaces.size(); i++) {
+        polygon.push_back(SurfaceT(PointXY((double) transformedSurfaces[i].getP1().x, (double) transformedSurfaces[i].getP1().y),
+                PointXY((double) transformedSurfaces[i].getP2().x, (double) transformedSurfaces[i].getP2().y)));
+    }
+
+    //check the point in polygon    cleaning old.
+    vector<Surface> surfacesInsideCV, surfacesOutsideCV;
+    vector<Surface> tempSurf;
+    View tempView;
+
+    for (unsigned int i = 0; i<this->map.size() - 1; i++) {
+        tempView = this->map[i];
+        //   cout<<"Num of Views: "<<this->map.size()<<endl;
+        tempSurf = tempView.getSurfaces();
+        //    cout<<"tempSurfaces: "<<tempSurf.size()<<endl;
+        for (unsigned int j = 0; j < tempSurf.size(); j++) {
+            //         cout<<"j: "<<j<<endl;
+            //        tempSurf[j].display();
+            if (pointInPolygon(PointXY((double) tempSurf[j].getP1().x, (double) tempSurf[j].getP1().y), polygon) == true ||
+                    pointInPolygon(PointXY((double) tempSurf[j].getP2().x, (double) tempSurf[j].getP2().y), polygon) == true)
+                surfacesInsideCV.push_back(tempSurf[j]);
+            else
+                surfacesOutsideCV.push_back(tempSurf[j]);
+        }
+        tempView.setSurfaces(surfacesOutsideCV);
+        tempView.setLandmarks(surfacesInsideCV);
+        this->map[i] = tempView;
+    }
+
+    cout << "Has been cleaned" << endl;
+
+
+}
+
+void Map::saveInTxtFile(const char * filename, const vector<Surface> & rpSurfaces) {
+    cout << "Saving map in a txt file" << endl;
+    ofstream outFile(filename, ios::out);
+
+    vector<Surface> surfaces;
+    // 8 digits should be more than enough
+    // outFile << fixed;
+    //outFile.precision(10);
+    vector<View> allViews = this->getMap();
+    outFile << "@TotalViews: " << allViews.size() << endl;
+    outFile << endl << "@SPosition: " << 0 << " " << 0 << " " << 0 << " " << 0 << endl;
+    outFile << "@CPosition: " << rpSurfaces[0].getP1().x << " ";
+    outFile <<                   rpSurfaces[0].getP1().y << " ";
+    outFile <<                   rpSurfaces[0].getP2().x << " ";
+    outFile <<                   rpSurfaces[0].getP2().y << endl;
+    outFile << endl << "@AllSurfaces: " << endl;
+    for (unsigned int j = 0; j < allViews.size(); j++) {
+        surfaces = allViews[j].getSurfaces();
+        for (int i = 0; i < int(surfaces.size()); i++) {
+            outFile << surfaces[i].getP1().x << " ";
+            outFile << surfaces[i].getP1().y << " ";
+            outFile << surfaces[i].getP2().x << " ";
+            outFile << surfaces[i].getP2().y << endl;
+        }
+        // waitHere();
+    }
+    outFile.close();
+    cout << "Map file saved" << endl;
 }
 
 void Map::update(View newView) {
@@ -325,3 +512,56 @@ void Map::display() {
 View Map::getView() {
     return currentView;
 }
+
+vector<View> Map::getMap() const {
+    return this->map;
+}
+
+
+
+// some function
+//it takes current view surfaces
+
+vector<double> findBoundariesOfCV(const vector<Surface> & cvSurfaces, double extension) {
+    double leftBoundaryX = 0;
+    double leftBoundaryY = 0;
+    double rightBoundaryX = 0;
+    double rightBoundaryY = 0;
+    double frontBoundary = 0;
+    for (int i = 0; i<int(cvSurfaces.size()); i++) {
+
+        if (cvSurfaces[i].getP1().x < leftBoundaryX) {
+            leftBoundaryX = cvSurfaces[i].getP1().x;
+            leftBoundaryY = cvSurfaces[i].getP1().y;
+        }
+        if (cvSurfaces[i].getP2().x < leftBoundaryX) {
+            leftBoundaryX = cvSurfaces[i].getP2().x;
+            leftBoundaryY = cvSurfaces[i].getP2().y;
+        }
+
+        if (cvSurfaces[i].getP1().x > rightBoundaryX) {
+            rightBoundaryX = cvSurfaces[i].getP1().x;
+            rightBoundaryY = cvSurfaces[i].getP1().y;
+        }
+        if (cvSurfaces[i].getP2().x > rightBoundaryX) {
+            rightBoundaryX = cvSurfaces[i].getP2().x;
+            rightBoundaryY = cvSurfaces[i].getP2().y;
+        }
+
+        if (cvSurfaces[i].getP1().y > frontBoundary)
+            frontBoundary = cvSurfaces[i].getP1().y;
+        if (cvSurfaces[i].getP2().y > frontBoundary)
+            frontBoundary = cvSurfaces[i].getP2().y;
+
+
+    }
+    vector<double> result;
+    result.push_back(leftBoundaryX - extension);
+    result.push_back(leftBoundaryY - extension);
+    result.push_back(rightBoundaryX + extension);
+    result.push_back(rightBoundaryY - extension);
+    result.push_back(frontBoundary + extension);
+
+    return result;
+}
+

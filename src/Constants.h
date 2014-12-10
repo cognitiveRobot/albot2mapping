@@ -2,6 +2,19 @@
 #define CONSTANTS_H
 
 
+
+#define _HANDLE_TRICLOPS_ERROR( function, error ) \
+{ \
+   if( error != TriclopsErrorOk ) \
+   { \
+      printf( \
+	 "ERROR: %s reported %s.\n", \
+	 function, \
+	 triclopsErrorToString( error ) ); \
+      exit( 1 ); \
+   } \
+} \
+
 const int COLOR_IMAGE_WIDTH = 320;
 const int COLOR_IMAGE_HEIGHT = 240;
 
@@ -9,6 +22,28 @@ const int COLOR_IMAGE_HEIGHT = 240;
 #define DISPARITY_WIDTH 320.
 #define RECTIFIED_HEIGHT 768.
 #define RECTIFIED_WIDTH 1024.
+
+//color text on terminal
+#define RESET   "\033[0m"
+#define BLACK   "\033[30m"      /* Black */
+#define RED     "\033[31m"      /* Red */
+#define GREEN   "\033[32m"      /* Green */
+#define YELLOW  "\033[33m"      /* Yellow */
+#define BLUE    "\033[34m"      /* Blue */
+#define MAGENTA "\033[35m"      /* Magenta */
+#define CYAN    "\033[36m"      /* Cyan */
+#define WHITE   "\033[37m"      /* White */
+#define BOLDBLACK   "\033[1m\033[30m"      /* Bold Black */
+#define BOLDRED     "\033[1m\033[31m"      /* Bold Red */
+#define BOLDGREEN   "\033[1m\033[32m"      /* Bold Green */
+#define BOLDYELLOW  "\033[1m\033[33m"      /* Bold Yellow */
+#define BOLDBLUE    "\033[1m\033[34m"      /* Bold Blue */
+#define BOLDMAGENTA "\033[1m\033[35m"      /* Bold Magenta */
+#define BOLDCYAN    "\033[1m\033[36m"      /* Bold Cyan */
+#define BOLDWHITE   "\033[1m\033[37m"      /* Bold White */
+
+
+
 
 
 //some parameter for Robot class.
@@ -32,5 +67,11 @@ const int COLOR_DIFF_TRESHOLD = 100;
 //values to decide whether a surface is a landmark
 #define LANDMARK_DIRECTION 10. //10 degree w.r.t robot facing
 #define LANDMARK_DISTANCE 300. //3 Meter from robot
+
+
+
+//switch for global mapping.
+const bool COMPUTE_GLOBAL_MAP = false;
+const bool PRINT_GLOBAL_MAP = false;
 
 #endif /* CONSTANTS_H */

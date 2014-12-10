@@ -139,6 +139,30 @@ Surface Surface::transFrom(double newX, double newY, double angle) {
     return transformed;
 }
 
+
+Surface Surface::transformB(double newX, double newY, double angle) {
+    
+    float x1, y1, x2, y2; //float gives 7digit precision. which is enough for us.
+
+    //rotation
+    x1 = P1.x * cos(angle) - P1.y * sin(angle);
+    y1 = P1.y * cos(angle) + P1.x * sin(angle);
+    //translation
+    x1 += newX;
+    y1 += newY;
+
+    //rotation
+    x2 = P2.x * cos(angle) - P2.y * sin(angle);
+    y2 = P2.y * cos(angle) + P2.x * sin(angle);
+    //translation
+    x2 += newX;
+    y2 += newY;
+    
+    Surface transformed(x1,y1,x2,y2);
+    
+    return transformed;
+}
+
 std::vector<cv::Point2f> Surface::getPoints() const{
     return points;
 }

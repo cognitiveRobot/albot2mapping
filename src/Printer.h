@@ -4,7 +4,8 @@
 /* ------------------------- Basic Includes ------------------------- */
 
 #include <iostream>
-
+#include <fstream>
+#include <cstdlib>
 #include <cmath>
 #include <vector>
 
@@ -16,6 +17,15 @@
 #include "Surface.h"
 #include "View.h"
 #include "Constants.h"
+#include "Map.h"
+
+
+//gnuplot constant
+static const char * GNUPLOT_PATH = "/usr/local/bin/gnuplot";
+const unsigned int PLOT_RESOLUTION_X = 2400;
+const unsigned int PLOT_RESOLUTION_Y = 2400;
+const double PLOT_BORDER_FACTOR = 0.05; // Times the original with/height of the image
+
 
 
 class Printer {
@@ -29,6 +39,8 @@ public:
     Printer();
     ~Printer();
     
+    void cleanCanvas();
+    
     cv::Mat getCanvas();
     
     void plotPoint(const cv::Point2f & point);
@@ -41,7 +53,12 @@ public:
     
     void printView(const char* filename, const View & aView);
     
+    void printMap(const char* filename, const Map & curMap);
+    
 };
+
+void plotMapGNU(const char * filename, const Map & map);
+ void plotViewGNU(const char * filename, const View & view);
 
 
 

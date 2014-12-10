@@ -1,8 +1,11 @@
 #include "Printer.h"
 #include "Color.h"
 
+#include "Surface.h"
+
 
 #include "View.h"
+#include "Map.h"
 
 Printer::Printer () {
         sizeX = 500;
@@ -16,6 +19,12 @@ Printer::Printer () {
 
 Printer::~Printer() {
     
+}
+
+void Printer::cleanCanvas() {
+    this->canvas = cv::Mat::zeros(cv::Size(sizeX, sizeY), CV_8UC3);
+        
+        this->canvas.setTo(cv::Scalar(255, 255, 255));
 }
 
 cv::Mat Printer::getCanvas() {
@@ -82,7 +91,9 @@ void Printer::plotLines(const std::vector<Surface>& surfaces, const Color & colo
 void Printer::printSurfaces(const char* filename, const std::vector<Surface>& surfaces) {
     this->plotLines(surfaces, Color(255,0,0));
    
-    cv::imwrite(filename,canvas);
+    if(!cv::imwrite(filename,canvas)) {
+         cout<<BOLDRED<<"Failed to write "<<filename<<RESET<<endl;
+     }
 }
 //
 void Printer::printView(const char* filename, const View & aView) {
@@ -105,5 +116,209 @@ void Printer::printView(const char* filename, const View & aView) {
     this->plotLines(aView.getLandmarks(),Color(0,0,255));
     
     
-    cv::imwrite(filename, canvas);
+    if(!cv::imwrite(filename,canvas)) {
+         cout<<BOLDRED<<"Failed to write "<<filename<<RESET<<endl;
+     }
+}
+
+//save map
+ void Printer::printMap(const char* filename, const Map & curMap) {
+     //starting new map. so clear canvas in case it's dirty:)
+     this->cleanCanvas();
+     vector<View> allViews = curMap.getMap();
+     Color color;
+     for(unsigned int i=0; i<allViews.size(); i++) {
+         this->plotLines(allViews[i].getSurfaces(), color.mix(color.random()));
+     }
+     
+     if(!cv::imwrite(filename,canvas)) {
+         cout<<BOLDRED<<"Failed to write "<<filename<<RESET<<endl;
+     }
+     
+ }
+ 
+ void plotViewGNU(const char * filename, const View & view) {
+    FILE * fgnup = popen(GNUPLOT_PATH, "w");
+    if (!fgnup) {
+        cerr << "ERROR: " << GNUPLOT_PATH << " not found" << endl;
+        return;
+    }
+
+    //vector<View> views = map.getMap();
+    
+    // Get the plotting range
+    double minX = 0, minY = 0, maxX = 0, maxY = 0;
+
+        for (unsigned int j = 0; j < view.getSurfaces().size(); j++) {
+            minX = min(minX, (double) view.getSurfaces()[j].getP1().x);
+            minX = min(minX, (double) view.getSurfaces()[j].getP2().x);
+
+            maxX = max(maxX, (double) view.getSurfaces()[j].getP1().x);
+            maxX = max(maxX, (double) view.getSurfaces()[j].getP2().x);
+
+            minY = min(minY, (double) view.getSurfaces()[j].getP1().y);
+            minY = min(minY, (double) view.getSurfaces()[j].getP2().y);
+
+            maxY = max(maxY, (double) view.getSurfaces()[j].getP1().y);
+            maxY = max(maxY, (double) view.getSurfaces()[j].getP2().y);
+        }
+
+
+    // Make sure x and y have the same range so the image isn't skewed
+    double xRange = maxX - minX;
+    double yRange = maxY - minY;
+    double diff = yRange - xRange;
+    if (diff > 0) {
+        minX -= diff / 2.0;
+        maxX += diff / 2.0;
+    } else {
+        minY -= -diff / 2.0;
+        maxY += -diff / 2.0;
+    }
+
+    // Add a border to the image
+    double border = (maxX - minX) * PLOT_BORDER_FACTOR; // x and y now have the same range
+    minX -= border;
+    maxX += border;
+    minY -= border;
+    maxY += border;
+
+    fprintf(fgnup, "set terminal png size %d,%d nocrop linewidth 10\n", PLOT_RESOLUTION_X, PLOT_RESOLUTION_Y);
+    fprintf(fgnup, "set output \"%s\"\n", filename);
+    fprintf(fgnup, "set yrange[%g:%g]\n", minY, maxY);
+    fprintf(fgnup, "set xrange[%g:%g]\n", minX, maxX);
+
+    fprintf(fgnup, "plot ");
+    int lastI = -1;
+//    for (unsigned int i = 0; i < views.size()-1; i++) {
+//        fprintf(fgnup, "\"-\" ti \"Objects\" with lines %d, \\\n", i + 1);
+//        lastI = i;
+//    }
+    fprintf(fgnup, "\"-\" ti \"Objects\" with lines %d\n", lastI + 2);
+
+
+
+
+
+        //ploting surfaces
+        for (unsigned int j = 0; j < view.getSurfaces().size(); j++) {
+            fprintf(fgnup, "%g ", view.getSurfaces()[j].getP1().x);
+            fprintf(fgnup, "%g\n", view.getSurfaces()[j].getP1().y);
+            fprintf(fgnup, "%g ", view.getSurfaces()[j].getP2().x);
+            fprintf(fgnup, "%g\n\n", view.getSurfaces()[j].getP2().y);
+
+        }
+        //ploting robot
+        for (unsigned int j = 0; j < view.getRobotSurfaces().size(); j++) {
+            //if(Objects[i].getASRNo() == 1) {
+            fprintf(fgnup, "%g ", view.getRobotSurfaces()[j].getP1().x);
+            fprintf(fgnup, "%g\n", view.getRobotSurfaces()[j].getP1().y);
+            fprintf(fgnup, "%g ", view.getRobotSurfaces()[j].getP2().x);
+            fprintf(fgnup, "%g\n\n", view.getRobotSurfaces()[j].getP2().y);
+            //}
+        }
+        fprintf(fgnup, "e\n");
+
+
+    fflush(fgnup);
+    fclose(fgnup);
+}
+
+void plotMapGNU(const char * filename, const Map & map) {
+    FILE * fgnup = popen(GNUPLOT_PATH, "w");
+    if (!fgnup) {
+        cerr << "ERROR: " << GNUPLOT_PATH << " not found" << endl;
+        return;
+    }
+
+    vector<View> views = map.getMap();
+
+    // Get the plotting range
+    double minX = 0, minY = 0, maxX = 0, maxY = 0;
+    for (unsigned int i = 0; i < views.size(); i++)
+        for (unsigned int j = 0; j < views[i].getSurfaces().size(); j++) {
+            minX = min(minX, (double) views[i].getSurfaces()[j].getP1().x);
+            minX = min(minX, (double) views[i].getSurfaces()[j].getP2().x);
+
+            maxX = max(maxX, (double) views[i].getSurfaces()[j].getP1().x);
+            maxX = max(maxX, (double) views[i].getSurfaces()[j].getP2().x);
+
+            minY = min(minY, (double) views[i].getSurfaces()[j].getP1().y);
+            minY = min(minY, (double) views[i].getSurfaces()[j].getP2().y);
+
+            maxY = max(maxY, (double) views[i].getSurfaces()[j].getP1().y);
+            maxY = max(maxY, (double) views[i].getSurfaces()[j].getP2().y);
+        }
+
+
+    // Make sure x and y have the same range so the image isn't skewed
+    double xRange = maxX - minX;
+    double yRange = maxY - minY;
+    double diff = yRange - xRange;
+    if (diff > 0) {
+        minX -= diff / 2.0;
+        maxX += diff / 2.0;
+    } else {
+        minY -= -diff / 2.0;
+        maxY += -diff / 2.0;
+    }
+
+    // Add a border to the image
+    double border = (maxX - minX) * PLOT_BORDER_FACTOR; // x and y now have the same range
+    minX -= border;
+    maxX += border;
+    minY -= border;
+    maxY += border;
+
+    fprintf(fgnup, "set terminal png size %d,%d nocrop linewidth 10\n", PLOT_RESOLUTION_X, PLOT_RESOLUTION_Y);
+    fprintf(fgnup, "set output \"%s\"\n", filename);
+    fprintf(fgnup, "set yrange[%g:%g]\n", minY, maxY);
+    fprintf(fgnup, "set xrange[%g:%g]\n", minX, maxX);
+
+    fprintf(fgnup, "plot ");
+    int lastI = -1;
+    for (unsigned int i = 0; i < views.size()-1; i++) {
+        fprintf(fgnup, "\"-\" ti \"Objects\" with lines %d, \\\n", i + 1);
+        lastI = i;
+    }
+    fprintf(fgnup, "\"-\" ti \"Objects\" with lines %d\n", lastI + 5);
+
+
+
+    // Plot Objects
+    for (unsigned int i = 0; i < views.size(); i++) {
+        //ploting surfaces
+        for (unsigned int j = 0; j < views[i].getSurfaces().size(); j++) {
+            fprintf(fgnup, "%g ", views[i].getSurfaces()[j].getP1().x);
+            fprintf(fgnup, "%g\n", views[i].getSurfaces()[j].getP1().y);
+            fprintf(fgnup, "%g ", views[i].getSurfaces()[j].getP2().x);
+            fprintf(fgnup, "%g\n\n", views[i].getSurfaces()[j].getP2().y);
+
+        }
+        //ploting robot
+        for (unsigned int j = 0; j < views[i].getRobotSurfaces().size(); j++) {
+            //if(Objects[i].getASRNo() == 1) {
+            fprintf(fgnup, "%g ", views[i].getRobotSurfaces()[j].getP1().x);
+            fprintf(fgnup, "%g\n", views[i].getRobotSurfaces()[j].getP1().y);
+            fprintf(fgnup, "%g ", views[i].getRobotSurfaces()[j].getP2().x);
+            fprintf(fgnup, "%g\n\n", views[i].getRobotSurfaces()[j].getP2().y);
+            //}
+        }
+        fprintf(fgnup, "e\n");
+    }
+    
+//    //deleted surfaces
+//    //ploting landmarks
+//        for (unsigned int j = 0; j < views[views.size()-2].getLandmarks().size(); j++) {
+//            //if(Objects[i].getASRNo() == 1) {
+//            fprintf(fgnup, "%g ", views[views.size()-2].getLandmarks()[j].getP1().x);
+//            fprintf(fgnup, "%g\n", views[views.size()-2].getLandmarks()[j].getP1().y);
+//            fprintf(fgnup, "%g ", views[views.size()-2].getLandmarks()[j].getP2().x);
+//            fprintf(fgnup, "%g\n\n", views[views.size()-2].getLandmarks()[j].getP2().y);
+//            //}
+//        }
+//        fprintf(fgnup, "e\n");
+
+    fflush(fgnup);
+    fclose(fgnup);
 }

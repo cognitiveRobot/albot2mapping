@@ -10,6 +10,7 @@
 
 #include "View.h"
 
+
 /* ------------------------- Namespaces ------------------------- */
 using namespace std;
 //using namespace cv;
@@ -26,6 +27,10 @@ private:
     vector<Surface> surfaces;
     vector<cv::Point3f> rbtPos;
     cv::Mat drawing;
+    
+    vector<View> map;
+    
+    vector<AngleAndDistance> pathSegments;
 
 
 
@@ -35,6 +40,18 @@ public:
     Map(int _sizeX, int _sizeY);
     ~Map();
 
+    void initializeMap(const View & firstView);
+    
+    void addPathSegment(const AngleAndDistance & lastPathSegment);
+    vector<AngleAndDistance> getPathSegments() const;
+    
+    vector<Surface> transformToGlobalMap(const vector<Surface>& rpSurfaces, 
+    const vector<AngleAndDistance>& allPathSegments);
+    
+    void addCVUsingOdo(const View & curView, const AngleAndDistance & homeInfo);
+      void cleanMapUsingOdo(const View & curView, const AngleAndDistance & homeInfo);
+    
+    
     void update(View newView); // Update the map according to the newView
     bool isBehind(Surface Old, Surface New, cv::Point3f rbtPos); /* NOT SURE IF DONE CORRECTLY */ // Check if Old and New surfaces are concealing each other
     void coordTransf(cv::Point3f *target, cv::Point3f newCenter, double hX,
@@ -42,7 +59,14 @@ public:
     void rotate(cv::Point2f* target, cv::Point2f Center, float angle); // Rotate *target point of angle around Center
     void display(); // Display map in output file
     View getView();
+    
+    vector<View> getMap() const;
+    
+    void saveInTxtFile(const char * filename, const vector<Surface> & rpSurfaces);
 };
+
+//
+vector<double> findBoundariesOfCV(const vector<Surface> & cvSurfaces, double extension);
 
 #endif	/* MAPPER_H */
 

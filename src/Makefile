@@ -75,13 +75,16 @@ LIBSRCS = \
 	ImageProcessing.cpp \
 	Color.cpp \
 	Printer.cpp \
-	PathFinder.cpp
+	PathFinder.cpp \
+	PointAndSurface.cpp \
+	GeometryFuncs.cpp 
 	
 PROGSRCS= \
-	main.cpp \
-	AutoXplorationNMapping.cpp \
-	robotControl.cpp \
-	gotoActionExample.cpp
+	GuidedXnMapping.cpp \
+	robotControl.cpp
+#	main.cpp \
+#	AutoXplorationNMapping.cpp \
+#	gotoActionExample.cpp
 #	test-color.cpp \
 #	test-surfacefinder.cpp \
 
@@ -121,11 +124,13 @@ all: $(LIBOBJS) $(PROGOBJS) $(PROG)
 
 clean:
 	rm -f $(LIBOBJS) $(PROGOBJS) $(LIBDEPS) $(PROGDEPS) $(PROG)
-cleanimages:
+cleanoutputs:
 	rm -f ../outputs/depth/*
 	rm -f ../outputs/Views/*
 	rm -f ../outputs/Maps/*
 	rm -f ../outputs/rectified/*
+	rm -f ../outputs/surfaces/*
+	rm -f ../outputs/localSpaces/*
 	
 cleanmaps:
 	rm -f ../outputs/Maps/*

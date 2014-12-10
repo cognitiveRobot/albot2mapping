@@ -2,7 +2,9 @@
 #include "Robot.h"
 
 Robot::Robot() {
-
+    
+    fromHome.angle = 0.0;
+    fromHome.distance = 0.0;
 }
 
 Robot::~Robot() {
@@ -113,6 +115,8 @@ void Robot::moveToTheGoal(AngleAndDistance & goal) {
     //save last locomotion
     lastLocomotion.angle = angleDiff;
     lastLocomotion.distance = odoDistanceDiff;
+    
+  
 
 
     updatePos(odoDistanceDiff, angleDiff);
@@ -177,6 +181,13 @@ void Robot::move() {
     lastLocomotion.angle = angleDiff;
     lastLocomotion.distance = odoDistanceDiff;
 
+    //save totoal angle n dist from home. path integration 
+    fromHome.angle += angleDiff;
+    fromHome.distance += odoDistanceDiff;
+    
+     //save totoal angle n dist from home. path integration 
+    loaclSpaceHome.angle += angleDiff;
+    loaclSpaceHome.distance += odoDistanceDiff;
 
     updatePos(odoDistanceDiff, angleDiff);
     incStep();
@@ -256,6 +267,23 @@ void Robot::updatePos(float r, float teta) {
 
 }
 
+vector<Surface> Robot::getRectRobot() {
+    vector<Surface> robotSurfaces;
+    Surface aSurface;
+     aSurface.set(0,0,0,40);
+     robotSurfaces.push_back(aSurface);//+y
+     aSurface.set(-20,-20,-20,20);
+     robotSurfaces.push_back(aSurface);//left side
+     aSurface.set(-20,20,20,20);
+     robotSurfaces.push_back(aSurface);//front side
+     aSurface.set(20,20,20,-20);
+     robotSurfaces.push_back(aSurface);//right side
+     aSurface.set(20,-20,-20,-20);
+     robotSurfaces.push_back(aSurface);//back side
+     
+     return robotSurfaces;
+}
+
 cv::Point3f Robot::getPos() {
     return Pos;
 }
@@ -263,6 +291,18 @@ cv::Point3f Robot::getPos() {
 AngleAndDistance Robot::getLastLocomotion() {
     return lastLocomotion;
 }
+
+AngleAndDistance Robot::getFromHome() const{
+    return fromHome;
+}
+
+AngleAndDistance Robot::getLocalSpaceHome() const {
+    return loaclSpaceHome;
+}
+    AngleAndDistance Robot::setLocalSpaceHome(double a, double b) {
+        loaclSpaceHome.angle = a;
+    loaclSpaceHome.distance = b;
+    }
 
 void Robot::saveTravelInfo(double dist, double angle, char * filename) {
     ofstream outFile(filename, ios::out);

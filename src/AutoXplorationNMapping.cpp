@@ -52,24 +52,9 @@
 #include "Printer.h"
 #include "PathFinder.h"
 
-/* ------------------------- Defines ------------------------- */
-
-#define _HANDLE_TRICLOPS_ERROR( function, error ) \
-{ \
-   if( error != TriclopsErrorOk ) \
-   { \
-      printf( \
-	 "ERROR: %s reported %s.\n", \
-	 function, \
-	 triclopsErrorToString( error ) ); \
-      exit( 1 ); \
-   } \
-} \
-
 /* ------------------------- Namespaces ------------------------- */
 
 using namespace std;
-//using namespace cv;
 
 /* ------------------------- Program ------------------------- */
 
@@ -83,11 +68,12 @@ int main(int argc, char** argv) {
 
     Camera Bumblebee;
     View curView;
+    curView.setRobotSurfaces(Albot.getRectRobot());
     Map curMap(1500, 1500);
     PathFinder pathFinder;
     AngleAndDistance nextGoal;
 
-  //  Printer printer;
+    Printer printer;
 
     Albot.saveTravelInfo(0, 0, "../outputs/surfaces/coordTrans-0");
 
@@ -113,22 +99,32 @@ int main(int argc, char** argv) {
 
     curView.markLandmarks();
 
-    curView.printView();
+    //curView.printView();
+    char viewName[50];
+    sprintf(viewName, "%s%d%s", "../outputs/Views/View-", curView.getId(), ".png");
+    plotViewGNU(viewName, curView);
 
-    bool ngFound = pathFinder.findNextGoal(curView,nextGoal);
-    
-    cout<<ngFound<<": NextG - A & D: "<<nextGoal.angle<<" & "<<nextGoal.distance<<endl;
+    bool ngFound = pathFinder.findNextGoal(curView, nextGoal);
+
+    cout << ngFound << ": NextG - A & D: " << nextGoal.angle << " & " << nextGoal.distance << endl;
+
+    curMap.initializeMap(curView);
+    char mapName[50];
+    sprintf(mapName, "%s%d%s", "../outputs/Maps/LS-", curView.getId(), ".png");
+    // printer.printMap(mapName,curMap);
+    plotMapGNU(mapName, curMap);
+    bool initializeLocalSpace = false;
 
     // Map
-    curMap.update(curView); // Update the map according to the new view
-    curMap.display(); // Display Map in output file
+    //    curMap.update(curView); // Update the map according to the new view
+    //    curMap.display(); // Display Map in output file
 
     /* -------- Loop ------- */
     char tkStep;
-//   cout << endl << endl << "Shall I go? (y/n) "; // Ask user if continue
-//    cin >> tkStep;
+    //   cout << endl << endl << "Shall I go? (y/n) "; // Ask user if continue
+    //    cin >> tkStep;
     tkStep = 'y';
-    
+
     while (ngFound && tkStep != 'n' && tkStep != 'N') {
         /* Increment counters */
         Bumblebee.incV();
@@ -151,23 +147,48 @@ int main(int argc, char** argv) {
         curView.setView(Bumblebee.getTriclops(), Bumblebee.getDepthImage(), Albot.getPos()); // Set view from camera photograph
 
         curView.markLandmarks();
-        curView.printView();
+        //curView.printView();
+        sprintf(viewName, "%s%d%s", "../outputs/Views/View-", curView.getId(), ".png");
+        plotViewGNU(viewName, curView);
 
 
         SameSurfaceInfo recognizedSurfaceInfo = sameSurfaceFinderOdo.recognizeSameSurface(
                 curMap.getView().getLandmarks(), curView.getLandmarks(), Albot.getLastLocomotion());
 
-        curMap.update(curView); // Update the map according to the new view
-        curMap.display(); // Display Map in output file
+        if(initializeLocalSpace == true) {
+            cout<<BOLDMAGENTA<<"Started new local space"<<RESET<<endl;
+            curMap.initializeMap(curView);
+            sprintf(mapName, "%s%d%s", "../outputs/Maps/LS-", curView.getId(), "a-before.png");
+            plotMapGNU(mapName, curMap);
+            initializeLocalSpace = false;
+        } else {
+            curMap.addCVUsingOdo(curView, Albot.getFromHome());
+
+            sprintf(mapName, "%s%d%s", "../outputs/Maps/LS-", curView.getId(), "a-before.png");
+            plotMapGNU(mapName, curMap);
+
+            curMap.cleanMapUsingOdo(curView, Albot.getFromHome());
+
+            sprintf(mapName, "%s%d%s", "../outputs/Maps/LS-", curView.getId(), "b-after.png");
+            plotMapGNU(mapName, curMap);
+        }
+
+        //        curMap.update(curView); // Update the map according to the new view
+        //        curMap.display(); // Display Map in output file
 
         //find the next goal from cv.
-        if(nextGoal.distance == 0)
-        ngFound = pathFinder.findNextGoal(curView,nextGoal);
-        
-        
+        if (nextGoal.distance == 0) {
+            cout << BOLDBLUE << "Goal is achieved. Going to find next goal." << RESET << endl;
+            ngFound = pathFinder.findNextGoal(curView, nextGoal);
+            initializeLocalSpace = true;
+        }
+
+        cout << "(Home) angle: " << Albot.getFromHome().angle << " dist: " << Albot.getFromHome().distance << endl;
+
+
         cout << endl << endl << "Take another step? (y/n) "; // Ask user if continue
         cin >> tkStep;
-       
+
 
     }
     cout << endl;

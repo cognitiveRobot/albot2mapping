@@ -52,6 +52,8 @@ private:
     vector<Surface> surfaces;
 
     vector<Surface> landmarks;
+    
+    vector<Surface> robotSurfaces;
 
     //contains color info of all pixels of ROI image
     Color colors[COLOR_IMAGE_WIDTH][COLOR_IMAGE_HEIGHT];
@@ -76,9 +78,13 @@ public:
     ~View();
 
     void setId(int value);
-    int getId();
+    int getId() const;
     void setRobotPos(float X, float Y, float angle);
     cv::Point3f getRobotPos();
+    
+    void setRobotSurfaces(const vector<Surface> & surfaces);
+    vector<Surface> getRobotSurfaces() const;
+    
     void setView(TriclopsContext triclops, TriclopsImage16 depthImage,
             cv::Point3f robotPos); // Setting View from camera photograph
     Color getAverageColor(int boundX, int boundY, int boundW, int boundH);
@@ -86,11 +92,16 @@ public:
     float distance(cv::Point2f A, cv::Point2f B); // Get the distance between 2 points of a snapshot to know if they belong to the same surface
     void addSurface(Surface surface);//add a single surface to the existing list.
     void addSurfaces(vector<Surface> someSurfaces);//add few surfaces to the existing list.
+    
     void setSurfaces(); // Set the surface for each Surface
+    
+    void setSurfaces(const vector<Surface> & someSurfaces);
+    vector<Surface> getSurfaces() const;
+    
     void rotate(); // Rotate each Surface according to angle robot.z
     void translate(); // Translate each Surface according to robot.x & robot.y
     void cleanView(); // Delete irrelevant Surfaces
-    vector<Surface> getSurfaces() const;
+
     void clearView();
 
     void saveSurfaces(vector<Surface> surfaces, char * filename);

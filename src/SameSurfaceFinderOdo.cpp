@@ -11,11 +11,7 @@ SameSurfaceInfo SameSurfaceFinderOdo::recognizeSameSurface(std::vector<Surface> 
     cout<<"No. of Lsurfaces in CV: "<<cvLandmarks.size()<<endl;
     
     cout<<"Angle "<<lastLocomotion.angle<<" dist "<<lastLocomotion.distance<<endl;
-    
-    cout<<(M_PI /180.0)<<endl;
-    cout<<CONVERT_TO_RADIAN<<endl;
-    
-   
+  
     double angle = lastLocomotion.angle * CONVERT_TO_RADIAN;// degree to randian.
      //find cv center in the pv coordinate frame.
     //need to convert robot position from mm to cm.
@@ -59,7 +55,7 @@ SameSurfaceInfo SameSurfaceFinderOdo::recognizeSameSurface(std::vector<Surface> 
     }
     
     cout<<"above is the result from recognition module"<<endl;
-    waitHere();
+    //waitHere();
     
     return sameSurfaces;
 }

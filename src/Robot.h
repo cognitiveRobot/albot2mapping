@@ -49,7 +49,12 @@ private:
     double angleToMove;
     double distanceToMove;
     
-    AngleAndDistance lastLocomotion;//save from move method.
+    AngleAndDistance lastLocomotion;//angle and dist from last view point. saved from move method.
+    AngleAndDistance fromHome;//angle and distance of home from current position. saved from move method.
+    
+    AngleAndDistance loaclSpaceHome;//angle and distance of local space home from current position. saved from move method.
+    
+    
 
 
 
@@ -64,6 +69,7 @@ public:
     void connect(int argc, char **argv, ArSimpleConnector* connector);
     void disconnect();
 
+    
 
     /* Movement */
     void incStep();
@@ -75,7 +81,14 @@ public:
     void updatePos(float r, float teta);
     cv::Point3f getPos();
     
+    vector<Surface> getRectRobot();
+    
     AngleAndDistance getLastLocomotion();
+    
+    AngleAndDistance getFromHome() const;
+    
+    AngleAndDistance getLocalSpaceHome() const;
+    AngleAndDistance setLocalSpaceHome(double a, double b);
 
     //save angle and distance travelled in a txt file.
     void saveTravelInfo(double dist, double angle, char * filename);
