@@ -41,9 +41,6 @@ using namespace std;
 
 class View {
 private:
-//    static const unsigned MINIMUM_SURFACE_POINTS;
-//    static const double DEPTH_DIFF_TRESHOLD;
-//    static const int COLOR_DIFF_TRESHOLD;
     static const int step;
 
     int Id;
@@ -54,6 +51,8 @@ private:
     vector<Surface> landmarks;
     
     vector<Surface> robotSurfaces;
+    
+    Surface rPositionInPV;
 
     //contains color info of all pixels of ROI image
     Color colors[COLOR_IMAGE_WIDTH][COLOR_IMAGE_HEIGHT];
@@ -81,6 +80,9 @@ public:
     int getId() const;
     void setRobotPos(float X, float Y, float angle);
     cv::Point3f getRobotPos();
+    
+    void setRPositionInPV(const Surface & surf);
+    Surface getRPositionInPV();
     
     void setRobotSurfaces(const vector<Surface> & surfaces);
     vector<Surface> getRobotSurfaces() const;
@@ -117,6 +119,8 @@ public:
     void printView();
 
 };
+
+void readAView(View & cView, const char* fileName);
 
 #endif	/* VIEW_H */
 

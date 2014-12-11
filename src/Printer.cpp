@@ -232,7 +232,7 @@ void plotMapGNU(const char * filename, const Map & map) {
     }
 
     vector<View> views = map.getMap();
-
+    cout<<"Num of Views: "<<map.getMap().size()<<endl;
     // Get the plotting range
     double minX = 0, minY = 0, maxX = 0, maxY = 0;
     for (unsigned int i = 0; i < views.size(); i++)

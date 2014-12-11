@@ -253,34 +253,38 @@ std::vector<Color> Surface::getColors() {
     return colors;
 }
 
-double Surface::distFromP1ToPoint(const float & a, const float & b) {
+double Surface::distFromP1ToPoint(const float & a, const float & b) const{
     return sqrt((P1.x-a)*(P1.x-a)+(P1.y-b)*(P1.y-b));
 }
 
-double Surface::distFromP2ToPoint(const float & a, const float & b) {
+double Surface::distFromP2ToPoint(const float & a, const float & b) const{
     return sqrt((P2.x-a)*(P2.x-a)+(P2.y-b)*(P2.y-b));
 }
 
-double Surface::getAngleWithXaxis() {
+double Surface::getAngleWithXaxis() const{
     double x21 = P2.x - P1.x;
     double y21 = P2.y - P1.y;
     
-   // cout<<"x21 "<<x21<<" y21 "<<y21<<endl;
+    //cout<<"x21 "<<x21<<" y21 "<<y21<<endl;
+    
+    if(y21 == 0) {
+        return 0;
+    }
 
     double angle1 = acos(x21 / length());
-    //cout<<angle1<<endl;
+   //cout<<angle1<<endl;
     
     if (y21 < 0)
         angle1 = 2 * M_PI - angle1;
 
-   // cout<<angle1<<endl;
+    //cout<<angle1<<endl;
     return ((180 / M_PI) * angle1);
 }
 
-double Surface::getAngleWithSurface(Surface s) {
+double Surface::getAngleWithSurface(Surface s) const{
 
 
-    return s.getAngleWithXaxis() - getAngleWithXaxis();
+    return s.getAngleWithXaxis() - this->getAngleWithXaxis();
 }
 
 

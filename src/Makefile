@@ -36,7 +36,7 @@ CPPFLAGS += -I/usr/include/eigen3	#pcl
 CPPFLAGS += -I/usr/include/vtk-5.8	#pcl
 #CPPFLAGS += `pkg-config --cflags mrpt-base mrpt-slam`
 #CPPFLAGS += `pkg-config cvblob --cflags`
-CPPFLAGS += -Wall -g
+CPPFLAGS += -Wall -g -fno-inline
 CPPFLAGS += -DLINUX
 CPPFLAGS += -c -O1 -Wall -fPIC 
 #CPPFLAGS += -Wall -O3
@@ -81,6 +81,7 @@ LIBSRCS = \
 	
 PROGSRCS= \
 	GuidedXnMapping.cpp \
+	offlineGuidedXnMapping.cpp \
 	robotControl.cpp
 #	main.cpp \
 #	AutoXplorationNMapping.cpp \

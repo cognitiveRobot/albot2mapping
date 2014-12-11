@@ -70,11 +70,11 @@ public:
     void setSurfaceSimple(); //It forms a surface from first and last point
     void setSurface(); // Surface : average line of points. It is given by it's 2 ends P1 & P2
     
-    double getAngleWithXaxis();
-    double getAngleWithSurface(Surface s);
+    double getAngleWithXaxis() const;
+    double getAngleWithSurface(Surface s) const;
     
-    double distFromP1ToPoint(const float & a, const float & b);
-      double distFromP2ToPoint(const float & a, const float & b);
+    double distFromP1ToPoint(const float & a, const float & b) const;
+      double distFromP2ToPoint(const float & a, const float & b) const;
 
     void setColors(std::vector<Color> colors);
     std::vector<Color> getColors();

@@ -8,6 +8,8 @@ class SameSurfaceFinderOdo {
 public:
     SameSurfaceInfo recognizeSameSurface(std::vector<Surface> pvLandmarks,
             std::vector<Surface> cvLandmarks, AngleAndDistance lastLocomotion);
+    
+    
    
 };
 

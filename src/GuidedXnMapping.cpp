@@ -94,9 +94,21 @@ int main(int argc, char** argv) {
 
     bool initializeLocalSpace = true;
     int localSpaceCounter = 0;
+    
+    
+    
 
     /* -------- Loop ------- */
     char tkStep = 'y';
+
+    bool GLOBAL_MAP = false;
+    cout << endl << endl << "Compute Global Map? (y/n) "; // Ask user if continue
+    cin >> tkStep;
+    if (tkStep != 'n' && tkStep != 'N')
+        GLOBAL_MAP = true;
+
+    tkStep = 'y';
+    
 
     while (tkStep != 'n' && tkStep != 'N') {
         /* Increment counters */
@@ -152,7 +164,7 @@ int main(int argc, char** argv) {
             plotMapGNU(mapName, localSpace);
         }
 
-        if (COMPUTE_GLOBAL_MAP == true) {
+        if (GLOBAL_MAP == true) {
             cout << BOLDCYAN << "Updating map >> " << BOLDRED << RESET << endl;
             if (curView.getId() == 1) {//initialize once.
                 curMap.initializeMap(curView);
@@ -191,7 +203,7 @@ int main(int argc, char** argv) {
         sprintf(mapName, "%s%d", "../outputs/localSpaces/localSpace-", localSpaceCounter);
         localSpace.saveInTxtFile(mapName, localSpace.transformToGlobalMap(curView.getRobotSurfaces(), localSpace.getPathSegments()));
     }
-    if (COMPUTE_GLOBAL_MAP == true)
+    if (GLOBAL_MAP == true)
         plotMapGNU("../outputs/Maps/Global-Map.png", curMap);
     cout << endl;
 

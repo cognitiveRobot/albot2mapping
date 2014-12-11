@@ -24,6 +24,7 @@ private:
     int M;
 
     View currentView;
+    View previousView;
     vector<Surface> surfaces;
     vector<cv::Point3f> rbtPos;
     cv::Mat drawing;
@@ -41,6 +42,9 @@ public:
     ~Map();
 
     void initializeMap(const View & firstView);
+    
+    void setPreviousView(const View & pView);
+    View getPreviousView();
     
     void addPathSegment(const AngleAndDistance & lastPathSegment);
     vector<AngleAndDistance> getPathSegments() const;
@@ -63,10 +67,17 @@ public:
     vector<View> getMap() const;
     
     void saveInTxtFile(const char * filename, const vector<Surface> & rpSurfaces);
+    
+    //mapping
+    void expandMap(const View & curView);
 };
 
 //
 vector<double> findBoundariesOfCV(const vector<Surface> & cvSurfaces, double extension);
+
+//mapping 
+vector<Surface> trangulateSurfaces(const Surface & refInMap, const Surface & refInCV, const vector<Surface>& cvSurfaces);
+
 
 #endif	/* MAPPER_H */
 

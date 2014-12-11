@@ -16,9 +16,17 @@ Map::~Map() {
 
 void Map::initializeMap(const View & firstView) {
     map.clear(); //make sure the map is empty.
-    map.push_back(firstView);//add the first view.
-    
+    map.push_back(firstView); //add the first view.
+
     pathSegments.clear(); //make sure the pathsegments is empty.
+}
+
+void Map::setPreviousView(const View & pView) {
+    previousView = pView;
+}
+
+View Map::getPreviousView() {
+    return previousView;
 }
 
 void Map::addPathSegment(const AngleAndDistance & lastPathSegment) {
@@ -74,9 +82,9 @@ void Map::rotate(cv::Point2f* target, cv::Point2f Center, float angle) {
 
 }
 
-vector<Surface> Map::transformToGlobalMap(const vector<Surface>& rpSurfaces, 
+vector<Surface> Map::transformToGlobalMap(const vector<Surface>& rpSurfaces,
         const vector<AngleAndDistance>& allPathSegments) {
-    
+
     vector<Surface> transformed = rpSurfaces;
     double newX, newY, angle;
     for (unsigned int i = allPathSegments.size(); i-- > 0;) {
@@ -105,14 +113,14 @@ void Map::addCVUsingOdo(const View & curView, const AngleAndDistance & homeInfo)
     cout << "@Home: " << homeInfo.angle << " " << homeInfo.distance << endl;
     vector<AngleAndDistance> allPathSegments = this->getPathSegments();
     cout << "Num of pathSegments: " << allPathSegments.size() << endl;
-    
+
     //transforming surfaces
     vector<Surface> cvSurfaces = curView.getSurfaces();
     vector<Surface> rpSurfaces = curView.getRobotSurfaces();
     cout << "CV size: " << cvSurfaces.size() << endl;
 
     double newX, newY, angle;
-    for (unsigned int i = allPathSegments.size(); i --> 0;) {
+    for (unsigned int i = allPathSegments.size(); i-- > 0;) {
         cout << i << " angle: " << allPathSegments[i].angle << " dist: " << allPathSegments[i].distance << endl;
         angle = allPathSegments[i].angle * CONVERT_TO_RADIAN; // degree to randian.
         //find cv center in the pv coordinate frame.
@@ -121,15 +129,15 @@ void Map::addCVUsingOdo(const View & curView, const AngleAndDistance & homeInfo)
         newY = (allPathSegments[i].distance / 10.0) * cos(-angle); //y=d*sin(th)=d*sin(90-angle)=d*cos(angle)
 
         //transform cv on to map.
-    for (unsigned int i = 0; i < cvSurfaces.size(); i++) {
-        cvSurfaces[i] = cvSurfaces[i].transformB(newX, newY, angle);
-        
-    }
-           //transforming robot
-         for (unsigned int i = 0; i < rpSurfaces.size(); i++) {
-             rpSurfaces[i] = rpSurfaces[i].transformB(newX, newY, angle);
+        for (unsigned int i = 0; i < cvSurfaces.size(); i++) {
+            cvSurfaces[i] = cvSurfaces[i].transformB(newX, newY, angle);
 
-    }
+        }
+        //transforming robot
+        for (unsigned int i = 0; i < rpSurfaces.size(); i++) {
+            rpSurfaces[i] = rpSurfaces[i].transformB(newX, newY, angle);
+
+        }
 
     }
 
@@ -137,11 +145,11 @@ void Map::addCVUsingOdo(const View & curView, const AngleAndDistance & homeInfo)
 
     //cout << "RobotPos: " << newX << " " << newY << endl;
 
-    
-    
+
+
 
     View tranView;
-    tranView.setSurfaces(cvSurfaces);   
+    tranView.setSurfaces(cvSurfaces);
     tranView.setRobotSurfaces(rpSurfaces);
 
     map.push_back(tranView);
@@ -223,11 +231,11 @@ void Map::saveInTxtFile(const char * filename, const vector<Surface> & rpSurface
     //outFile.precision(10);
     vector<View> allViews = this->getMap();
     outFile << "@TotalViews: " << allViews.size() << endl;
-    outFile << endl << "@SPosition: " << 0 << " " << 0 << " " << 0 << " " << 0 << endl;
+    outFile << endl << "@SPosition: " << 0 << " " << 0 << " " << 0 << " " << 40 << endl;
     outFile << "@CPosition: " << rpSurfaces[0].getP1().x << " ";
-    outFile <<                   rpSurfaces[0].getP1().y << " ";
-    outFile <<                   rpSurfaces[0].getP2().x << " ";
-    outFile <<                   rpSurfaces[0].getP2().y << endl;
+    outFile << rpSurfaces[0].getP1().y << " ";
+    outFile << rpSurfaces[0].getP2().x << " ";
+    outFile << rpSurfaces[0].getP2().y << endl;
     outFile << endl << "@AllSurfaces: " << endl;
     for (unsigned int j = 0; j < allViews.size(); j++) {
         surfaces = allViews[j].getSurfaces();
@@ -517,6 +525,31 @@ vector<View> Map::getMap() const {
     return this->map;
 }
 
+//mapping.
+
+void Map::expandMap(const View & curView) {
+    
+    Surface refInMap = this->getPreviousView().getRPositionInPV();
+    cout<<"rp at2 "<<endl;
+    refInMap.display();
+    Surface refInCV(0, 0, 0, 40);
+    vector<Surface> cvSurfaces = curView.getSurfaces();
+    cout<<"cvSurf: "<<cvSurfaces.size()<<endl;
+    vector<Surface> cvSurfacesOnMap = trangulateSurfaces(refInMap, refInCV, cvSurfaces);
+    
+    vector<Surface> rpInMap = trangulateSurfaces(refInMap, refInCV, curView.getRobotSurfaces());
+    cout<<"rpSurf: "<<rpInMap.size()<<endl;
+    displaySurfaces(rpInMap);
+    
+    cout<<"cvSurfOnMap: "<<cvSurfacesOnMap.size()<<endl;
+    View newView;
+    newView.setSurfaces(cvSurfacesOnMap);
+    newView.setRobotSurfaces(rpInMap);
+    
+    this->map.push_back(newView);
+
+}
+
 
 
 // some function
@@ -565,3 +598,41 @@ vector<double> findBoundariesOfCV(const vector<Surface> & cvSurfaces, double ext
     return result;
 }
 
+
+vector<Surface> trangulateSurfaces(const Surface & refInMap, const Surface & refInCV, const vector<Surface>& cvSurfaces) {
+    vector<Surface> cvSurfacesOnMap;
+    double angle, distance;
+    float x1, y1, x2, y2;
+    int limit = cvSurfaces.size();
+//    if(cvSurfaces.size() > 10)
+//        limit = 10;
+    for (unsigned int i = 0; i < limit; i++) {
+        angle = refInCV.getAngleWithSurface(Surface(0, 0, cvSurfaces[i].getP1().x, cvSurfaces[i].getP1().y));
+        distance = refInCV.distFromP1ToPoint(cvSurfaces[i].getP1().x, cvSurfaces[i].getP1().y);
+
+        angle *= CONVERT_TO_RADIAN;
+
+        //cout << "angle: " << angle << " dist: " << distance << endl;
+        //waitHere();
+        x1 = ((refInMap.getP2().x - refInMap.getP1().x) / refInMap.length()) * cos(angle)-((refInMap.getP2().y - refInMap.getP1().y) / refInMap.length()) * sin(angle);
+        y1 = ((refInMap.getP2().x - refInMap.getP1().x) / refInMap.length()) * sin(angle)+((refInMap.getP2().y - refInMap.getP1().y) / refInMap.length()) * cos(angle);
+
+        x1 = x1 * distance + refInMap.getP1().x;
+        y1 = y1 * distance + refInMap.getP1().y;
+
+        angle = refInCV.getAngleWithSurface(Surface(0, 0, cvSurfaces[i].getP2().x, cvSurfaces[i].getP2().y));
+        distance = refInCV.distFromP1ToPoint(cvSurfaces[i].getP2().x, cvSurfaces[i].getP2().y);
+
+        angle *= CONVERT_TO_RADIAN;
+        
+        x2 = ((refInMap.getP2().x - refInMap.getP1().x) / refInMap.length()) * cos(angle)-((refInMap.getP2().y - refInMap.getP1().y) / refInMap.length()) * sin(angle);
+        y2 = ((refInMap.getP2().x - refInMap.getP1().x) / refInMap.length()) * sin(angle)+((refInMap.getP2().y - refInMap.getP1().y) / refInMap.length()) * cos(angle);
+
+        x2 = x2 * distance + refInMap.getP1().x;
+        y2 = y2 * distance + refInMap.getP1().y;
+        
+        cvSurfacesOnMap.push_back(Surface(x1,y1,x2,y2));
+    }
+    
+    return cvSurfacesOnMap;
+}

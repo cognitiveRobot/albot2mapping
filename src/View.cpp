@@ -23,7 +23,7 @@ View::View() {
 
 View::View(vector<Surface> someSurfaces) {
     surfaces = someSurfaces;
-    
+
     //for display view size.
     sizeX = 500;
     sizeY = 500;
@@ -37,7 +37,7 @@ void View::setId(int value) {
     Id = value;
 }
 
-int View::getId() const{
+int View::getId() const {
     return Id;
 }
 
@@ -51,12 +51,13 @@ cv::Point3f View::getRobotPos() {
     return robot;
 }
 
- void View::setRobotSurfaces(const vector<Surface> & surfaces) {
-     this->robotSurfaces = surfaces;
- }
-    vector<Surface> View::getRobotSurfaces() const{
-        return robotSurfaces;
-    }
+void View::setRobotSurfaces(const vector<Surface> & surfaces) {
+    this->robotSurfaces = surfaces;
+}
+
+vector<Surface> View::getRobotSurfaces() const {
+    return robotSurfaces;
+}
 
 void View::setView(TriclopsContext triclops, TriclopsImage16 depthImage,
         cv::Point3f robotPos) {
@@ -144,9 +145,9 @@ void View::setView(TriclopsContext triclops, TriclopsImage16 depthImage,
             //			printf("Surface color: r%d g%d b%d\n", surfaceColor.red,
             //					surfaceColor.green, surfaceColor.blue);
             tmpSurface.setColors(surfaceColors);
-            if(tmpSurface.getPoints().size() > 1) {
-            tmpSurface.setSurfaceSimple();
-            addSurface(tmpSurface); // Add the Surface to the View
+            if (tmpSurface.getPoints().size() > 1) {
+                tmpSurface.setSurfaceSimple();
+                addSurface(tmpSurface); // Add the Surface to the View
             }
             tmpSurface.reset(); // Clear the temporary Surface
             surfaceColors.clear(); // clear colors
@@ -164,7 +165,7 @@ void View::setView(TriclopsContext triclops, TriclopsImage16 depthImage,
     //save surfaces like laser
     sprintf(filename, "%s%d", "../outputs/surfaces/surfaces-", Id);
     saveSurfaces(this->surfaces, filename);
-    
+
     //setting surfaces
     setSurfaces();
 
@@ -236,12 +237,13 @@ void View::addSurface(Surface surface) {
 }
 
 void View::addSurfaces(vector<Surface> someSurfaces) {
-    for(unsigned int i=0; i<someSurfaces.size(); i++) {
+    for (unsigned int i = 0; i < someSurfaces.size(); i++) {
         this->surfaces.push_back(someSurfaces[i]);
     }
 }
 
 //const is must. bcz it needs to call from a const object
+
 vector<Surface> View::getSurfaces() const {
     return this->surfaces;
 }
@@ -307,17 +309,17 @@ cv::Mat View::display() {
 
     }
     cout << numline << " Number of lines in this view" << endl;
-    
-//    //draw all landmarks
+
+    //    //draw all landmarks
     for (unsigned int i = 0; i < this->landmarks.size(); i++) { // For each surface
         currSurface.setP1(rbt0.x + landmarks[i].getP1().x,
-                    rbt0.y - landmarks[i].getP1().y);
-            currSurface.setP2(rbt0.x + landmarks[i].getP2().x,
-                    rbt0.y - landmarks[i].getP2().y);
+                rbt0.y - landmarks[i].getP1().y);
+        currSurface.setP2(rbt0.x + landmarks[i].getP2().x,
+                rbt0.y - landmarks[i].getP2().y);
         cv::line(drawing, currSurface.getP1(), currSurface.getP2(),
-                    cv::Scalar(0,0,255), 3, 8, 0); // Draw that line
+                cv::Scalar(0, 0, 255), 3, 8, 0); // Draw that line
     }
-    cout << "Number of landmarks in this view "<< this->landmarks.size()<<endl;
+    cout << "Number of landmarks in this view " << this->landmarks.size() << endl;
 
     // Display the view in a file
     char filename[50];
@@ -331,7 +333,7 @@ void View::printView() {
     Printer printer;
     char filename[50];
     sprintf(filename, "%s%d%s", "../outputs/Views/View", Id, ".jpg");
-   printer.printView(filename,*this);
+    printer.printView(filename, *this);
 }
 
 void View::saveSurfaces(vector<Surface> surfaces, char * filename) {
@@ -345,7 +347,7 @@ void View::saveSurfaces(vector<Surface> surfaces, char * filename) {
     // outFile << fixed;
     //outFile.precision(10);
 
-    
+
     for (int i = 0; i < int(surfaces.size()); i++) {
         //outFile << surfaces[i].getID() << " ";
         if (surfaces[i].getPoints().size() >= MINIMUM_SURFACE_POINTS) {
@@ -421,7 +423,7 @@ void View::saveAreaColors(std::vector<Color> areaColors,
 //it finds landmark surfaces from the surface list.
 
 bool View::markLandmarks() {
-    cout<<endl<<endl<<"Marking landmarks"<<endl;
+    cout << endl << endl << "Marking landmarks" << endl;
     if (this->surfaces.size() < 1) {
         cout << "Strange: there is no surfaces in the view. Check whether surfaces has been set. " << endl;
         return false;
@@ -466,10 +468,67 @@ bool View::markLandmarks() {
     }
 }
 
-vector<Surface> View::getLandmarks() const{
+vector<Surface> View::getLandmarks() const {
     return landmarks;
 }
 
 void View::setLandmarks(vector<Surface> someLandmarks) {
     landmarks = someLandmarks;
+}
+
+void View::setRPositionInPV(const Surface & surf) {
+    rPositionInPV = surf;
+}
+    Surface View::getRPositionInPV() {
+        return rPositionInPV;
+    }
+
+void readAView(View & cView, const char* fileName) {
+    vector<Surface> surfaces;
+    ifstream inputFile(fileName, ios::in);
+    if (inputFile.is_open()) {
+        cout << "Reading view...." << endl;
+        float x1, y1, x2, y2;
+        string data;
+
+
+
+        while (!inputFile.eof()) {
+
+            inputFile >> data;
+            if (data.compare("@CPosition:") == 0) {
+                //reading odometry information
+                inputFile >> x1;
+                inputFile >> y1;
+                inputFile >> x2;
+                inputFile >> y2;
+                cView.setRPositionInPV(Surface(x1,y1,x2,y2));
+                //cout << "rPosition -- x: " << x1 << " y: " << y1 << " x2: " << x2 << " y2: " << y2 << endl;
+            }
+            if (data.compare("@AllSurfaces:") == 0) {
+                //reading odometry information
+                inputFile >> x1;
+                inputFile >> y1;
+                inputFile >> x2;
+                inputFile >> y2;
+
+                while (!inputFile.eof()) {
+                    surfaces.push_back(Surface(x1, y1, x2, y2));
+                    //cout << "x " << x1 << " y " << y1 << " x2: " << x2 << " y2: " << y2 << endl;
+
+                    inputFile >> x1;
+                    inputFile >> y1;
+                    inputFile >> x2;
+                    inputFile >> y2;
+                }
+            }
+        }
+
+
+    } else
+        cout << "Error opening " << fileName << " .." << endl;
+    
+    cView.setSurfaces(surfaces);
+    cout << "View is read. Num of surfaces: " << surfaces.size() << endl;
+    //return surfaces;
 }

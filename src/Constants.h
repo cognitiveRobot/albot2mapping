@@ -71,7 +71,7 @@ const int COLOR_DIFF_TRESHOLD = 100;
 
 
 //switch for global mapping.
-const bool COMPUTE_GLOBAL_MAP = false;
-const bool PRINT_GLOBAL_MAP = false;
+const bool COMPUTE_GLOBAL_MAP = true;
+const bool PRINT_GLOBAL_MAP = true;
 
 #endif /* CONSTANTS_H */
