@@ -137,8 +137,7 @@ void Map::addCVUsingOdo(const View & curView, const AngleAndDistance & homeInfo)
         for (unsigned int i = 0; i < rpSurfaces.size(); i++) {
             rpSurfaces[i] = rpSurfaces[i].transformB(newX, newY, angle);
 
-        }
-
+        }        
     }
 
 
@@ -146,7 +145,7 @@ void Map::addCVUsingOdo(const View & curView, const AngleAndDistance & homeInfo)
     //cout << "RobotPos: " << newX << " " << newY << endl;
 
 
-
+    cout<<BOLDRED<<"Transfomed surfs: "<<cvSurfaces.size()<<RESET<<endl;
 
     View tranView;
     tranView.setSurfaces(cvSurfaces);
@@ -199,12 +198,8 @@ void Map::cleanMapUsingOdo(const View & curView, const AngleAndDistance & homeIn
 
     for (unsigned int i = 0; i<this->map.size() - 1; i++) {
         tempView = this->map[i];
-        //   cout<<"Num of Views: "<<this->map.size()<<endl;
         tempSurf = tempView.getSurfaces();
-        //    cout<<"tempSurfaces: "<<tempSurf.size()<<endl;
         for (unsigned int j = 0; j < tempSurf.size(); j++) {
-            //         cout<<"j: "<<j<<endl;
-            //        tempSurf[j].display();
             if (pointInPolygon(PointXY((double) tempSurf[j].getP1().x, (double) tempSurf[j].getP1().y), polygon) == true ||
                     pointInPolygon(PointXY((double) tempSurf[j].getP2().x, (double) tempSurf[j].getP2().y), polygon) == true)
                 surfacesInsideCV.push_back(tempSurf[j]);
@@ -212,8 +207,12 @@ void Map::cleanMapUsingOdo(const View & curView, const AngleAndDistance & homeIn
                 surfacesOutsideCV.push_back(tempSurf[j]);
         }
         tempView.setSurfaces(surfacesOutsideCV);
-        tempView.setLandmarks(surfacesInsideCV);
+        //tempView.setLandmarks(surfacesInsideCV);
         this->map[i] = tempView;
+        
+        //clear variables to reuse.
+        surfacesInsideCV.clear();
+        surfacesOutsideCV.clear();
     }
 
     cout << "Has been cleaned" << endl;

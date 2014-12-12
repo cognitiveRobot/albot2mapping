@@ -7,24 +7,24 @@
 #include "View.h"
 #include "Map.h"
 
-Printer::Printer () {
-        sizeX = 500;
-        sizeY = 500;
-        
-        canvas = cv::Mat::zeros(cv::Size(sizeX, sizeY), CV_8UC3);
-        
-        canvas.setTo(cv::Scalar(255, 255, 255));
-        
-    }
+Printer::Printer() {
+    sizeX = 500;
+    sizeY = 500;
+
+    canvas = cv::Mat::zeros(cv::Size(sizeX, sizeY), CV_8UC3);
+
+    canvas.setTo(cv::Scalar(255, 255, 255));
+
+}
 
 Printer::~Printer() {
-    
+
 }
 
 void Printer::cleanCanvas() {
     this->canvas = cv::Mat::zeros(cv::Size(sizeX, sizeY), CV_8UC3);
-        
-        this->canvas.setTo(cv::Scalar(255, 255, 255));
+
+    this->canvas.setTo(cv::Scalar(255, 255, 255));
 }
 
 cv::Mat Printer::getCanvas() {
@@ -32,6 +32,7 @@ cv::Mat Printer::getCanvas() {
 }
 
 //it plots a single point in green.
+
 void Printer::plotPoint(const cv::Point2f& point) {
     cv::circle(canvas, point, 1, cv::Scalar(0, 255, 0), 1, 8, 0);
 }
@@ -47,97 +48,99 @@ void Printer::plotPoints(const std::vector<cv::Point2f>& points) {
 }
 
 void Printer::plotLine(const cv::Point2f & point1, const cv::Point2f & point2, const Color & color) {
-    cv::Point2f  p1, p2;
-    p1.x = sizeX/2 +point1.x;
+    cv::Point2f p1, p2;
+    p1.x = sizeX / 2 + point1.x;
     p1.y = sizeY - 15 - point1.y;
-    
-     p2.x = sizeX/2 +point2.x;
+
+    p2.x = sizeX / 2 + point2.x;
     p2.y = sizeY - 15 - point2.y;
-    
+
     cv::line(canvas, p1, p2, cv::Scalar(color.red, color.green, color.blue), 2, 8, 0);
 }
 
 //it adds a rectangle at 0,0 poisition with +y facing.
+
 void Printer::plotRobot() {
     // Draw the robot
     cv::Point2f rbt0(sizeX / 2, sizeY - 15);
     cv::Point2f rbt1(rbt0.x - 15, rbt0.y - 15);
     cv::Point2f rbt2(rbt0.x + 15, rbt0.y + 15);
     cv::Point2f rbt3(rbt0.x, rbt0.y - 30);
-    
+
     cv::rectangle(canvas, rbt1, rbt2, cv::Scalar(0, 0, 255), 3, 8, 0);
-    
+
     //plot a line for facing
-    this->plotLine(rbt0,rbt3,Color(0,0,0));
+    this->plotLine(rbt0, rbt3, Color(0, 0, 0));
 }
 
 void Printer::plotLines(const std::vector<Surface>& surfaces, const Color & color) {
-    
+
     cv::Point2f point1, point2;
-    for(unsigned int i=0; i<surfaces.size(); i++) {
-//        point1.x = sizeX/2 + surfaces[i].getP1().x;
-//        point1.y = sizeY - 15 - surfaces[i].getP1().y;
-//        
-//        point2.x = sizeX/2 + surfaces[i].getP2().x;
-//        point2.y = sizeY - 15 - surfaces[i].getP2().y;
-        
-        this->plotLine(surfaces[i].getP1(),surfaces[i].getP2(),color);
-        
-        
+    for (unsigned int i = 0; i < surfaces.size(); i++) {
+        //        point1.x = sizeX/2 + surfaces[i].getP1().x;
+        //        point1.y = sizeY - 15 - surfaces[i].getP1().y;
+        //        
+        //        point2.x = sizeX/2 + surfaces[i].getP2().x;
+        //        point2.y = sizeY - 15 - surfaces[i].getP2().y;
+
+        this->plotLine(surfaces[i].getP1(), surfaces[i].getP2(), color);
+
+
     }
 }
-
 
 void Printer::printSurfaces(const char* filename, const std::vector<Surface>& surfaces) {
-    this->plotLines(surfaces, Color(255,0,0));
-   
-    if(!cv::imwrite(filename,canvas)) {
-         cout<<BOLDRED<<"Failed to write "<<filename<<RESET<<endl;
-     }
+    this->plotLines(surfaces, Color(255, 0, 0));
+
+    if (!cv::imwrite(filename, canvas)) {
+        cout << BOLDRED << "Failed to write " << filename << RESET << endl;
+    }
 }
 //
+
 void Printer::printView(const char* filename, const View & aView) {
     this->plotRobot();
-    
-    this->plotLines(aView.getSurfaces(), Color(255,0,0));
-    
+
+    this->plotLines(aView.getSurfaces(), Color(255, 0, 0));
+
     //plot points of surfaces.
-    for(unsigned int i=0; i<aView.getSurfaces().size(); i++) {
-        if(aView.getSurfaces()[i].getPoints().size() >= MINIMUM_SURFACE_POINTS)
+    for (unsigned int i = 0; i < aView.getSurfaces().size(); i++) {
+        if (aView.getSurfaces()[i].getPoints().size() >= MINIMUM_SURFACE_POINTS)
             this->plotPoints(aView.getSurfaces()[i].getPoints());
     }
-    
-    cout<<"Num of cvLandmarks: "<<aView.getSurfaces().size()<<endl;
+
+    cout << "Num of cvLandmarks: " << aView.getSurfaces().size() << endl;
     displaySurfaces(aView.getSurfaces());
-    
-    cout<<"Num of pvlandmarksOnCV: "<<aView.getLandmarks().size()<<endl;
+
+    cout << "Num of pvlandmarksOnCV: " << aView.getLandmarks().size() << endl;
     displaySurfaces(aView.getLandmarks());
     //plot landmarks.
-    this->plotLines(aView.getLandmarks(),Color(0,0,255));
-    
-    
-    if(!cv::imwrite(filename,canvas)) {
-         cout<<BOLDRED<<"Failed to write "<<filename<<RESET<<endl;
-     }
+    this->plotLines(aView.getLandmarks(), Color(0, 0, 255));
+
+
+    if (!cv::imwrite(filename, canvas)) {
+        cout << BOLDRED << "Failed to write " << filename << RESET << endl;
+    }
 }
 
 //save map
- void Printer::printMap(const char* filename, const Map & curMap) {
-     //starting new map. so clear canvas in case it's dirty:)
-     this->cleanCanvas();
-     vector<View> allViews = curMap.getMap();
-     Color color;
-     for(unsigned int i=0; i<allViews.size(); i++) {
-         this->plotLines(allViews[i].getSurfaces(), color.mix(color.random()));
-     }
-     
-     if(!cv::imwrite(filename,canvas)) {
-         cout<<BOLDRED<<"Failed to write "<<filename<<RESET<<endl;
-     }
-     
- }
- 
- void plotViewGNU(const char * filename, const View & view) {
+
+void Printer::printMap(const char* filename, const Map & curMap) {
+    //starting new map. so clear canvas in case it's dirty:)
+    this->cleanCanvas();
+    vector<View> allViews = curMap.getMap();
+    Color color;
+    for (unsigned int i = 0; i < allViews.size(); i++) {
+        this->plotLines(allViews[i].getSurfaces(), color.mix(color.random()));
+    }
+
+    if (!cv::imwrite(filename, canvas)) {
+        cout << BOLDRED << "Failed to write " << filename << RESET << endl;
+    }
+
+}
+
+void plotViewGNU(const char * filename, const View & view) {
     FILE * fgnup = popen(GNUPLOT_PATH, "w");
     if (!fgnup) {
         cerr << "ERROR: " << GNUPLOT_PATH << " not found" << endl;
@@ -145,23 +148,23 @@ void Printer::printView(const char* filename, const View & aView) {
     }
 
     //vector<View> views = map.getMap();
-    
+
     // Get the plotting range
     double minX = 0, minY = 0, maxX = 0, maxY = 0;
 
-        for (unsigned int j = 0; j < view.getSurfaces().size(); j++) {
-            minX = min(minX, (double) view.getSurfaces()[j].getP1().x);
-            minX = min(minX, (double) view.getSurfaces()[j].getP2().x);
+    for (unsigned int j = 0; j < view.getSurfaces().size(); j++) {
+        minX = min(minX, (double) view.getSurfaces()[j].getP1().x);
+        minX = min(minX, (double) view.getSurfaces()[j].getP2().x);
 
-            maxX = max(maxX, (double) view.getSurfaces()[j].getP1().x);
-            maxX = max(maxX, (double) view.getSurfaces()[j].getP2().x);
+        maxX = max(maxX, (double) view.getSurfaces()[j].getP1().x);
+        maxX = max(maxX, (double) view.getSurfaces()[j].getP2().x);
 
-            minY = min(minY, (double) view.getSurfaces()[j].getP1().y);
-            minY = min(minY, (double) view.getSurfaces()[j].getP2().y);
+        minY = min(minY, (double) view.getSurfaces()[j].getP1().y);
+        minY = min(minY, (double) view.getSurfaces()[j].getP2().y);
 
-            maxY = max(maxY, (double) view.getSurfaces()[j].getP1().y);
-            maxY = max(maxY, (double) view.getSurfaces()[j].getP2().y);
-        }
+        maxY = max(maxY, (double) view.getSurfaces()[j].getP1().y);
+        maxY = max(maxY, (double) view.getSurfaces()[j].getP2().y);
+    }
 
 
     // Make sure x and y have the same range so the image isn't skewed
@@ -189,35 +192,41 @@ void Printer::printView(const char* filename, const View & aView) {
     fprintf(fgnup, "set xrange[%g:%g]\n", minX, maxX);
 
     fprintf(fgnup, "plot ");
-    int lastI = -1;
-//    for (unsigned int i = 0; i < views.size()-1; i++) {
-//        fprintf(fgnup, "\"-\" ti \"Objects\" with lines %d, \\\n", i + 1);
-//        lastI = i;
-//    }
-    fprintf(fgnup, "\"-\" ti \"Objects\" with lines %d\n", lastI + 2);
+    fprintf(fgnup, "\"-\" ti \"Surfaces\" with lines 3, \\\n");
+    if (view.getLandmarks().size() > 0)
+        fprintf(fgnup, "\"-\" ti \"Landmarks\" with lines 2, \\\n");
+    fprintf(fgnup, "\"-\" ti \"Robot\" with lines 1\n");
 
+    //ploting surfaces
+    for (unsigned int j = 0; j < view.getSurfaces().size(); j++) {
+        fprintf(fgnup, "%g ", view.getSurfaces()[j].getP1().x);
+        fprintf(fgnup, "%g\n", view.getSurfaces()[j].getP1().y);
+        fprintf(fgnup, "%g ", view.getSurfaces()[j].getP2().x);
+        fprintf(fgnup, "%g\n\n", view.getSurfaces()[j].getP2().y);
 
+    }
+    fprintf(fgnup, "e\n");
+    if (view.getLandmarks().size() > 0) {
+        //ploting landmarks
+        for (unsigned int j = 0; j < view.getLandmarks().size(); j++) {
+            fprintf(fgnup, "%g ", view.getLandmarks()[j].getP1().x);
+            fprintf(fgnup, "%g\n", view.getLandmarks()[j].getP1().y);
+            fprintf(fgnup, "%g ", view.getLandmarks()[j].getP2().x);
+            fprintf(fgnup, "%g\n\n", view.getLandmarks()[j].getP2().y);
 
-
-
-        //ploting surfaces
-        for (unsigned int j = 0; j < view.getSurfaces().size(); j++) {
-            fprintf(fgnup, "%g ", view.getSurfaces()[j].getP1().x);
-            fprintf(fgnup, "%g\n", view.getSurfaces()[j].getP1().y);
-            fprintf(fgnup, "%g ", view.getSurfaces()[j].getP2().x);
-            fprintf(fgnup, "%g\n\n", view.getSurfaces()[j].getP2().y);
-
-        }
-        //ploting robot
-        for (unsigned int j = 0; j < view.getRobotSurfaces().size(); j++) {
-            //if(Objects[i].getASRNo() == 1) {
-            fprintf(fgnup, "%g ", view.getRobotSurfaces()[j].getP1().x);
-            fprintf(fgnup, "%g\n", view.getRobotSurfaces()[j].getP1().y);
-            fprintf(fgnup, "%g ", view.getRobotSurfaces()[j].getP2().x);
-            fprintf(fgnup, "%g\n\n", view.getRobotSurfaces()[j].getP2().y);
-            //}
         }
         fprintf(fgnup, "e\n");
+    }
+    //ploting robot
+    for (unsigned int j = 0; j < view.getRobotSurfaces().size(); j++) {
+        //if(Objects[i].getASRNo() == 1) {
+        fprintf(fgnup, "%g ", view.getRobotSurfaces()[j].getP1().x);
+        fprintf(fgnup, "%g\n", view.getRobotSurfaces()[j].getP1().y);
+        fprintf(fgnup, "%g ", view.getRobotSurfaces()[j].getP2().x);
+        fprintf(fgnup, "%g\n\n", view.getRobotSurfaces()[j].getP2().y);
+        //}
+    }
+    fprintf(fgnup, "e\n");
 
 
     fflush(fgnup);
@@ -232,7 +241,7 @@ void plotMapGNU(const char * filename, const Map & map) {
     }
 
     vector<View> views = map.getMap();
-    cout<<"Num of Views: "<<map.getMap().size()<<endl;
+    cout << "Num of Views: " << map.getMap().size() << endl;
     // Get the plotting range
     double minX = 0, minY = 0, maxX = 0, maxY = 0;
     for (unsigned int i = 0; i < views.size(); i++)
@@ -277,7 +286,7 @@ void plotMapGNU(const char * filename, const Map & map) {
 
     fprintf(fgnup, "plot ");
     int lastI = -1;
-    for (unsigned int i = 0; i < views.size()-1; i++) {
+    for (unsigned int i = 0; i < views.size() - 1; i++) {
         fprintf(fgnup, "\"-\" ti \"Objects\" with lines %d, \\\n", i + 1);
         lastI = i;
     }
@@ -306,18 +315,18 @@ void plotMapGNU(const char * filename, const Map & map) {
         }
         fprintf(fgnup, "e\n");
     }
-    
-//    //deleted surfaces
-//    //ploting landmarks
-//        for (unsigned int j = 0; j < views[views.size()-2].getLandmarks().size(); j++) {
-//            //if(Objects[i].getASRNo() == 1) {
-//            fprintf(fgnup, "%g ", views[views.size()-2].getLandmarks()[j].getP1().x);
-//            fprintf(fgnup, "%g\n", views[views.size()-2].getLandmarks()[j].getP1().y);
-//            fprintf(fgnup, "%g ", views[views.size()-2].getLandmarks()[j].getP2().x);
-//            fprintf(fgnup, "%g\n\n", views[views.size()-2].getLandmarks()[j].getP2().y);
-//            //}
-//        }
-//        fprintf(fgnup, "e\n");
+
+    //    //deleted surfaces
+    //    //ploting landmarks
+    //        for (unsigned int j = 0; j < views[views.size()-2].getLandmarks().size(); j++) {
+    //            //if(Objects[i].getASRNo() == 1) {
+    //            fprintf(fgnup, "%g ", views[views.size()-2].getLandmarks()[j].getP1().x);
+    //            fprintf(fgnup, "%g\n", views[views.size()-2].getLandmarks()[j].getP1().y);
+    //            fprintf(fgnup, "%g ", views[views.size()-2].getLandmarks()[j].getP2().x);
+    //            fprintf(fgnup, "%g\n\n", views[views.size()-2].getLandmarks()[j].getP2().y);
+    //            //}
+    //        }
+    //        fprintf(fgnup, "e\n");
 
     fflush(fgnup);
     fclose(fgnup);

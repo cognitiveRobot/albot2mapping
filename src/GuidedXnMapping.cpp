@@ -122,7 +122,7 @@ int main(int argc, char** argv) {
         Bumblebee.getImage(); // Acquire image from camera
         curView.setView(Bumblebee.getTriclops(), Bumblebee.getDepthImage(), Albot.getPos()); // Set view from camera photograph
 
-        curView.markLandmarks();
+        //curView.markLandmarks();
         //curView.printView();
         sprintf(viewName, "%s%d%s", "../outputs/Views/View-", curView.getId(), ".png");
         plotViewGNU(viewName, curView);
@@ -158,10 +158,18 @@ int main(int argc, char** argv) {
             localSpace.addCVUsingOdo(curView, Albot.getLocalSpaceHome());
             sprintf(mapName, "%s%d%s%d%s", "../outputs/Maps/LS-", localSpaceCounter, "-v-", curView.getId(), "a-before.png");
             plotMapGNU(mapName, localSpace);
+            
+            cout<<"surfaces after adding.."<<endl;
+            for(unsigned int i=0; i<localSpace.getMap().size(); i++)
+                cout<<i+1<<" surfs: "<<localSpace.getMap()[i].getSurfaces().size()<<endl;
 
             localSpace.cleanMapUsingOdo(curView, Albot.getLocalSpaceHome());
             sprintf(mapName, "%s%d%s%d%s", "../outputs/Maps/LS-", localSpaceCounter, "-v-", curView.getId(), "b-after.png");
             plotMapGNU(mapName, localSpace);
+            
+            cout<<"surfaces after cleaning.."<<endl;
+            for(unsigned int i=0; i<localSpace.getMap().size(); i++)
+                cout<<i+1<<" surfs: "<<localSpace.getMap()[i].getSurfaces().size()<<endl;
         }
 
         if (GLOBAL_MAP == true) {

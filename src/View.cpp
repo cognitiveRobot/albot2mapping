@@ -440,20 +440,20 @@ bool View::markLandmarks() {
             surfDirection.set(0, 0, tempSurf.midPoint().x, tempSurf.midPoint().y);
             // surfDirection.display();
             dirAngle = abs(curRobotPose.getAngleWithSurface(surfDirection));
-            //cout << "dirAngle: " << dirAngle << endl;
+            cout << "dirAngle: " << dirAngle << endl;
             //cout << "Dist: " << surfDirection.length() << endl;
 
-            if (dirAngle < LANDMARK_DIRECTION)//&& surfDirection.length() < LANDMARK_DISTANCE)
+            if (dirAngle > LANDMARK_DIRECTION)//&& surfDirection.length() < LANDMARK_DISTANCE)
                 landmarks.push_back(tempSurf);
             else {
                 surfDirection.set(0, 0, tempSurf.getP1().x, tempSurf.getP1().y);
                 dirAngle = abs(curRobotPose.getAngleWithSurface(surfDirection));
-                if (dirAngle < LANDMARK_DIRECTION)//&& surfDirection.length() < LANDMARK_DISTANCE)
+                if (dirAngle > LANDMARK_DIRECTION)//&& surfDirection.length() < LANDMARK_DISTANCE)
                     landmarks.push_back(tempSurf);
                 else {
                     surfDirection.set(0, 0, tempSurf.getP2().x, tempSurf.getP2().y);
                     dirAngle = abs(curRobotPose.getAngleWithSurface(surfDirection));
-                    if (dirAngle < LANDMARK_DIRECTION)//&& surfDirection.length() < LANDMARK_DISTANCE)
+                    if (dirAngle > LANDMARK_DIRECTION)//&& surfDirection.length() < LANDMARK_DISTANCE)
                         landmarks.push_back(tempSurf);
                 }
             }

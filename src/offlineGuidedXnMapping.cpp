@@ -94,6 +94,8 @@ int main(int argc, char** argv) {
     bool initializeLocalSpace = true;
     int localSpaceCounter = 0;
 
+    
+    
     /* -------- Loop ------- */
     char tkStep = 'y';
 
@@ -145,9 +147,6 @@ int main(int argc, char** argv) {
 
         //save cView as pView for next step.
         curMap.setPreviousView(curView);
-        
-
-
     }
 
     if (COMPUTE_GLOBAL_MAP == true)

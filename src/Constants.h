@@ -65,7 +65,7 @@ const int COLOR_DIFF_TRESHOLD = 100;
 //const int step = DISPARITY_WIDTH / 100;
 
 //values to decide whether a surface is a landmark
-#define LANDMARK_DIRECTION 10. //10 degree w.r.t robot facing
+#define LANDMARK_DIRECTION 40. //10 degree w.r.t robot facing
 #define LANDMARK_DISTANCE 300. //3 Meter from robot
 
 
