@@ -130,12 +130,14 @@ void Map::addCVUsingOdo(const View & curView, const AngleAndDistance & homeInfo)
 
         //transform cv on to map.
         for (unsigned int i = 0; i < cvSurfaces.size(); i++) {
-            cvSurfaces[i] = cvSurfaces[i].transformB(newX, newY, angle);
+            cvSurfaces[i] = cvSurfaces[i].transFrom(newX, newY, angle);
+            //cvSurfaces[i] = cvSurfaces[i].transformB(newX, newY, angle);
 
         }
         //transforming robot
         for (unsigned int i = 0; i < rpSurfaces.size(); i++) {
-            rpSurfaces[i] = rpSurfaces[i].transformB(newX, newY, angle);
+            rpSurfaces[i] = rpSurfaces[i].transFrom(newX, newY, angle);
+            //rpSurfaces[i] = rpSurfaces[i].transformB(newX, newY, angle);
 
         }        
     }
@@ -181,7 +183,8 @@ void Map::cleanMapUsingOdo(const View & curView, const AngleAndDistance & homeIn
     boundaryLines.push_back(Surface(boundariesOfCV[2], boundariesOfCV[3], 0, 0));
 
     for (unsigned int i = 0; i < boundaryLines.size(); i++) {
-        transformedSurfaces.push_back(boundaryLines[i].transformB(newX, newY, angle));
+        transformedSurfaces.push_back(boundaryLines[i].transFrom(newX, newY, angle));
+       // transformedSurfaces.push_back(boundaryLines[i].transformB(newX, newY, angle));
     }
 
     //making polygon from cv.

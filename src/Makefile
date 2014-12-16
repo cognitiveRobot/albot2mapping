@@ -81,7 +81,8 @@ LIBSRCS = \
 	
 PROGSRCS= \
 	GuidedXnMapping.cpp \
-	offlineGuidedXnMapping.cpp \
+	OfflineGuidedXnMapping.cpp \
+	offlineMappingFromLS.cpp \
 	robotControl.cpp
 #	main.cpp \
 #	AutoXplorationNMapping.cpp \
@@ -130,7 +131,6 @@ cleanoutputs:
 	rm -f ../outputs/Views/*
 	rm -f ../outputs/Maps/*
 	rm -f ../outputs/rectified/*
-	rm -f ../outputs/surfaces/*
 	rm -f ../outputs/localSpaces/*
 	
 cleanmaps:

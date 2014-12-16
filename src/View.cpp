@@ -479,11 +479,66 @@ void View::setLandmarks(vector<Surface> someLandmarks) {
 void View::setRPositionInPV(const Surface & surf) {
     rPositionInPV = surf;
 }
-    Surface View::getRPositionInPV() {
-        return rPositionInPV;
-    }
+
+Surface View::getRPositionInPV() {
+    return rPositionInPV;
+}
 
 void readAView(View & cView, const char* fileName) {
+    vector<Surface> surfaces;
+    ifstream inputFile(fileName, ios::in);
+    if (inputFile.is_open()) {
+        cout << "Reading view...." << endl;
+        float x1, y1, x2, y2;
+        string data;
+
+        inputFile >> data; //for row
+        inputFile >> data; //for column
+
+        inputFile >> x1;
+        inputFile >> y1;
+        inputFile >> x2;
+        inputFile >> y2;
+
+        while (!inputFile.eof()) {
+            surfaces.push_back(Surface(x1, y1, x2, y2));
+            //cout << "x " << x1 << " y " << y1 << " x2: " << x2 << " y2: " << y2 << endl;
+
+            inputFile >> x1;
+            inputFile >> y1;
+            inputFile >> x2;
+            inputFile >> y2;
+        }
+    } else
+        cout << "Error opening " << fileName << " .." << endl;
+
+    cView.setSurfaces(surfaces);
+    cout << "View is read. Num of surfaces: " << surfaces.size() << endl;
+}
+
+void readOdometry(Robot & albot, const char* fileName) {
+
+    ifstream inputFile(fileName, ios::in);
+    if (inputFile.is_open()) {
+        cout << "Reading odo...." << endl;
+        float dist, angle;
+        string data;
+
+        inputFile >> data; //for row
+        inputFile >> data; //for column
+
+        inputFile >> dist;
+        inputFile >> angle;
+        
+        albot.setLastLocomotion(dist,angle);
+        cout << "Odometry is read. Dist: " << dist <<" angle: " << angle << endl;
+        
+    } else
+        cout << "Error opening " << fileName << " .." << endl;
+    
+}
+
+void readALocalSpace(View & cView, const char* fileName) {
     vector<Surface> surfaces;
     ifstream inputFile(fileName, ios::in);
     if (inputFile.is_open()) {
@@ -502,7 +557,7 @@ void readAView(View & cView, const char* fileName) {
                 inputFile >> y1;
                 inputFile >> x2;
                 inputFile >> y2;
-                cView.setRPositionInPV(Surface(x1,y1,x2,y2));
+                cView.setRPositionInPV(Surface(x1, y1, x2, y2));
                 //cout << "rPosition -- x: " << x1 << " y: " << y1 << " x2: " << x2 << " y2: " << y2 << endl;
             }
             if (data.compare("@AllSurfaces:") == 0) {
@@ -527,7 +582,7 @@ void readAView(View & cView, const char* fileName) {
 
     } else
         cout << "Error opening " << fileName << " .." << endl;
-    
+
     cView.setSurfaces(surfaces);
     cout << "View is read. Num of surfaces: " << surfaces.size() << endl;
     //return surfaces;

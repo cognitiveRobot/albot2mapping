@@ -104,7 +104,7 @@ int main(int argc, char** argv) {
         //read view.
         curView.setId(curView.getId() + 1);
         sprintf(viewName, "%s%d", "../outputs/localSpaces/localSpace-", curView.getId());
-        readAView(curView,viewName );
+        readALocalSpace(curView,viewName );
         curView.setRobotSurfaces(Albot.getRectRobot());
 
         curView.markLandmarks();

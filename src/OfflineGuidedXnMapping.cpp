@@ -64,30 +64,15 @@ int main(int argc, char** argv) {
     /*------------------------------------------ Variables declaration ------------------------------------------ */
 
     Robot Albot;
-    ArSimpleConnector connector(&argc, argv);
 
     Camera Bumblebee;
     View curView;
     curView.setRobotSurfaces(Albot.getRectRobot());
     Map curMap(1500, 1500);
     Map localSpace(1500, 1500);
-    PathFinder pathFinder;
-    AngleAndDistance nextGoal;
 
-    Printer printer;
 
-    Albot.saveTravelInfo(0, 0, "../outputs/surfaces/coordTrans-0");
-
-    SameSurfaceFinderOdo sameSurfaceFinderOdo;
-
-    /*------------------------------------------ Construction & Initialization ------------------------------------------ */
-
-    Albot.connect(argc, argv, &connector);
-
-    Bumblebee.initialize();
-    Bumblebee.setV(0);
-
-    /*------------------------------------------ Start Xploring ------------------------------------------ */
+   /*------------------------------------------ Start Xploring ------------------------------------------ */
 
     //curView.printView();
     char viewName[50], mapName[50];
@@ -117,14 +102,16 @@ int main(int argc, char** argv) {
         sprintf(viewName, "%s%d", "../outputs/surfaces/surfaces-", curView.getId());
         readAView(curView,viewName );
         curView.setRobotSurfaces(Albot.getRectRobot());
-
         curView.markLandmarks();
         
         sprintf(viewName, "%s%d%s", "../outputs/Views/View-", curView.getId(), ".png");
         plotViewGNU(viewName, curView);
-
+        
+        
+        
+        
         cout << endl << "==================================================" << endl << endl;
-        cout << "View no. " << Bumblebee.getV() << ":" << endl;
+        cout << "View no. " << curView.getId() << ":" << endl;
         plotViewGNU("../outputs/Maps/currentView.png", curView);
 
         cout << endl << endl << "Initialize local space? (y/n) "; // Ask user if continue
@@ -205,7 +192,9 @@ int main(int argc, char** argv) {
 
         /* Move Albot using user input */
         if (tkStep != 'n' && tkStep != 'N') {
-            Albot.move();
+            //read odometer info
+            sprintf(viewName, "%s%d", "../outputs/surfaces/coordTrans-", curView.getId());
+            readOdometry(Albot,viewName);
             localSpace.addPathSegment(Albot.getLastLocomotion());
             curMap.addPathSegment(Albot.getLastLocomotion());
         }

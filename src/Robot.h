@@ -24,7 +24,9 @@
 
 
 /* ------------------------- Headers ------------------------ */
-#include "View.h"
+#include "Aria.h"
+#include "Surface.h"
+#include "Constants.h"
 
 
 
@@ -84,6 +86,7 @@ public:
     vector<Surface> getRectRobot();
     
     AngleAndDistance getLastLocomotion();
+    void setLastLocomotion(const double & a, const double & b);
     
     AngleAndDistance getFromHome() const;
     

@@ -16,7 +16,8 @@ gotoActionExample
 main
 robotControl
 GuidedXnMapping
-offlineGuidedXnMapping
+OfflineGuidedXnMapping
+offlineMappingFromLS
 
 #to ignore a file (most probably belongs to netbeans
 .dep.inc

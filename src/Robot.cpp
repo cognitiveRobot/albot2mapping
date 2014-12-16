@@ -292,6 +292,11 @@ AngleAndDistance Robot::getLastLocomotion() {
     return lastLocomotion;
 }
 
+void Robot::setLastLocomotion(const double & a, const double & b) {
+    lastLocomotion.distance = a;
+    lastLocomotion.angle = b;
+}
+
 AngleAndDistance Robot::getFromHome() const{
     return fromHome;
 }

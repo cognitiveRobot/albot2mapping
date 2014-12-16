@@ -140,6 +140,15 @@ int main(int argc, char** argv) {
         if (initializeLocalSpace == true) {
             //save localSpace in a txt file before starting new.
             if (localSpaceCounter != 0) {
+                localSpace.addCVUsingOdo(curView, Albot.getLocalSpaceHome());
+            sprintf(mapName, "%s%d%s%d%s", "../outputs/Maps/LS-", localSpaceCounter, "-v-", curView.getId(), "a-before.png");
+            plotMapGNU(mapName, localSpace);
+            
+            localSpace.cleanMapUsingOdo(curView, Albot.getLocalSpaceHome());
+            sprintf(mapName, "%s%d%s%d%s", "../outputs/Maps/LS-", localSpaceCounter, "-v-", curView.getId(), "b-after.png");
+            plotMapGNU(mapName, localSpace);
+            
+            
                 sprintf(mapName, "%s%d", "../outputs/localSpaces/localSpace-", localSpaceCounter);
                 localSpace.saveInTxtFile(mapName, localSpace.transformToGlobalMap(curView.getRobotSurfaces(), localSpace.getPathSegments()));
             }
@@ -159,17 +168,17 @@ int main(int argc, char** argv) {
             sprintf(mapName, "%s%d%s%d%s", "../outputs/Maps/LS-", localSpaceCounter, "-v-", curView.getId(), "a-before.png");
             plotMapGNU(mapName, localSpace);
             
-            cout<<"surfaces after adding.."<<endl;
-            for(unsigned int i=0; i<localSpace.getMap().size(); i++)
-                cout<<i+1<<" surfs: "<<localSpace.getMap()[i].getSurfaces().size()<<endl;
+//            cout<<"surfaces after adding.."<<endl;
+//            for(unsigned int i=0; i<localSpace.getMap().size(); i++)
+//                cout<<i+1<<" surfs: "<<localSpace.getMap()[i].getSurfaces().size()<<endl;
 
             localSpace.cleanMapUsingOdo(curView, Albot.getLocalSpaceHome());
             sprintf(mapName, "%s%d%s%d%s", "../outputs/Maps/LS-", localSpaceCounter, "-v-", curView.getId(), "b-after.png");
             plotMapGNU(mapName, localSpace);
             
-            cout<<"surfaces after cleaning.."<<endl;
-            for(unsigned int i=0; i<localSpace.getMap().size(); i++)
-                cout<<i+1<<" surfs: "<<localSpace.getMap()[i].getSurfaces().size()<<endl;
+//            cout<<"surfaces after cleaning.."<<endl;
+//            for(unsigned int i=0; i<localSpace.getMap().size(); i++)
+//                cout<<i+1<<" surfs: "<<localSpace.getMap()[i].getSurfaces().size()<<endl;
         }
 
         if (GLOBAL_MAP == true) {

@@ -2,6 +2,7 @@
 #define PATH_FINDER_H
 
 #include "Robot.h"
+#include "View.h"
 
 
 

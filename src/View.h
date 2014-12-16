@@ -27,6 +27,7 @@
 #include "Camera.h"
 #include "Color.h"
 #include "Constants.h"
+#include "Robot.h"
 
 /* ------------------------- Namespaces ------------------------- */
 using namespace std;
@@ -120,7 +121,9 @@ public:
 
 };
 
+void readALocalSpace(View & cView, const char* fileName);
 void readAView(View & cView, const char* fileName);
+void readOdometry(Robot & albot, const char* fileName);
 
 #endif	/* VIEW_H */
 
