@@ -106,6 +106,46 @@ vector<Surface> Map::transformToGlobalMap(const vector<Surface>& rpSurfaces,
     return transformed;
 }
 
+//adding pv on to cv to compute egoCentric map.
+void Map::addPVUsingOdo(const View & curView, const AngleAndDistance & homeInfo) {
+    //check the point in polygon    cleaning old.
+    vector<Surface> tempSurf;
+    View tempView;
+    
+    double newX, newY, angle;
+    
+    angle = this->pathSegments.back().angle * CONVERT_TO_RADIAN; // degree to randian.
+        //find cv center in the pv coordinate frame.
+        //need to convert robot position from mm to cm.
+        newX = (this->pathSegments.back().distance / 10.0) * sin(-angle); //x= d*cos(th) = d*cos(90-angle) = d*sin(angle) //as aris give - value for right turn
+        newY = (this->pathSegments.back().distance / 10.0) * cos(-angle); //y=d*sin(th)=d*sin(90-angle)=d*cos(angle)
+
+    for (unsigned int i = 0; i<this->map.size(); i++) {
+        tempView = this->map[i];
+        
+        //transform surfaces
+        tempSurf = tempView.getSurfaces();
+        for (unsigned int j = 0; j < tempSurf.size(); j++) {
+            tempSurf[j] = tempSurf[j].transFrom(newX,newY,angle);
+        }
+        tempView.setSurfaces(tempSurf);
+        
+        //transform robotSurfaces
+        tempSurf = tempView.getRobotSurfaces();
+        for (unsigned int j = 0; j < tempSurf.size(); j++) {
+            tempSurf[j] = tempSurf[j].transFrom(newX,newY,angle);
+        }
+        tempView.setRobotSurfaces(tempSurf);
+        
+        //reset View.
+        this->map[i] = tempView;        
+    }
+        
+        //add current View.
+        this->map.push_back(curView);
+}
+
+
 void Map::addCVUsingOdo(const View & curView, const AngleAndDistance & homeInfo) {
     cout << "Add curView to the map." << endl;
     vector<Surface> transformedSurfaces;
@@ -130,14 +170,12 @@ void Map::addCVUsingOdo(const View & curView, const AngleAndDistance & homeInfo)
 
         //transform cv on to map.
         for (unsigned int i = 0; i < cvSurfaces.size(); i++) {
-            cvSurfaces[i] = cvSurfaces[i].transFrom(newX, newY, angle);
-            //cvSurfaces[i] = cvSurfaces[i].transformB(newX, newY, angle);
+            cvSurfaces[i] = cvSurfaces[i].transformB(newX, newY, angle);
 
         }
         //transforming robot
         for (unsigned int i = 0; i < rpSurfaces.size(); i++) {
-            rpSurfaces[i] = rpSurfaces[i].transFrom(newX, newY, angle);
-            //rpSurfaces[i] = rpSurfaces[i].transformB(newX, newY, angle);
+            rpSurfaces[i] = rpSurfaces[i].transformB(newX, newY, angle);
 
         }        
     }
@@ -182,9 +220,12 @@ void Map::cleanMapUsingOdo(const View & curView, const AngleAndDistance & homeIn
     boundaryLines.push_back(Surface(boundariesOfCV[2], boundariesOfCV[4], boundariesOfCV[2], boundariesOfCV[3]));
     boundaryLines.push_back(Surface(boundariesOfCV[2], boundariesOfCV[3], 0, 0));
 
-    for (unsigned int i = 0; i < boundaryLines.size(); i++) {
-        transformedSurfaces.push_back(boundaryLines[i].transFrom(newX, newY, angle));
-       // transformedSurfaces.push_back(boundaryLines[i].transformB(newX, newY, angle));
+    if (EGOCENTRIC_REFERENCE_FRAME == true)
+        transformedSurfaces = boundaryLines;
+    else {
+        for (unsigned int i = 0; i < boundaryLines.size(); i++) {
+            transformedSurfaces.push_back(boundaryLines[i].transformB(newX, newY, angle));
+        }
     }
 
     //making polygon from cv.

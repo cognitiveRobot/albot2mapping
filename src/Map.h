@@ -52,8 +52,12 @@ public:
     vector<Surface> transformToGlobalMap(const vector<Surface>& rpSurfaces, 
     const vector<AngleAndDistance>& allPathSegments);
     
+    //for aloCentric
     void addCVUsingOdo(const View & curView, const AngleAndDistance & homeInfo);
-      void cleanMapUsingOdo(const View & curView, const AngleAndDistance & homeInfo);
+    void cleanMapUsingOdo(const View & curView, const AngleAndDistance & homeInfo);
+    
+    //for egoCentric
+    void addPVUsingOdo(const View & curView, const AngleAndDistance & homeInfo);
     
     
     void update(View newView); // Update the map according to the newView

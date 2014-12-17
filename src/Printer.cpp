@@ -244,7 +244,7 @@ void plotMapGNU(const char * filename, const Map & map) {
     cout << "Num of Views: " << map.getMap().size() << endl;
     // Get the plotting range
     double minX = 0, minY = 0, maxX = 0, maxY = 0;
-    for (unsigned int i = 0; i < views.size(); i++)
+    for (unsigned int i = 0; i < views.size(); i++) {
         for (unsigned int j = 0; j < views[i].getSurfaces().size(); j++) {
             minX = min(minX, (double) views[i].getSurfaces()[j].getP1().x);
             minX = min(minX, (double) views[i].getSurfaces()[j].getP2().x);
@@ -258,6 +258,21 @@ void plotMapGNU(const char * filename, const Map & map) {
             maxY = max(maxY, (double) views[i].getSurfaces()[j].getP1().y);
             maxY = max(maxY, (double) views[i].getSurfaces()[j].getP2().y);
         }
+        
+        for (unsigned int j = 0; j < views[i].getRobotSurfaces().size(); j++) {
+            minX = min(minX, (double) views[i].getRobotSurfaces()[j].getP1().x);
+            minX = min(minX, (double) views[i].getRobotSurfaces()[j].getP2().x);
+
+            maxX = max(maxX, (double) views[i].getRobotSurfaces()[j].getP1().x);
+            maxX = max(maxX, (double) views[i].getRobotSurfaces()[j].getP2().x);
+
+            minY = min(minY, (double) views[i].getRobotSurfaces()[j].getP1().y);
+            minY = min(minY, (double) views[i].getRobotSurfaces()[j].getP2().y);
+
+            maxY = max(maxY, (double) views[i].getRobotSurfaces()[j].getP1().y);
+            maxY = max(maxY, (double) views[i].getRobotSurfaces()[j].getP2().y);
+        }
+    }
 
 
     // Make sure x and y have the same range so the image isn't skewed
