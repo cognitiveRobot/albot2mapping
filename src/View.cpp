@@ -4,6 +4,7 @@
 #include "View.h"
 #include "Constants.h"
 #include "Printer.h"
+#include "Output.h"
 
 //const unsigned View::MINIMUM_SURFACE_POINTS = 2;
 //const double View::DEPTH_DIFF_TRESHOLD = 0.15;
@@ -482,6 +483,29 @@ void View::setRPositionInPV(const Surface & surf) {
 
 Surface View::getRPositionInPV() {
     return rPositionInPV;
+}
+
+int readFolderNumber(const char* fileName) {
+    
+    ifstream inputFile(fileName, ios::in);
+    int number = 0;
+    if (inputFile.is_open()) {
+        
+        inputFile >> number;
+    } else
+        cout << "Error opening " << fileName << " .." << endl;
+    inputFile.close();
+    
+    ofstream outFile(fileName, ios::out);
+    if (outFile.is_open()) {
+        
+        outFile << number+1;
+    } else
+        cout << "Error opening " << fileName << " .." << endl;
+    outFile.close();
+    
+    return number;
+
 }
 
 void readAView(View & cView, const char* fileName) {

@@ -14,6 +14,7 @@
 #include <sstream>
 #include <cmath>
 #include <math.h>
+#include <string>
 
 /* ------------------------- Robot includes ------------------------- */
 #include "Aria.h"
@@ -32,14 +33,15 @@
 /* ------------------------- Open CV includes ------------------------- */
 #include <opencv/cv.h>
 #include <opencv2/opencv.hpp>
+#include <boost/filesystem/operations.hpp>
 //#include <mrpt/bayes/CParticleFilterCapable.h>
 
 
 /* -------------------------Segmentation includes ------------------------- */
-#include "../include/segmentation/image.h"
-#include "../include/segmentation/misc.h"
-#include "../include/segmentation/pnmfile.h"
-#include "../include/segmentation/segment-image.h"
+//#include "../include/segmentation/image.h"
+//#include "../include/segmentation/misc.h"
+//#include "../include/segmentation/pnmfile.h"
+//#include "../include/segmentation/segment-image.h"
 
 /* ------------------------- Headers ------------------------ */
 #include "Camera.h"
@@ -72,7 +74,7 @@ int main(int argc, char** argv) {
     Map localSpace(1500, 1500);
 
 
-    /*------------------------------------------ Start Xploring ------------------------------------------ */
+/*------------------------------------------ Start Xploring ------------------------------------------ */
 
     //curView.printView();
     char viewName[50], mapName[50];
@@ -80,12 +82,8 @@ int main(int argc, char** argv) {
     bool initializeLocalSpace = true;
     int localSpaceCounter = 0;
 
-
-
-
     /* -------- Loop ------- */
-    char tkStep = 'y';
-
+    char tkStep = 'y';    
     bool GLOBAL_MAP = false;
     cout << endl << endl << "Compute Global Map? (y/n) "; // Ask user if continue
     cin >> tkStep;
@@ -107,13 +105,9 @@ int main(int argc, char** argv) {
         sprintf(viewName, "%s%d%s", "../outputs/Maps/View-", curView.getId(), ".png");
         plotViewGNU(viewName, curView);
 
-
-
-
         cout << endl << "==================================================" << endl << endl;
         cout << "View no. " << curView.getId() << ":" << endl;
         plotViewGNU("../outputs/Maps/currentView.png", curView);
-
         cout << endl << endl << "Initialize local space? (y/n) "; // Ask user if continue
         cin >> tkStep;
 
@@ -191,7 +185,6 @@ int main(int argc, char** argv) {
                 }
             }
         }
-
         cout << endl << endl << "Take another step? (y/n) "; // Ask user if continue
         cin >> tkStep;
 
@@ -203,8 +196,6 @@ int main(int argc, char** argv) {
             localSpace.addPathSegment(Albot.getLastLocomotion());
             curMap.addPathSegment(Albot.getLastLocomotion());
         }
-
-
     }
     if (localSpaceCounter != 0) {//for last local space
         sprintf(mapName, "%s%d", "../outputs/localSpaces/localSpace-", localSpaceCounter);

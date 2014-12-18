@@ -34,12 +34,11 @@
 #include <opencv2/opencv.hpp>
 //#include <mrpt/bayes/CParticleFilterCapable.h>
 
-
 /* -------------------------Segmentation includes ------------------------- */
-#include "../include/segmentation/image.h"
-#include "../include/segmentation/misc.h"
-#include "../include/segmentation/pnmfile.h"
-#include "../include/segmentation/segment-image.h"
+//#include "../include/segmentation/image.h"
+//#include "../include/segmentation/misc.h"
+//#include "../include/segmentation/pnmfile.h"
+//#include "../include/segmentation/segment-image.h"
 
 /* ------------------------- Headers ------------------------ */
 #include "Camera.h"
@@ -94,12 +93,16 @@ int main(int argc, char** argv) {
 
     bool initializeLocalSpace = true;
     int localSpaceCounter = 0;
-    
-    
-    
 
     /* -------- Loop ------- */
     char tkStep = 'y';
+    cout << endl << endl << "Do you want to create NEW surface folder? (y/n) "; // Ask user if continue
+    cin >> tkStep;
+    if (tkStep != 'n' && tkStep != 'N') {        
+        sprintf(viewName, "%s%d", "../outputs/surfaces/surfaces-", readFolderNumber("../outputs/folderNumber"));        
+        cout <<  viewName << endl;
+        mkdir(viewName, 0700);
+    }
 
     bool GLOBAL_MAP = false;
     cout << endl << endl << "Compute Global Map? (y/n) "; // Ask user if continue

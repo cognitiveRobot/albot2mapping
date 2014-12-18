@@ -38,7 +38,7 @@ CPPFLAGS += -I/usr/include/vtk-5.8	#pcl
 #CPPFLAGS += `pkg-config cvblob --cflags`
 CPPFLAGS += -Wall -g -fno-inline
 CPPFLAGS += -DLINUX
-CPPFLAGS += -c -O1 -Wall -fPIC 
+CPPFLAGS += -c -O1 -Wall -fPIC
 #CPPFLAGS += -Wall -O3
 
 LDFLAGS	+= -L.
@@ -48,13 +48,13 @@ LDFLAGS	+= -L$(ROOT_LIB)/triclops
 LDFLAGS	+= -L$(LOCALLIB)
 
 LDFLAGS	+= -L/usr/local/Aria/lib	    #Aria Robot
-LDFLAGS    += -O1 -lAria -lpthread -ldl -lrt 
+LDFLAGS    += -O1 -lAria -lpthread -ldl -lrt -lboost_system
 
 LIBS	+= -ldc1394 -lraw1394 -pthread
 LIBS	+= -lpgrlibdcstereo -ltriclops -lpnmutils -lflycapture -lflycapture2bridge -lm
 LIBS	+= `pkg-config --libs opencv` #mrpt-base mrpt-slam`
 
-LIBS	+= -lpcl_io -lboost_system -lpcl_common -lpcl_filters -lpcl_segmentation -lpcl_visualization -lvtkCommon -lvtkFiltering -lvtkRendering -lvtkGraphics
+LIBS	+= -lpcl_io -lpcl_common -lpcl_filters -lpcl_segmentation -lpcl_visualization -lvtkCommon -lvtkFiltering -lvtkRendering -lvtkGraphics
 LIBS	+= -lpcl_search -lpcl_kdtree -lpcl_octree -lpcl_features -lpcl_keypoints -lpcl_registration -lpcl_apps -lpcl_sample_consensus -lpcl_surface
 #pcl . added all to avoid linking problem in the future.
 
@@ -72,7 +72,6 @@ LIBSRCS = \
 	SameSurfaceFinderOdo.cpp \
 	Surface.cpp \
 	View.cpp \
-	ImageProcessing.cpp \
 	Color.cpp \
 	Printer.cpp \
 	PathFinder.cpp \
@@ -110,7 +109,7 @@ all: $(LIBOBJS) $(PROGOBJS) $(PROG)
 	@echo Building $*
 	@echo " "
 	
-	$(CXX) $(LDFLAGS) -o ../src/$* ../obj/$*.o $(LIBOBJS) $(LIBS)
+	$(CXX) $(LDFLAGS)  -o ../src/$* ../obj/$*.o $(LIBOBJS) $(LIBS)
 	@echo " "
 	@echo "		!!DONE!!			"
 	@echo " "

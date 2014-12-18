@@ -120,7 +120,7 @@ public:
     void printView();
 
 };
-
+int readFolderNumber(const char* fileName);
 void readALocalSpace(View & cView, const char* fileName);
 void readAView(View & cView, const char* fileName);
 void readOdometry(Robot & albot, const char* fileName);
