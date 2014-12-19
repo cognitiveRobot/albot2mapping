@@ -38,10 +38,10 @@
 
 
 /* -------------------------Segmentation includes ------------------------- */
-//#include "../include/segmentation/image.h"
-//#include "../include/segmentation/misc.h"
-//#include "../include/segmentation/pnmfile.h"
-//#include "../include/segmentation/segment-image.h"
+#include "../include/segmentation/image.h"
+#include "../include/segmentation/misc.h"
+#include "../include/segmentation/pnmfile.h"
+#include "../include/segmentation/segment-image.h"
 
 /* ------------------------- Headers ------------------------ */
 #include "Camera.h"

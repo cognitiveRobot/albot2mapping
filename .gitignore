@@ -16,7 +16,7 @@ gotoActionExample
 main
 robotControl
 GuidedXnMapping
-OfflineGuidedXnMapping
+offlineGuidedXnMapping
 offlineMappingFromLS
 
 #to ignore a file (most probably belongs to netbeans
@@ -26,6 +26,5 @@ offlineMappingFromLS
 #to ignore folders
 outputs/
 nbproject/
-include/
 src/.idea
 vision result

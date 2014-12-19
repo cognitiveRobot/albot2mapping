@@ -80,7 +80,7 @@ LIBSRCS = \
 	
 PROGSRCS= \
 	GuidedXnMapping.cpp \
-	OfflineGuidedXnMapping.cpp \
+	offlineGuidedXnMapping.cpp \
 	offlineMappingFromLS.cpp \
 	robotControl.cpp
 #	main.cpp \
