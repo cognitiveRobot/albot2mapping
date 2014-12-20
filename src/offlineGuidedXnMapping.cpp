@@ -135,6 +135,7 @@ int main(int argc, char** argv) {
             localSpaceCounter++;
             cout << BOLDMAGENTA << "Started local space >> " << BOLDRED << localSpaceCounter << RESET << endl;
             localSpace.initializeMap(curView);
+            localSpace.setMapID(localSpaceCounter);
 
 
             Albot.setLocalSpaceHome(0, 0);

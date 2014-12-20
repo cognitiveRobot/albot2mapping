@@ -57,8 +57,9 @@ public:
     
 };
 
+void plotSurfacesGNU(const vector<Surface> & someSurfaces);
 void plotMapGNU(const char * filename, const Map & map);
- void plotViewGNU(const char * filename, const View & view);
+void plotViewGNU(const char * filename, const View & view);
 
 
 

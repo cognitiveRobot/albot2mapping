@@ -2,6 +2,12 @@
 #define CONSTANTS_H
 
 
+#ifdef WAITHERE
+   char temp;
+   cout<<"Waiting...";
+    cin>>temp;
+#endif
+
 //localspaces or global map type(egoCentric or allCentric)
 //true means egoCentric reference frame will be used. otherwise allCentric.
 const bool EGOCENTRIC_REFERENCE_FRAME = true;

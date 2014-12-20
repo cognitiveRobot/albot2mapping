@@ -2,16 +2,26 @@
 #include "PointAndSurface.h"
 #include "GeometryFuncs.h"
 #include "ImageProcessing.h"
+#include "Printer.h"
 
 Map::Map(int _sizeX, int _sizeY) :
 sizeX(_sizeX), sizeY(_sizeY) {
     sizeX = 2000;
     sizeY = 2000;
     M = 0;
+    ID = 0;
 }
 
 Map::~Map() {
 
+}
+
+void Map::setMapID(const int & a) {
+    ID = a;
+}
+
+int Map::getMapID() {
+    return ID;
 }
 
 void Map::initializeMap(const View & firstView) {
@@ -36,6 +46,17 @@ void Map::addPathSegment(const AngleAndDistance & lastPathSegment) {
 vector<AngleAndDistance> Map::getPathSegments() const {
     return pathSegments;
 }
+
+void Map::setTempSurfaces(const vector<Surface> & surfs) {
+    tempSurfaces = surfs;
+}
+    vector<Surface> Map::getTempSurfaces() const{
+        return tempSurfaces;
+    }
+    
+   Map Map::getItself() const{
+       return *this;
+   }
 
 void Map::coordTransf(cv::Point3f *target, cv::Point3f newCenter, double hX,
         double hY) {
@@ -227,6 +248,13 @@ void Map::cleanMapUsingOdo(const View & curView, const AngleAndDistance & homeIn
             transformedSurfaces.push_back(boundaryLines[i].transformB(newX, newY, angle));
         }
     }
+    
+    //for debugging only.
+    char mapName[50];
+    sprintf(mapName, "%s%d%s%d%s", "../outputs/Maps/LS-", this->getMapID(), "-v-", curView.getId(), "a-before-withB.png");
+    this->setTempSurfaces(boundaryLines);
+    plotMapGNU(mapName, this->getItself());
+    this->getTempSurfaces().clear();
 
     //making polygon from cv.
     vector<SurfaceT> polygon;

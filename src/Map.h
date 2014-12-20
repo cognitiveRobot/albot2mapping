@@ -22,6 +22,7 @@ private:
     int sizeX;
     int sizeY;
     int M;
+    int ID;
 
     View currentView;
     View previousView;
@@ -32,6 +33,8 @@ private:
     vector<View> map;
     
     vector<AngleAndDistance> pathSegments;
+    
+    vector<Surface> tempSurfaces;
 
 
 
@@ -40,11 +43,19 @@ public:
 
     Map(int _sizeX, int _sizeY);
     ~Map();
+    
 
     void initializeMap(const View & firstView);
     
+    void setMapID(const int & a);
+    int getMapID();
+    
     void setPreviousView(const View & pView);
     View getPreviousView();
+    
+    void setTempSurfaces(const vector<Surface> & surfs);
+    vector<Surface> getTempSurfaces() const;
+    
     
     void addPathSegment(const AngleAndDistance & lastPathSegment);
     vector<AngleAndDistance> getPathSegments() const;
@@ -69,6 +80,8 @@ public:
     View getView();
     
     vector<View> getMap() const;
+    
+    Map getItself() const;
     
     void saveInTxtFile(const char * filename, const vector<Surface> & rpSurfaces);
     

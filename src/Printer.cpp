@@ -6,6 +6,7 @@
 
 #include "View.h"
 #include "Map.h"
+#include "ImageProcessing.h"
 
 Printer::Printer() {
     sizeX = 500;
@@ -140,6 +141,17 @@ void Printer::printMap(const char* filename, const Map & curMap) {
 
 }
 
+
+
+
+
+
+//some functions
+void plotSurfacesGNU(const vector<Surface> & someSurfaces) {
+    
+}
+
+
 void plotViewGNU(const char * filename, const View & view) {
     FILE * fgnup = popen(GNUPLOT_PATH, "w");
     if (!fgnup) {
@@ -258,7 +270,7 @@ void plotMapGNU(const char * filename, const Map & map) {
             maxY = max(maxY, (double) views[i].getSurfaces()[j].getP1().y);
             maxY = max(maxY, (double) views[i].getSurfaces()[j].getP2().y);
         }
-        
+
         for (unsigned int j = 0; j < views[i].getRobotSurfaces().size(); j++) {
             minX = min(minX, (double) views[i].getRobotSurfaces()[j].getP1().x);
             minX = min(minX, (double) views[i].getRobotSurfaces()[j].getP2().x);
@@ -311,6 +323,18 @@ void plotMapGNU(const char * filename, const Map & map) {
 
     // Plot Objects
     for (unsigned int i = 0; i < views.size(); i++) {
+        //plot map's temp surfaces just once.
+        if (i = (views.size() - 1) && map.getTempSurfaces().size() > 0) {
+            
+            for (unsigned int j = 0; j < map.getTempSurfaces().size(); j++) {
+                fprintf(fgnup, "%g ", map.getTempSurfaces()[j].getP1().x);
+                fprintf(fgnup, "%g\n", map.getTempSurfaces()[j].getP1().y);
+                fprintf(fgnup, "%g ", map.getTempSurfaces()[j].getP2().x);
+                fprintf(fgnup, "%g\n\n", map.getTempSurfaces()[j].getP2().y);
+
+            }
+        }
+
         //ploting surfaces
         for (unsigned int j = 0; j < views[i].getSurfaces().size(); j++) {
             fprintf(fgnup, "%g ", views[i].getSurfaces()[j].getP1().x);
