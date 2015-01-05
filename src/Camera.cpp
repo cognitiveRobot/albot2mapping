@@ -1,4 +1,5 @@
 #include "Camera.h"
+#include "Printer.h"
 
 Camera::Camera() {
 
@@ -374,6 +375,8 @@ void Camera::savePointCloud(TriclopsContext triclops, TriclopsImage16 depthImage
     // <x> <y> <z> <red> <grn> <blu> <row> <col>
     // <x> <y> <z> <red> <grn> <blu> <row> <col>
     // ...
+    
+    vector<PointXY> points;
 
     int savedPoints = 0;
     // Determine the number of pixels spacing per row
@@ -387,20 +390,41 @@ void Camera::savePointCloud(TriclopsContext triclops, TriclopsImage16 depthImage
             if (disparity < 0xFF00) {
                 // convert the 16 bit disparity value to floating point x,y,z
                 triclopsRCD16ToXYZ(triclops, i, j, disparity, &x, &y, &z);
+                
+                
+                /* (Source - Point Grey) By default, all Triclops library XYZ results are in the coordinate system of the reference (right) camera which is defined below:
+
+The origin of the system is the optical center of the lens of the reference camera.
+The X axis points to the right of the camera (from the camera's point of view - i.e. looking in the camera view direction).
+The Y axis points towards the ground.
+The Z axis points forward from the camera.
+                 */
 
 
                 // look at points within a range
-                if (z < 5.0) {
+                if (y > -0.001 && y < 0.38) {
                     cloud.points[savedPoints].x = x;
                     cloud.points[savedPoints].y = z;
                     cloud.points[savedPoints].z = -y;
                     savedPoints++;
+                    
+                    //points in 2d
+                    points.push_back(PointXY(x,z));
                 }
             }
         }
     }
+    
+    char fileName[50];
+    sprintf(fileName, "%s%d%s", "../outputs/pointCloud/pointCloud-", this->getV(),".pcd");
 
-    pcl::io::savePCDFileASCII("../outputs/pointCloud/test_pcd.pcd", cloud);
-    std::cerr << "Saved " << savedPoints << " data points to test_pcd.pcd." << std::endl;
+    pcl::io::savePCDFileASCII(fileName, cloud);
+    std::cerr << "Saved " << savedPoints << " data points @pointCloud-" <<this->getV()<< std::endl;
     //std::cerr << "Saved " << cloud.points.size () << " data points to test_pcd.pcd." << std::endl;
+    
+   // plotPointsGNU("../outputs/Maps/points2D-",points);
+    sprintf(fileName, "%s%d", "../outputs/pointCloud/points2D-", this->getV());
+    //plotPointsGNU("../outputs/Maps/points2D-",points);
+    writeASCIIPoints2D(fileName,points);
+    cout<<"Points are plotted using GNU."<<endl;
 }

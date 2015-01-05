@@ -113,11 +113,13 @@ void ImageProcessing::visualizePointCloud(pcl::PointCloud<pcl::PointXYZRGB>::Ptr
     }
 }
 
-void ImageProcessing::segRegionGrowing() {
+void ImageProcessing::segRegionGrowing(const char *filename) {
     pcl::PointCloud<pcl::PointXYZ>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZ>);
-    if (pcl::io::loadPCDFile <pcl::PointXYZ> ("test_pcd.pcd", *cloud) == -1) {
+    if (pcl::io::loadPCDFile <pcl::PointXYZ> (filename, *cloud) == -1) {
         std::cout << "Cloud reading failed." << std::endl;
         //return (-1);
+    } else {
+        std::cout << "Point cloud reading failed." << std::endl;
     }
 
     //visualize input cloud
@@ -177,11 +179,11 @@ void ImageProcessing::segRegionGrowing() {
 
 }
 
-void ImageProcessing::segEuclideanClusters() {
+void ImageProcessing::segEuclideanClusters(const char *filename) {
     // Read in the cloud data
     pcl::PCDReader reader;
     pcl::PointCloud<pcl::PointXYZ>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZ>), cloud_f(new pcl::PointCloud<pcl::PointXYZ>);
-    reader.read("test_pcd.pcd", *cloud);
+    reader.read(filename, *cloud);
     std::cout << "PointCloud before filtering has: " << cloud->points.size() << " data points." << std::endl; //*
 
     // Create the filtering object: downsample the dataset using a leaf size of 1cm

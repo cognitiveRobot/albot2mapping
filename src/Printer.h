@@ -18,6 +18,7 @@
 #include "View.h"
 #include "Constants.h"
 #include "Map.h"
+#include "PointAndSurface.h"
 
 
 //gnuplot constant
@@ -60,6 +61,11 @@ public:
 void plotSurfacesGNU(const vector<Surface> & someSurfaces);
 void plotMapGNU(const char * filename, const Map & map);
 void plotViewGNU(const char * filename, const View & view);
+void plotPointsGNU(const char * filename, const vector<PointXY> & points);
+
+//write a txt file
+void writeASCIIPoints2D(const char *filename, const vector<PointXY> & points);
+
 
 
 

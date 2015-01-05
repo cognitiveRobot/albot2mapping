@@ -48,7 +48,7 @@ LDFLAGS	+= -L$(ROOT_LIB)/triclops
 LDFLAGS	+= -L$(LOCALLIB)
 
 LDFLAGS	+= -L/usr/local/Aria/lib	    #Aria Robot
-LDFLAGS    += -O1 -lAria -lpthread -ldl -lrt -lboost_system
+LDFLAGS    += -O1 -lAria -lpthread -ldl -lrt -lboost_system -lGL
 
 LIBS	+= -ldc1394 -lraw1394 -pthread
 LIBS	+= -lpgrlibdcstereo -ltriclops -lpnmutils -lflycapture -lflycapture2bridge -lm
@@ -66,6 +66,7 @@ CXX = g++-4.4
 # Sources files
 LIBSRCS = \
 	Robot.cpp \
+	PointAndSurface.cpp \
 	Camera.cpp \
 	Map.cpp \
 	SameSurfaceFinderColor.cpp \
@@ -75,9 +76,10 @@ LIBSRCS = \
 	Color.cpp \
 	Printer.cpp \
 	PathFinder.cpp \
-	PointAndSurface.cpp \
-	GeometryFuncs.cpp 
-	
+	GeometryFuncs.cpp \
+	ImageProcessing.cpp
+
+#main programs	
 PROGSRCS= \
 	GuidedXnMapping.cpp \
 	offlineGuidedXnMapping.cpp \
@@ -126,14 +128,22 @@ all: $(LIBOBJS) $(PROGOBJS) $(PROG)
 clean:
 	rm -f $(LIBOBJS) $(PROGOBJS) $(LIBDEPS) $(PROGDEPS) $(PROG)
 cleanoutputs:
-	rm -f ../outputs/depth/*
 	rm -f ../outputs/Views/*
 	rm -f ../outputs/Maps/*
-	rm -f ../outputs/rectified/*
 	rm -f ../outputs/localSpaces/*
 	
 cleanmaps:
 	rm -f ../outputs/Maps/*
+	
+cleansurfaces:
+	rm -f ../outputs/surfaces/*
+
+cleanpointclouds:
+	rm -f ../outputs/pointCloud/*
+cleanimages:
+	rm -f ../outputs/raw/*
+	rm -f ../outputs/rectified/*
+	rm -f ../outputs/depth/*
 
 
 

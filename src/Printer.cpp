@@ -7,6 +7,7 @@
 #include "View.h"
 #include "Map.h"
 #include "ImageProcessing.h"
+#include "PointAndSurface.h"
 
 Printer::Printer() {
     sizeX = 500;
@@ -324,16 +325,16 @@ void plotMapGNU(const char * filename, const Map & map) {
     // Plot Objects
     for (unsigned int i = 0; i < views.size(); i++) {
         //plot map's temp surfaces just once.
-        if (i = (views.size() - 1) && map.getTempSurfaces().size() > 0) {
-            
-            for (unsigned int j = 0; j < map.getTempSurfaces().size(); j++) {
-                fprintf(fgnup, "%g ", map.getTempSurfaces()[j].getP1().x);
-                fprintf(fgnup, "%g\n", map.getTempSurfaces()[j].getP1().y);
-                fprintf(fgnup, "%g ", map.getTempSurfaces()[j].getP2().x);
-                fprintf(fgnup, "%g\n\n", map.getTempSurfaces()[j].getP2().y);
-
-            }
-        }
+//        if (i = (views.size() - 1) && map.getTempSurfaces().size() > 0) {
+//            
+//            for (unsigned int j = 0; j < map.getTempSurfaces().size(); j++) {
+//                fprintf(fgnup, "%g ", map.getTempSurfaces()[j].getP1().x);
+//                fprintf(fgnup, "%g\n", map.getTempSurfaces()[j].getP1().y);
+//                fprintf(fgnup, "%g ", map.getTempSurfaces()[j].getP2().x);
+//                fprintf(fgnup, "%g\n\n", map.getTempSurfaces()[j].getP2().y);
+//
+//            }
+//        }
 
         //ploting surfaces
         for (unsigned int j = 0; j < views[i].getSurfaces().size(); j++) {
@@ -369,4 +370,103 @@ void plotMapGNU(const char * filename, const Map & map) {
 
     fflush(fgnup);
     fclose(fgnup);
+}
+
+void plotPointsGNU(const char * filename, const vector<PointXY> & points) {
+    FILE * fgnup = popen(GNUPLOT_PATH, "w");
+    if (!fgnup) {
+        cerr << "ERROR: " << GNUPLOT_PATH << " not found" << endl;
+        return;
+    }
+
+    // Get the plotting range
+    double minX = 0, minY = 0, maxX = 0, maxY = 0;
+    for (unsigned int i = 0; i < points.size(); i++) {
+        minX = min(minX, points[i].getX());
+        maxX = max(maxX, points[i].getX());
+        minY = min(minY, points[i].getY());
+        maxY = max(maxY, points[i].getY());
+    }
+
+
+    // Make sure x and y have the same range so the image isn't skewed
+    double xRange = maxX - minX;
+    double yRange = maxY - minY;
+    double diff = yRange - xRange;
+    if (diff > 0) {
+        minX -= diff / 2.0;
+        maxX += diff / 2.0;
+    } else {
+        minY -= -diff / 2.0;
+        maxY += -diff / 2.0;
+    }
+
+    // Add a border to the image
+    double border = (maxX - minX) * PLOT_BORDER_FACTOR; // x and y now have the same range
+    minX -= border;
+    maxX += border;
+    minY -= border;
+    maxY += border;
+
+
+    fprintf(fgnup, "set terminal png size %d,%d nocrop linewidth 20\n", PLOT_RESOLUTION_X, PLOT_RESOLUTION_Y);
+    fprintf(fgnup, "set output \"%s\"\n", filename);
+    fprintf(fgnup, "set yrange[%g:%g]\n", minY, maxY);
+    fprintf(fgnup, "set xrange[%g:%g]\n", minX, maxX);
+
+    fprintf(fgnup, "plot \"-\" ti \"Surfaces\" with points 3 19\n");
+    //fprintf(fgnup, "\"-\" ti \"Points\" with points 1 2\n");
+    //fprintf(fgnup, "\"-\" ti \"Occluding edges\" with points 2 4\n");
+
+
+    // Plot points
+    for (unsigned int i = 0; i < points.size(); i++) {
+        fprintf(fgnup, "%g ", points[i].getX());
+        fprintf(fgnup, "%g\n", points[i].getY());
+    }
+    fprintf(fgnup, "e\n");
+
+    //    // Plot occluding edges
+    //    bool noOccluding = true;
+    //    for (vector<Surface>::const_iterator surfIt = surfaces.begin(); surfIt != surfaces.end(); ++surfIt) {
+    //        if (surfIt->isP1Occluding()) {
+    //            noOccluding = false;
+    //            fprintf(fgnup, "%g ", surfIt->getX1());
+    //            fprintf(fgnup, "%g\n", surfIt->getY1());
+    //        }
+    //        if (surfIt->isP2Occluding()) {
+    //            noOccluding = false;
+    //            fprintf(fgnup, "%g ", surfIt->getX2());
+    //            fprintf(fgnup, "%g\n", surfIt->getY2());
+    //        }
+    //    }
+    //    if (noOccluding) // For the special case that there's no occluding edge at all
+    //        fprintf(fgnup, "%g %g\n", 0.0, 0.0);
+    //
+    //    fprintf(fgnup, "e\n");
+
+    fflush(fgnup);
+    fclose(fgnup);
+}
+
+// Write a vector of points to a file
+void writeASCIIPoints2D(const char *filename, const vector<PointXY> & points)
+{
+    ofstream outFile (filename, ios::out);
+
+    // Output ASCII header (row and column)
+    outFile << points.size() << " " << 2 << endl;
+
+    // 8 digits should be more than enough
+    outFile << fixed;
+    outFile.precision(10);
+
+    for (vector<PointXY>::const_iterator it = points.begin(); it!=points.end(); ++it)
+    {
+        outFile << (*it).getX() << " ";
+        outFile << (*it).getY() << endl;
+        
+    }
+
+    outFile.close();
 }

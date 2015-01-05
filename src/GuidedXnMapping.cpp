@@ -70,6 +70,9 @@ int main(int argc, char** argv) {
     curView.setRobotSurfaces(Albot.getRectRobot());
     Map curMap(1500, 1500);
     Map localSpace(1500, 1500);
+    
+    ImageProcessing imgTool;
+    
     PathFinder pathFinder;
     AngleAndDistance nextGoal;
 
@@ -89,7 +92,7 @@ int main(int argc, char** argv) {
     /*------------------------------------------ Start Xploring ------------------------------------------ */
 
     //curView.printView();
-    char viewName[50], mapName[50];
+    char viewName[50], mapName[50], pointFile[50];
 
     bool initializeLocalSpace = true;
     int localSpaceCounter = 0;
@@ -117,6 +120,7 @@ int main(int argc, char** argv) {
         /* Increment counters */
         Bumblebee.incV();
         curView.setId(curView.getId() + 1);
+        
 
         /* This part is unresolved : we must acquire 2 times the image or the camera gives the previous View instead of the new */
         Bumblebee.getImage();
@@ -124,6 +128,12 @@ int main(int argc, char** argv) {
 
         Bumblebee.getImage(); // Acquire image from camera
         curView.setView(Bumblebee.getTriclops(), Bumblebee.getDepthImage(), Albot.getPos()); // Set view from camera photograph
+        
+        //vizualize point cloud.
+        sprintf(pointFile, "%s%d%s", "../outputs/pointCloud/pointCloud-", curView.getId(),".pcd");
+        imgTool.visualizePointCloud(pointFile);
+       // imgTool.segEuclideanClusters(pointFile); 
+       // imgTool.segRegionGrowing(pointFile);
 
         //curView.markLandmarks();
         //curView.printView();

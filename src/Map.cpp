@@ -250,11 +250,11 @@ void Map::cleanMapUsingOdo(const View & curView, const AngleAndDistance & homeIn
     }
     
     //for debugging only.
-    char mapName[50];
-    sprintf(mapName, "%s%d%s%d%s", "../outputs/Maps/LS-", this->getMapID(), "-v-", curView.getId(), "a-before-withB.png");
-    this->setTempSurfaces(boundaryLines);
-    plotMapGNU(mapName, this->getItself());
-    this->getTempSurfaces().clear();
+//    char mapName[50];
+//    sprintf(mapName, "%s%d%s%d%s", "../outputs/Maps/LS-", this->getMapID(), "-v-", curView.getId(), "a-before-withB.png");
+//    this->setTempSurfaces(boundaryLines);
+//    plotMapGNU(mapName, this->getItself());
+//    this->getTempSurfaces().clear();
 
     //making polygon from cv.
     vector<SurfaceT> polygon;
