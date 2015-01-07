@@ -50,6 +50,7 @@
 #include "SameSurfaceFinderOdo.h"
 #include "Printer.h"
 #include "PathFinder.h"
+#include "PointAndSurface.h"
 
 /* ------------------------- Namespaces ------------------------- */
 
@@ -70,6 +71,7 @@ int main(int argc, char** argv) {
     curView.setRobotSurfaces(Albot.getRectRobot());
     Map curMap(1500, 1500);
     Map localSpace(1500, 1500);
+    vector<PointXY> points2D;
     
     ImageProcessing imgTool;
     
@@ -128,12 +130,12 @@ int main(int argc, char** argv) {
 
         Bumblebee.getImage(); // Acquire image from camera
         curView.setView(Bumblebee.getTriclops(), Bumblebee.getDepthImage(), Albot.getPos()); // Set view from camera photograph
+
         
-        //vizualize point cloud.
-        sprintf(pointFile, "%s%d%s", "../outputs/pointCloud/pointCloud-", curView.getId(),".pcd");
-        imgTool.visualizePointCloud(pointFile);
-       // imgTool.segEuclideanClusters(pointFile); 
-       // imgTool.segRegionGrowing(pointFile);
+        sprintf(pointFile, "%s%d", "../outputs/pointCloud/points2D-", curView.getId());
+        curView.constructView(pointFile);
+        cout<<"View is formed :)"<<endl;
+        waitHere();
 
         //curView.markLandmarks();
         //curView.printView();

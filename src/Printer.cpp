@@ -372,7 +372,7 @@ void plotMapGNU(const char * filename, const Map & map) {
     fclose(fgnup);
 }
 
-void plotPointsGNU(const char * filename, const vector<PointXY> & points) {
+void plotPointsAndSurfacesGNU(const char * filename, const vector<PointXY> & points, const vector<Surface> & robotSurfaces) {
     FILE * fgnup = popen(GNUPLOT_PATH, "w");
     if (!fgnup) {
         cerr << "ERROR: " << GNUPLOT_PATH << " not found" << endl;
@@ -409,12 +409,13 @@ void plotPointsGNU(const char * filename, const vector<PointXY> & points) {
     maxY += border;
 
 
-    fprintf(fgnup, "set terminal png size %d,%d nocrop linewidth 20\n", PLOT_RESOLUTION_X, PLOT_RESOLUTION_Y);
+    fprintf(fgnup, "set terminal png size %d,%d nocrop linewidth 10\n", PLOT_RESOLUTION_X, PLOT_RESOLUTION_Y);
     fprintf(fgnup, "set output \"%s\"\n", filename);
     fprintf(fgnup, "set yrange[%g:%g]\n", minY, maxY);
     fprintf(fgnup, "set xrange[%g:%g]\n", minX, maxX);
 
-    fprintf(fgnup, "plot \"-\" ti \"Surfaces\" with points 3 19\n");
+    fprintf(fgnup, "plot \"-\" ti \"points\" with points 3 19, \\\n");
+    fprintf(fgnup, "\"-\" ti \"Robot\" with lines 1\n");
     //fprintf(fgnup, "\"-\" ti \"Points\" with points 1 2\n");
     //fprintf(fgnup, "\"-\" ti \"Occluding edges\" with points 2 4\n");
 
@@ -426,6 +427,14 @@ void plotPointsGNU(const char * filename, const vector<PointXY> & points) {
     }
     fprintf(fgnup, "e\n");
 
+    //ploting robot
+    for (unsigned int j = 0; j < robotSurfaces.size(); j++) {
+        fprintf(fgnup, "%g ", robotSurfaces[j].getP1().x);
+        fprintf(fgnup, "%g\n", robotSurfaces[j].getP1().y);
+        fprintf(fgnup, "%g ", robotSurfaces[j].getP2().x);
+        fprintf(fgnup, "%g\n\n", robotSurfaces[j].getP2().y);
+    }
+    fprintf(fgnup, "e\n");
     //    // Plot occluding edges
     //    bool noOccluding = true;
     //    for (vector<Surface>::const_iterator surfIt = surfaces.begin(); surfIt != surfaces.end(); ++surfIt) {
@@ -469,4 +478,41 @@ void writeASCIIPoints2D(const char *filename, const vector<PointXY> & points)
     }
 
     outFile.close();
+}
+
+vector<PointXY> readASCIIPoints2D(const char *fileName) {
+    vector<PointXY> points;
+    ifstream inputFile(fileName, ios::in);
+    if (inputFile.is_open()) {
+        cout << "Reading view...." << endl;
+        double x1, y1;
+        string data;
+
+        inputFile >> data;
+        inputFile >> data;
+
+        inputFile >> x1;
+        inputFile >> y1;
+
+        while (!inputFile.eof()) {
+            points.push_back(PointXY(x1, y1));
+
+            //reading odometry information
+            inputFile >> x1;
+            inputFile >> y1;
+
+            
+
+
+        }
+
+
+    } else
+        cout << "Error opening " << fileName << " .." << endl;
+
+
+    cout << "Points are read. Num of points: " << points.size() << endl;
+    //return surfaces;
+
+    return points;
 }

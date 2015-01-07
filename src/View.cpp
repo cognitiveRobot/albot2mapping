@@ -485,6 +485,22 @@ Surface View::getRPositionInPV() {
     return rPositionInPV;
 }
 
+void View::constructView(const char* filename) {
+            
+        vector<PointXY> points2D = readASCIIPoints2D(filename);
+        
+        char viewName[50];
+        sprintf(viewName, "%s%d%s", "../outputs/pointCloud/points2D-", this->getId(),".png");
+        plotPointsAndSurfacesGNU(viewName,points2D,this->getRobotSurfaces());
+        
+        ImageProcessing imgTool;
+        //vizualize point cloud.
+        sprintf(viewName, "%s%d%s", "../outputs/pointCloud/pointCloud-", this->getId(),".pcd");
+        //imgTool.visualizePointCloud(viewName);
+       imgTool.segEuclideanClusters(viewName); 
+       //imgTool.segRegionGrowing(viewName);
+}
+
 int readFolderNumber(const char* fileName) {
     
     ifstream inputFile(fileName, ios::in);

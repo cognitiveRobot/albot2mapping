@@ -84,6 +84,7 @@ PROGSRCS= \
 	GuidedXnMapping.cpp \
 	offlineGuidedXnMapping.cpp \
 	offlineMappingFromLS.cpp \
+	testStereoMatching.cpp \
 	robotControl.cpp
 #	main.cpp \
 #	AutoXplorationNMapping.cpp \

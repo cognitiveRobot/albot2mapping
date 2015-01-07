@@ -115,11 +115,11 @@ void ImageProcessing::visualizePointCloud(pcl::PointCloud<pcl::PointXYZRGB>::Ptr
 
 void ImageProcessing::segRegionGrowing(const char *filename) {
     pcl::PointCloud<pcl::PointXYZ>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZ>);
-    if (pcl::io::loadPCDFile <pcl::PointXYZ> (filename, *cloud) == -1) {
+    if (pcl::io::loadPCDFile(filename, *cloud) == -1) {
         std::cout << "Cloud reading failed." << std::endl;
         //return (-1);
     } else {
-        std::cout << "Point cloud reading failed." << std::endl;
+        std::cout << "Point cloud is loaded from " <<filename<< std::endl;
     }
 
     //visualize input cloud

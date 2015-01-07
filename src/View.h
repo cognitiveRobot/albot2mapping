@@ -28,6 +28,7 @@
 #include "Color.h"
 #include "Constants.h"
 #include "Robot.h"
+#include "ImageProcessing.h"
 
 /* ------------------------- Namespaces ------------------------- */
 using namespace std;
@@ -84,6 +85,8 @@ public:
     
     void setRPositionInPV(const Surface & surf);
     Surface getRPositionInPV();
+    
+    void constructView(const char* filename);
     
     void setRobotSurfaces(const vector<Surface> & surfaces);
     vector<Surface> getRobotSurfaces() const;

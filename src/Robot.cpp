@@ -270,15 +270,15 @@ void Robot::updatePos(float r, float teta) {
 vector<Surface> Robot::getRectRobot() {
     vector<Surface> robotSurfaces;
     Surface aSurface;
-     aSurface.set(0,0,0,40);
+     aSurface.set(0,0,0,400);
      robotSurfaces.push_back(aSurface);//+y
-     aSurface.set(-20,-20,-20,20);
+     aSurface.set(-200,-200,-200,200);
      robotSurfaces.push_back(aSurface);//left side
-     aSurface.set(-20,20,20,20);
+     aSurface.set(-200,200,200,200);
      robotSurfaces.push_back(aSurface);//front side
-     aSurface.set(20,20,20,-20);
+     aSurface.set(200,200,200,-200);
      robotSurfaces.push_back(aSurface);//right side
-     aSurface.set(20,-20,-20,-20);
+     aSurface.set(200,-200,-200,-200);
      robotSurfaces.push_back(aSurface);//back side
      
      return robotSurfaces;

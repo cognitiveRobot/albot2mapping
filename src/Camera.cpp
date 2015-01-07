@@ -1,5 +1,6 @@
 #include "Camera.h"
 #include "Printer.h"
+#include "ImageProcessing.h"
 
 Camera::Camera() {
 
@@ -377,7 +378,7 @@ void Camera::savePointCloud(TriclopsContext triclops, TriclopsImage16 depthImage
     // ...
     
     vector<PointXY> points;
-
+    
     int savedPoints = 0;
     // Determine the number of pixels spacing per row
     pixelinc = depthImage.rowinc / 2;
@@ -409,12 +410,16 @@ The Z axis points forward from the camera.
                     savedPoints++;
                     
                     //points in 2d
-                    points.push_back(PointXY(x,z));
+                    points.push_back(PointXY(x*1000.0,z*1000.0));
+                    
+                   
                 }
             }
         }
     }
     
+   
+
     char fileName[50];
     sprintf(fileName, "%s%d%s", "../outputs/pointCloud/pointCloud-", this->getV(),".pcd");
 
@@ -423,8 +428,9 @@ The Z axis points forward from the camera.
     //std::cerr << "Saved " << cloud.points.size () << " data points to test_pcd.pcd." << std::endl;
     
    // plotPointsGNU("../outputs/Maps/points2D-",points);
+    //sprintf(fileName, "%s%d%s", "../outputs/pointCloud/points2D-", this->getV(),".png");
+   // plotPointsGNU(fileName,points);
     sprintf(fileName, "%s%d", "../outputs/pointCloud/points2D-", this->getV());
-    //plotPointsGNU("../outputs/Maps/points2D-",points);
     writeASCIIPoints2D(fileName,points);
     cout<<"Points are plotted using GNU."<<endl;
 }

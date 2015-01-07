@@ -46,6 +46,10 @@ public:
 //    PointXY(float x, float y) :
 //    x(x), y(y) {
 //    }
+    void set(double a, double b) {
+        x = a;
+        y = b;
+    }
 
     double getX() const {
         return x;
