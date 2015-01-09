@@ -378,11 +378,16 @@ void Camera::savePointCloud(TriclopsContext triclops, TriclopsImage16 depthImage
     // ...
     
     vector<PointXY> points;
+    int lastI;
+    
+    vector<vector<PointXY> > pointsAllRow;
+    vector<PointXY> pointsOneRow;
     
     int savedPoints = 0;
     // Determine the number of pixels spacing per row
     pixelinc = depthImage.rowinc / 2;
-    for (i = 0; i < depthImage.nrows; i++) {
+    for (i = 115; i < 180; i++) {
+        pointsOneRow.clear();
         row = depthImage.data + i * pixelinc;
         for (j = 0; j < depthImage.ncols; j++) {
             disparity = row[j];
@@ -403,7 +408,9 @@ The Z axis points forward from the camera.
 
 
                 // look at points within a range
-                if (y > -0.001 && y < 0.38) {
+                if (y > -0.001 && y < 0.38 && z > 0.1) {
+                  //  cout<<i<<endl;
+                    //waitHere();
                     cloud.points[savedPoints].x = x;
                     cloud.points[savedPoints].y = z;
                     cloud.points[savedPoints].z = -y;
@@ -411,14 +418,48 @@ The Z axis points forward from the camera.
                     
                     //points in 2d
                     points.push_back(PointXY(x*1000.0,z*1000.0));
+                    pointsOneRow.push_back(PointXY(x*1000.0,z*1000.0));
                     
-                   
+                   // lastI = i;
+                } else {
+                    pointsOneRow.push_back(PointXY(-1,-1));
                 }
+            } else {
+                pointsOneRow.push_back(PointXY(-1,-1));
             }
         }
+        pointsAllRow.push_back(pointsOneRow);
     }
-    
-   
+
+    vector<PointXY> avgPoints;
+    double sumX, sumY, avgX, avgY;
+    int totalPointsInAColumn = 0;
+    for (unsigned int j = 0; j < 319; j++) {
+        sumX = 0;
+        sumY = 0;
+        totalPointsInAColumn = 0;
+        for (unsigned int i = 0; i < pointsAllRow.size(); i++) {
+            //cout<<pointsAllRow[i][j].size()<<" ";
+            if (pointsAllRow[i][j].getX() != -1 && pointsAllRow[i][j].getY() != -1) {
+                sumX += pointsAllRow[i][j].getX();
+                sumY += pointsAllRow[i][j].getY();
+                totalPointsInAColumn++;
+                cout << "i " << i << " sX " << sumX << " sY " << sumY << " ";
+
+            }
+        }
+        
+        if(totalPointsInAColumn > 5) {
+        avgX = sumX / totalPointsInAColumn;
+        avgY = sumY / totalPointsInAColumn;
+        cout << "sumX " << sumX << " sumY " << sumY << endl;
+        cout << "avgX " << avgX << " avgY " << avgY << endl;
+        cout << "total points " << totalPointsInAColumn << endl;
+        //waitHere();
+        avgPoints.push_back(PointXY(avgX, avgY));
+        }
+    }
+ //   waitHere();
 
     char fileName[50];
     sprintf(fileName, "%s%d%s", "../outputs/pointCloud/pointCloud-", this->getV(),".pcd");
@@ -431,6 +472,6 @@ The Z axis points forward from the camera.
     //sprintf(fileName, "%s%d%s", "../outputs/pointCloud/points2D-", this->getV(),".png");
    // plotPointsGNU(fileName,points);
     sprintf(fileName, "%s%d", "../outputs/pointCloud/points2D-", this->getV());
-    writeASCIIPoints2D(fileName,points);
+    writeASCIIPoints2D(fileName,avgPoints);
     cout<<"Points are plotted using GNU."<<endl;
 }

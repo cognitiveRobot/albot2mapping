@@ -9,12 +9,12 @@
 #include <stack>
 //#include <cstdlib>
 #include "Laser2Surface.H"
-#include "readAndwriteASCII.H"
+//#include "readAndwriteASCII.H"
 //#include "RobotSettings.H"
-#include "GeometryFuncs.H"
+//#include "GeometryFuncs.H"
 //#include "Plotting.H"
 
-#include "Object.H"
+//#include "Object.H"
 
 using namespace std;
 
@@ -44,7 +44,7 @@ vector<PointXY> CollectLaser(ArSick &sick, double maxRange)
 	return laserPoints;
 }
 
-
+/*
 vector<Object> scanAndSaveView(ArSick &sick, int v)
 {
 
@@ -106,7 +106,7 @@ vector<Object> scanAndSaveView(ArSick &sick, int v)
     	// Read laser data and calculate surfaces
     	//vector<PointXY> laser;
     	//readASCII(laser, lfname);
-    	vector<Surface> surfaces = Laser2Surface(laserPoints, clusterThreshold, surfaceSize, errorThreshold);
+    	vector<SurfaceT> surfaces = Laser2Surface(laserPoints, clusterThreshold, surfaceSize, errorThreshold);
 	char sname[50];
 	sprintf(sname, "%s%d", "bin/surfaces-",v);
 	writeASCII(surfaces, sname);
@@ -126,8 +126,9 @@ vector<Object> scanAndSaveView(ArSick &sick, int v)
 
 	return view;
 }
+ */
 // Finds surfaces from raw laser data.
-vector<Surface> Laser2Surface(const vector<PointXY> & laserPoints,
+vector<SurfaceT> Laser2Surface(const vector<PointXY> & laserPoints,
 							  double clusterTh, double minSurfaceSize, double errorTh)
 {
     /**********************************************************************
@@ -163,7 +164,7 @@ vector<Surface> Laser2Surface(const vector<PointXY> & laserPoints,
     }
 
     // Form a surface for each cluster
-    vector<Surface> groupedSurfaces;
+    vector<SurfaceT> groupedSurfaces;
 
     for(unsigned int i = 0; i < clusterIndex.size(); i++)
     {
@@ -178,7 +179,7 @@ vector<Surface> Laser2Surface(const vector<PointXY> & laserPoints,
             nextIndex = clusterIndex[i+1] - 1;
         }
 
-        Surface surface(laserPoints[currIndex], laserPoints[nextIndex]);
+        SurfaceT surface(laserPoints[currIndex], laserPoints[nextIndex]);
         groupedSurfaces.push_back(surface);
     }
 
@@ -214,10 +215,10 @@ vector<Surface> Laser2Surface(const vector<PointXY> & laserPoints,
     }
 
     // Generate the results from the indices
-    vector<Surface> finalSurfaces;
+    vector<SurfaceT> finalSurfaces;
     for(unsigned int i = 0; i < finalSurfaceIndices.size(); i++)
     {
-        Surface surface(laserPoints[finalSurfaceIndices[i].startIndex],
+        SurfaceT surface(laserPoints[finalSurfaceIndices[i].startIndex],
                         laserPoints[finalSurfaceIndices[i].endIndex]);
         finalSurfaces.push_back(surface);
     }
@@ -281,7 +282,7 @@ vector<surfaceIndices> splitSurface(const vector<PointXY> & laserdata, int start
  */
 int findSplittingPoint(const vector<PointXY> & laserPoints, int currInd, int nextInd, double surfaceSizeTh, double errorTh)
 {
-	Surface surf(laserPoints[currInd], laserPoints[nextInd]);
+	SurfaceT surf(laserPoints[currInd], laserPoints[nextInd]);
 
     // Check to see if the current surface is significant enough to split. If not, then just leave it
     if((surf.getLength() > surfaceSizeTh) && ((nextInd - currInd) > 1))
@@ -313,9 +314,9 @@ int findSplittingPoint(const vector<PointXY> & laserPoints, int currInd, int nex
 
 
 // Remove surfaces that are too small to matter
-void removeBogusSurfaces(vector<Surface> & surfaces)
+void removeBogusSurfaces(vector<SurfaceT> & surfaces)
 {
-    for(vector<Surface>::iterator it = surfaces.begin(); it != surfaces.end();)
+    for(vector<SurfaceT>::iterator it = surfaces.begin(); it != surfaces.end();)
     {
         if(it->getLength() < 0.8 * 200)
         {
@@ -330,7 +331,7 @@ void removeBogusSurfaces(vector<Surface> & surfaces)
 
 
 // Marks occluding edges (we are certain that a surface ends here, and is not occluded)
-void markOccludingEdges(vector<Surface> & surfaces, double threshold)
+void markOccludingEdges(vector<SurfaceT> & surfaces, double threshold)
 {
     PointXY robotPos(0, 0);
 
@@ -369,7 +370,7 @@ void markOccludingEdges(vector<Surface> & surfaces, double threshold)
  * The surfaces MUST be ordered by ID, and also geometrically (angle in respect to origin)!
  * => It works only with surfaces directly from the laser scan.
  */
-void markBoundarySurfs(vector<Surface> & surfaces, bool plotDebugImg)
+void markBoundarySurfs(vector<SurfaceT> & surfaces, bool plotDebugImg)
 {
 	const PointXY robotPos(0, 0);
 
@@ -380,18 +381,18 @@ void markBoundarySurfs(vector<Surface> & surfaces, bool plotDebugImg)
 	}
 
 	// Maintain and modify a linked list of boundary surfaces
-	list<Surface> bSurfs;
+	list<SurfaceT> bSurfs;
 	bSurfs.insert(bSurfs.end(), surfaces.begin(), surfaces.end());
 
 	/* This stack remembers "inward" movements, such as from occluded edges.
 	 * Once we find an "outward" movement, we can shortcut it by connecting the outer surfaces
 	 * (and removing the inner ones).
 	 */
-	stack<list<Surface>::iterator> inwardsIndex;
+	stack<list<SurfaceT>::iterator> inwardsIndex;
 
-	for(list<Surface>::iterator it = ++bSurfs.begin(); it != bSurfs.end(); ++it)
+	for(list<SurfaceT>::iterator it = ++bSurfs.begin(); it != bSurfs.end(); ++it)
 	{
-		list<Surface>::iterator prevIt = it;
+		list<SurfaceT>::iterator prevIt = it;
 		--prevIt;
 
 		// Moving inwards
@@ -406,12 +407,12 @@ void markBoundarySurfs(vector<Surface> & surfaces, bool plotDebugImg)
 			// Remove "inside" surfs
 			while(inwardsIndex.size() > 0)
 			{
-				list<Surface>::iterator eraseStart = inwardsIndex.top();
+				list<SurfaceT>::iterator eraseStart = inwardsIndex.top();
 
 				/* Get the angle difference between the inward/outward connections.
 				 * If it's too big, don't shortcut across the whole view!
 				 */
-				double angleDiff = Surface(eraseStart->getP2(), robotPos).getAngleDiffTo(Surface(it->getP1(), robotPos));
+				double angleDiff = SurfaceT(eraseStart->getP2(), robotPos).getAngleDiffTo(SurfaceT(it->getP1(), robotPos));
 				if(normAngleDiff(angleDiff) > 45)
 					break;
 
@@ -423,8 +424,8 @@ void markBoundarySurfs(vector<Surface> & surfaces, bool plotDebugImg)
 	}
 
 	// We have the boundary surfaces, now mark them in the original vector
-	vector<Surface>::iterator surfIt = surfaces.begin();
-	for(list<Surface>::const_iterator bSurfIt = bSurfs.begin(); bSurfIt != bSurfs.end(); ++bSurfIt)
+	vector<SurfaceT>::iterator surfIt = surfaces.begin();
+	for(list<SurfaceT>::const_iterator bSurfIt = bSurfs.begin(); bSurfIt != bSurfs.end(); ++bSurfIt)
 	{
 		while(surfIt->getId() < bSurfIt->getId())
 			++surfIt;
@@ -442,22 +443,22 @@ void markBoundarySurfs(vector<Surface> & surfaces, bool plotDebugImg)
 	if(plotDebugImg)
 	{
 		// For plotting: Connect the surfaces endpoint-to-endpoint.
-		vector<Surface> connections;
-		connections.push_back(Surface(PointXY(0,0), bSurfs.front().getP1()));
-		Surface prevSurf = bSurfs.front();
-		for(list<Surface>::const_iterator it = ++bSurfs.begin(); it != bSurfs.end(); ++it)
+		vector<SurfaceT> connections;
+		connections.push_back(SurfaceT(PointXY(0,0), bSurfs.front().getP1()));
+		SurfaceT prevSurf = bSurfs.front();
+		for(list<SurfaceT>::const_iterator it = ++bSurfs.begin(); it != bSurfs.end(); ++it)
 		{
-			Surface connection(prevSurf.getP2(), it->getP1());
+			SurfaceT connection(prevSurf.getP2(), it->getP1());
 			if(connection.getLength() > 50)
 				connections.push_back(connection);
 			prevSurf = *it;
 		}
-		connections.push_back(Surface(bSurfs.back().getP2(), PointXY(0,0)));
+		connections.push_back(SurfaceT(bSurfs.back().getP2(), PointXY(0,0)));
 
-		vector<vector<Surface> > plotVector;
+		vector<vector<SurfaceT> > plotVector;
 		plotVector.push_back(surfaces);
 		plotVector.push_back(connections);
-		vector<Surface> bSurfsV;
+		vector<SurfaceT> bSurfsV;
 		bSurfsV.insert(bSurfsV.end(), bSurfs.begin(), bSurfs.end());
 		plotVector.push_back(bSurfsV);
 

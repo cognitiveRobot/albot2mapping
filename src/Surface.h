@@ -17,6 +17,7 @@
 
 /* ------------------------- Own includes ------------------------- */
 #include "Color.h"
+#include "PointAndSurface.h"
 
 /* Class of surfaces that are to be displayed on the map */
 
@@ -84,5 +85,8 @@ public:
 //
 bool SortBasedOnLength(Surface surf1, Surface surf2);
 void displaySurfaces(const std::vector<Surface> & surfaces);
+
+//convert SurfaceT to Surface
+vector<Surface> convertSurfaceT2Surface(const vector<SurfaceT> & surfs);
 
 #endif /* SURFACE_H */

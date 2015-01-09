@@ -135,7 +135,7 @@ int main(int argc, char** argv) {
         sprintf(pointFile, "%s%d", "../outputs/pointCloud/points2D-", curView.getId());
         curView.constructView(pointFile);
         cout<<"View is formed :)"<<endl;
-        waitHere();
+        //waitHere();
 
         //curView.markLandmarks();
         //curView.printView();

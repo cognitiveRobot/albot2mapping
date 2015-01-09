@@ -18,6 +18,7 @@ robotControl
 GuidedXnMapping
 offlineGuidedXnMapping
 offlineMappingFromLS
+testStereoMatching
 
 #to ignore a file (most probably belongs to netbeans
 .dep.inc

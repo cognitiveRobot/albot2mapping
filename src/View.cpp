@@ -5,6 +5,7 @@
 #include "Constants.h"
 #include "Printer.h"
 #include "Output.h"
+#include "Laser2Surface.H"
 
 //const unsigned View::MINIMUM_SURFACE_POINTS = 2;
 //const double View::DEPTH_DIFF_TRESHOLD = 0.15;
@@ -493,11 +494,17 @@ void View::constructView(const char* filename) {
         sprintf(viewName, "%s%d%s", "../outputs/pointCloud/points2D-", this->getId(),".png");
         plotPointsAndSurfacesGNU(viewName,points2D,this->getRobotSurfaces());
         
-        ImageProcessing imgTool;
+        vector<SurfaceT> initialSurfaces = Laser2Surface(points2D,500,200,100);
+        vector<Surface> viewSurfaces = convertSurfaceT2Surface(initialSurfaces);
+        
+        sprintf(viewName, "%s%d%s", "../outputs/Maps/pointsAndSurfaces-", this->getId(),".png");
+        plotPointsAndSurfacesGNU(viewName,points2D,viewSurfaces);
+        waitHere();
+       // ImageProcessing imgTool;
         //vizualize point cloud.
-        sprintf(viewName, "%s%d%s", "../outputs/pointCloud/pointCloud-", this->getId(),".pcd");
-        //imgTool.visualizePointCloud(viewName);
-       imgTool.segEuclideanClusters(viewName); 
+       // sprintf(viewName, "%s%d%s", "../outputs/pointCloud/pointCloud-", this->getId(),".pcd");
+      //  imgTool.visualizePointCloud(viewName);
+       //imgTool.segEuclideanClusters(viewName); 
        //imgTool.segRegionGrowing(viewName);
 }
 

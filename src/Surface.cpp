@@ -299,3 +299,11 @@ void displaySurfaces(const std::vector<Surface> & surfaces) {
         surfaces[i].display();
     }
 }
+
+vector<Surface> convertSurfaceT2Surface(const vector<SurfaceT> & surfs) {
+    vector<Surface> surfaces;
+    for(unsigned int i=0;i<surfs.size();i++) {
+        surfaces.push_back(Surface(surfs[i].getX1(),surfs[i].getY1(),surfs[i].getX2(),surfs[i].getY2()));
+    }
+    return surfaces;
+}

@@ -67,6 +67,8 @@ CXX = g++-4.4
 LIBSRCS = \
 	Robot.cpp \
 	PointAndSurface.cpp \
+	GeometryFuncs.cpp \
+	Laser2Surface.cpp \
 	Camera.cpp \
 	Map.cpp \
 	SameSurfaceFinderColor.cpp \
@@ -76,7 +78,6 @@ LIBSRCS = \
 	Color.cpp \
 	Printer.cpp \
 	PathFinder.cpp \
-	GeometryFuncs.cpp \
 	ImageProcessing.cpp
 
 #main programs	

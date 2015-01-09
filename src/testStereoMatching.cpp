@@ -23,18 +23,18 @@ cv::cvtColor(rightimg,g2,cv::COLOR_BGR2GRAY);
 
 //cv::Ptr<cv::StereoBM> sbm = cv::createStereoBM(16,21);
 
-Ptr<StereoBM> sbm = createStereoBM(16,21);
-
-sbm.setDisp12MaxDiff(1);
-sbm->setSpeckleRange(8);
-sbm->setSpeckleWindowSize(9);
-sbm->setUniquenessRatio(0);
-sbm->setTextureThreshold(507);
-sbm->setMinDisparity(-39);
-sbm->setPreFilterCap(61);
-sbm->setPreFilterSize(5);
-sbm->compute(g1,g2,disparity_left);
-normalize(disparity_left, disp8, 0, 255, CV_MINMAX, CV_8U);
+//Ptr<StereoBM> sbm = createStereoBM(16,21);
+//
+//sbm.setDisp12MaxDiff(1);
+//sbm->setSpeckleRange(8);
+//sbm->setSpeckleWindowSize(9);
+//sbm->setUniquenessRatio(0);
+//sbm->setTextureThreshold(507);
+//sbm->setMinDisparity(-39);
+//sbm->setPreFilterCap(61);
+//sbm->setPreFilterSize(5);
+//sbm->compute(g1,g2,disparity_left);
+//normalize(disparity_left, disp8, 0, 255, CV_MINMAX, CV_8U);
 
 cv::imshow("left", leftimg);
 cv::imshow("right", rightimg);

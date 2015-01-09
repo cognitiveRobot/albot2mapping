@@ -9,13 +9,15 @@
 #include <vector>
 #include <cstdlib>
 //#include <cmath>
-#include "PointAndSurface.H"
+
 
 #include "Aria.h"
 #include "ariaUtil.h"
 #include "ArSensorReading.h"
 
-#include "Object.H"
+#include "PointAndSurface.h"
+#include "GeometryFuncs.h"
+
 
 // Indices in the laser vector, describing surface start and end points. Used for splitting.
 struct surfaceIndices
@@ -27,10 +29,10 @@ struct surfaceIndices
 // Collects a laser reading from the robot, and corrects the XY-rotation
 std::vector<PointXY> CollectLaser(ArSick &sick, double maxRange);
 
-vector<Object> scanAndSaveView(ArSick &sick, int v);
+//vector<Object> scanAndSaveView(ArSick &sick, int v);
 
 // Finds surfaces from raw laser data.
-std::vector<Surface> Laser2Surface(const std::vector<PointXY> & laserPoints,
+std::vector<SurfaceT> Laser2Surface(const std::vector<PointXY> & laserPoints,
 								   double clusterTh,
 								   double minSurfaceSize,
 								   double errorTh);
@@ -58,16 +60,16 @@ int findSplittingPoint(const std::vector<PointXY> & laserPoints,
 					   double errorTh);
 
 // Remove surfaces that are too small to matter
-void removeBogusSurfaces(std::vector<Surface> & surfaces);
+void removeBogusSurfaces(std::vector<SurfaceT> & surfaces);
 
 // Marks occluding edges (we are certain that a surface ends here, and is not occluded)
-void markOccludingEdges(std::vector<Surface> & surfaces, double threshold);
+void markOccludingEdges(std::vector<SurfaceT> & surfaces, double threshold);
 
 /*
  * Marks boundary surfaces in a vector (single view).
  * The surfaces MUST be ordered by ID, and also geometrically (angle in respect to origin)!
  * => It works only with surfaces directly from the laser scan.
  */
-void markBoundarySurfs(std::vector<Surface> & surfaces, bool plotDebugImg);
+void markBoundarySurfs(std::vector<SurfaceT> & surfaces, bool plotDebugImg);
 
 #endif
