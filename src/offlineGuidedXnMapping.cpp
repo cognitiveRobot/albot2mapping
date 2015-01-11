@@ -77,7 +77,7 @@ int main(int argc, char** argv) {
 /*------------------------------------------ Start Xploring ------------------------------------------ */
 
     //curView.printView();
-    char viewName[50], mapName[50];
+    char viewName[50], mapName[50], pointFile[50];
 
     bool initializeLocalSpace = true;
     int localSpaceCounter = 0;
@@ -95,12 +95,19 @@ int main(int argc, char** argv) {
 
     while (tkStep != 'n' && tkStep != 'N') {
         /* Increment counters */
-        //read view.
+        
+        //construct view from points.
         curView.setId(curView.getId() + 1);
-        sprintf(viewName, "%s%d", "../outputs/surfaces/surfaces-", curView.getId());
-        readAView(curView, viewName);
-        curView.setRobotSurfaces(Albot.getRectRobot());
-        curView.markLandmarks();
+        sprintf(pointFile, "%s%d", "../outputs/pointCloud/points2D-", curView.getId());
+        curView.constructView(pointFile);
+        cout<<"View is formed :)"<<endl;
+        
+        //read view.
+//        curView.setId(curView.getId() + 1);
+//        sprintf(viewName, "%s%d", "../outputs/surfaces/surfaces-", curView.getId());
+//        readAView(curView, viewName);
+//        curView.setRobotSurfaces(Albot.getRectRobot());
+//        curView.markLandmarks();
 
         sprintf(viewName, "%s%d%s", "../outputs/Maps/View-", curView.getId(), ".png");
         plotViewGNU(viewName, curView);

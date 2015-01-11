@@ -491,15 +491,18 @@ void View::constructView(const char* filename) {
         vector<PointXY> points2D = readASCIIPoints2D(filename);
         
         char viewName[50];
-        sprintf(viewName, "%s%d%s", "../outputs/pointCloud/points2D-", this->getId(),".png");
+        sprintf(viewName, "%s%d%s", "../outputs/Maps/points2D-", this->getId(),".png");
         plotPointsAndSurfacesGNU(viewName,points2D,this->getRobotSurfaces());
         
         vector<SurfaceT> initialSurfaces = Laser2Surface(points2D,500,200,100);
         vector<Surface> viewSurfaces = convertSurfaceT2Surface(initialSurfaces);
         
+        //saving surfaces in this view.
+        this->setSurfaces(viewSurfaces);
+        
         sprintf(viewName, "%s%d%s", "../outputs/Maps/pointsAndSurfaces-", this->getId(),".png");
         plotPointsAndSurfacesGNU(viewName,points2D,viewSurfaces);
-        waitHere();
+        //waitHere();
        // ImageProcessing imgTool;
         //vizualize point cloud.
        // sprintf(viewName, "%s%d%s", "../outputs/pointCloud/pointCloud-", this->getId(),".pcd");
