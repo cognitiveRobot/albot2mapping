@@ -116,7 +116,10 @@ int main(int argc, char** argv) {
         cout << "View no. " << curView.getId() << ":" << endl;
         plotViewGNU("../outputs/Maps/currentView.png", curView);
         cout << endl << endl << "Initialize local space? (y/n) "; // Ask user if continue
-        cin >> tkStep;
+        //cin >> tkStep;
+        if(curView.getId() > 1)
+            tkStep = 'n';
+            
 
         if (tkStep == 'y' or tkStep == 'Y')
             initializeLocalSpace = true;
@@ -129,7 +132,7 @@ int main(int argc, char** argv) {
                 else
                     localSpace.addCVUsingOdo(curView, Albot.getLocalSpaceHome());
                 sprintf(mapName, "%s%d%s%d%s", "../outputs/Maps/LS-", localSpaceCounter, "-v-", curView.getId(), "a-before.png");
-                plotMapGNU(mapName, localSpace);
+                plotMapGNU(mapName, localSpace,true);
 
                 localSpace.cleanMapUsingOdo(curView, Albot.getLocalSpaceHome());
                 sprintf(mapName, "%s%d%s%d%s", "../outputs/Maps/LS-", localSpaceCounter, "-v-", curView.getId(), "b-after.png");
@@ -170,6 +173,7 @@ int main(int argc, char** argv) {
             //            for(unsigned int i=0; i<localSpace.getMap().size(); i++)
             //                cout<<i+1<<" surfs: "<<localSpace.getMap()[i].getSurfaces().size()<<endl;
         }
+        plotMapGNU("../outputs/Maps/curLocalSpace.png", localSpace);
 
         if (GLOBAL_MAP == true) {
             cout << BOLDCYAN << "Updating map >> " << BOLDRED << RESET << endl;
@@ -194,7 +198,8 @@ int main(int argc, char** argv) {
             }
         }
         cout << endl << endl << "Take another step? (y/n) "; // Ask user if continue
-        cin >> tkStep;
+        //cin >> tkStep;
+        tkStep = 'y';
 
         /* Move Albot using user input */
         if (tkStep != 'n' && tkStep != 'N') {

@@ -246,7 +246,7 @@ void plotViewGNU(const char * filename, const View & view) {
     fclose(fgnup);
 }
 
-void plotMapGNU(const char * filename, const Map & map) {
+void plotMapGNU(const char * filename, const Map & map, bool printID ) {
     FILE * fgnup = popen(GNUPLOT_PATH, "w");
     if (!fgnup) {
         cerr << "ERROR: " << GNUPLOT_PATH << " not found" << endl;
@@ -311,6 +311,16 @@ void plotMapGNU(const char * filename, const Map & map) {
     fprintf(fgnup, "set output \"%s\"\n", filename);
     fprintf(fgnup, "set yrange[%g:%g]\n", minY, maxY);
     fprintf(fgnup, "set xrange[%g:%g]\n", minX, maxX);
+    
+    //to print id
+    if(printID == true) {
+      for (unsigned int i = 0; i < views.size(); i++) {
+          for (unsigned int j = 0; j < views[i].getSurfaces().size(); j++) {
+              fprintf(fgnup, "set label \"%d\" at %g,%g\n", views[i].getSurfaces()[j].getId(),
+                      views[i].getSurfaces()[j].midPoint().x+500,views[i].getSurfaces()[j].midPoint().y+500);
+          }
+      }
+    }
 
     fprintf(fgnup, "plot ");
     int lastI = -1;

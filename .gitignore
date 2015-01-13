@@ -19,6 +19,8 @@ GuidedXnMapping
 offlineGuidedXnMapping
 offlineMappingFromLS
 testStereoMatching
+renameFiles
+
 
 #to ignore a file (most probably belongs to netbeans
 .dep.inc

@@ -59,7 +59,7 @@ public:
 };
 
 void plotSurfacesGNU(const vector<Surface> & someSurfaces);
-void plotMapGNU(const char * filename, const Map & map);
+void plotMapGNU(const char * filename, const Map & map, bool printID = false);
 void plotViewGNU(const char * filename, const View & view);
 void plotPointsAndSurfacesGNU(const char * filename, const vector<PointXY> & points, const vector<Surface> & robotSurfaces);
 
