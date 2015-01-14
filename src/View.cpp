@@ -503,10 +503,11 @@ void View::constructView(const char* filename) {
         sprintf(viewName, "%s%d%s", "../outputs/Maps/pointsAndSurfaces-", this->getId(),".png");
         plotPointsAndSurfacesGNU(viewName,points2D,viewSurfaces);
         //waitHere();
-       // ImageProcessing imgTool;
+        
         //vizualize point cloud.
-       // sprintf(viewName, "%s%d%s", "../outputs/pointCloud/pointCloud-", this->getId(),".pcd");
-      //  imgTool.visualizePointCloud(viewName);
+//        ImageProcessing imgTool;        
+//        sprintf(viewName, "%s%d%s", "../outputs/pointCloud/pointCloud-", this->getId(),".pcd");
+//        imgTool.visualizePointCloud(viewName);
        //imgTool.segEuclideanClusters(viewName); 
        //imgTool.segRegionGrowing(viewName);
 }

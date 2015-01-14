@@ -186,8 +186,8 @@ void Map::addCVUsingOdo(const View & curView, const AngleAndDistance & homeInfo)
         angle = allPathSegments[i].angle * CONVERT_TO_RADIAN; // degree to randian.
         //find cv center in the pv coordinate frame.
         //need to convert robot position from mm to cm.
-        newX = (allPathSegments[i].distance / 10.0) * sin(-angle); //x= d*cos(th) = d*cos(90-angle) = d*sin(angle) //as aris give - value for right turn
-        newY = (allPathSegments[i].distance / 10.0) * cos(-angle); //y=d*sin(th)=d*sin(90-angle)=d*cos(angle)
+        newX = (allPathSegments[i].distance / 1.0) * sin(-angle); //x= d*cos(th) = d*cos(90-angle) = d*sin(angle) //as aris give - value for right turn
+        newY = (allPathSegments[i].distance / 1.0) * cos(-angle); //y=d*sin(th)=d*sin(90-angle)=d*cos(angle)
 
         //transform cv on to map.
         for (unsigned int i = 0; i < cvSurfaces.size(); i++) {

@@ -28,6 +28,7 @@ const int TIMEOUT = 8000;
 const int SHORT_PAUSE = 100;
 
 const double CONVERT_TO_MM = 10;
+const double CONVERT_M_TO_MM = 1000;
 
 //simple math
 const double CONVERT_TO_RADIAN = (M_PI/180.0);

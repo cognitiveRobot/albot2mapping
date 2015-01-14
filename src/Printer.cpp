@@ -246,6 +246,8 @@ void plotViewGNU(const char * filename, const View & view) {
     fclose(fgnup);
 }
 
+
+//argument printID needs to set true to print ids of each surface. by default it's false.
 void plotMapGNU(const char * filename, const Map & map, bool printID ) {
     FILE * fgnup = popen(GNUPLOT_PATH, "w");
     if (!fgnup) {

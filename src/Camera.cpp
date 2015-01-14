@@ -411,14 +411,14 @@ The Z axis points forward from the camera.
                 if (y > -0.001 && y < 0.38 && z > 0.1) {
                   //  cout<<i<<endl;
                     //waitHere();
-                    cloud.points[savedPoints].x = x;
-                    cloud.points[savedPoints].y = z;
-                    cloud.points[savedPoints].z = -y;
+                    cloud.points[savedPoints].x = x*CONVERT_M_TO_MM;
+                    cloud.points[savedPoints].y = z*CONVERT_M_TO_MM;
+                    cloud.points[savedPoints].z = -y*CONVERT_M_TO_MM;
                     savedPoints++;
                     
                     //points in 2d
-                    points.push_back(PointXY(x*1000.0,z*1000.0));
-                    pointsOneRow.push_back(PointXY(x*1000.0,z*1000.0));
+                    points.push_back(PointXY(x*CONVERT_M_TO_MM,z*CONVERT_M_TO_MM));
+                    pointsOneRow.push_back(PointXY(x*CONVERT_M_TO_MM,z*CONVERT_M_TO_MM));
                     
                    // lastI = i;
                 } else {
