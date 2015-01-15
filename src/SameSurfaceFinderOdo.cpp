@@ -2,7 +2,7 @@
 #include "Printer.h"
 #include "ImageProcessing.h"
 
-vector<Surface> SameSurfaceFinderOdo::recognizeSameSurface(std::vector<Surface> pvLandmarks,
+bool SameSurfaceFinderOdo::recognizeSameSurface(vector<Surface> & refSurfaces, std::vector<Surface> pvLandmarks,
         std::vector<Surface> cvLandmarks, AngleAndDistance lastLocomotion) {
     cout << "Looking for same surfaces in the current view " << endl;
     cout << "No. of Lsurfaces in PV: " << pvLandmarks.size() << endl;
@@ -24,49 +24,63 @@ vector<Surface> SameSurfaceFinderOdo::recognizeSameSurface(std::vector<Surface> 
         pvLandmarksOnCV.push_back(pvLandmarks[i].transFrom(newX, newY, angle));
     }
     cout << "No. of pv surfaces on CV " << pvLandmarksOnCV.size() << endl;
-    //for display.
+    
+    //(debugging1)
     View temp(cvLandmarks); //only for display.
-    temp.setLandmarks(pvLandmarksOnCV);
+    temp.setRobotSurfaces(pvLandmarksOnCV);
     temp.setId(12);
-    //temp.display();
-
-    Printer printer;
-    // printer.printView("../outputs/Views/View12.jpg",temp);
-
-    //printSurfaces("cvLandmarks.jpg",cvLandmarks);
-    SameSurfaceInfo sameSurfaces;
-    vector<Surface> refSurfaces;
-    //find match
-    double angleDiff, distanceDiffP1, distanceDiffP2;
+    plotViewGNU("../outputs/Maps/LS-1-2.png",temp);
+    //end of (debugging1)
+    
+    bool success = false;
+    double angleDiff, distanceDiffP1, distanceDiffP2, distP1, distP2;
     double lastAngleDiff = 5.0;
+    double lastDist = 10000.0;
     for (unsigned int i = 0; i < pvLandmarksOnCV.size(); i++) {
         for (unsigned int j = 0; j < cvLandmarks.size(); j++) {
             angleDiff = pvLandmarksOnCV[i].getAngleWithSurface(cvLandmarks[j]);
-            cout << "angle Diff " << angleDiff << endl;
+            
             if (abs(angleDiff) < 5.0) {
+                cout << "angle Diff " << angleDiff << endl;
                 cout << pvLandmarksOnCV[i].getId() << " cv " << cvLandmarks[j].getId() << endl;
                 distanceDiffP1 = cvLandmarks[j].distFromP1ToPoint(pvLandmarksOnCV[i].getP1().x, pvLandmarksOnCV[i].getP1().y);
                 cout << "dist diff (p1,p1) : " << distanceDiffP1 << endl;
                 distanceDiffP2 = cvLandmarks[j].distFromP2ToPoint(pvLandmarksOnCV[i].getP2().x, pvLandmarksOnCV[i].getP2().y);
                 cout << "dist diff (p2,p2) : " << distanceDiffP2 << endl;
-                if (distanceDiffP1 < 400.0 or distanceDiffP2 < 400.0) {
-                    if (cvLandmarks[j].distFromP1ToPoint(0, 0) || cvLandmarks[j].distFromP2ToPoint(0, 0)) {
-                        if (abs(angleDiff) < lastAngleDiff) {
+                if (distanceDiffP1 < 400.0 or distanceDiffP2 < 400.0) {                    
+                    distP1 = cvLandmarks[j].distFromP1ToPoint(0, 0);
+                    distP2 = cvLandmarks[j].distFromP2ToPoint(0, 0);
+                    cout<<"dist p1 and p2 to cv robotP "<<distP1<<" "<<distP2<<endl;
+                    if ( distanceDiffP1 < lastDist ||  distanceDiffP2 < lastDist) {
+                        // if (abs(angleDiff) < lastAngleDiff) {
                             lastAngleDiff = abs(angleDiff);
-                            cout << "Ref found" << endl;
+                            if(distanceDiffP1 < distanceDiffP2)
+                                lastDist = distanceDiffP1;
+                            else
+                                lastDist = distanceDiffP2;
+                            cout << endl<<"Ref found" << endl;
+                            refSurfaces.clear();
                             refSurfaces.push_back(pvLandmarks[i]);
                             refSurfaces.push_back(cvLandmarks[j]);
-                            waitHere();
-                        }
+                            success = true;
+                            //waitHere();
+                      //  }
                     }
                 }
 
             }
         }
     }
-
+    
     cout << "above is the result from recognition module" << endl;
-    waitHere();
+    if(success == true) {
+        cout<<"Ref is found :)"<<endl;
+        waitHere();
+    }else {
+        cout<<"couldn't found any ref. :("<<endl;
+        waitHere();
+    }
+    
 
-    return refSurfaces;
+    return success;
 }

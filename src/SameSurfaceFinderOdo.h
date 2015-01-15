@@ -6,8 +6,8 @@
 class SameSurfaceFinderOdo {
 
 public:
-    vector<Surface> recognizeSameSurface(std::vector<Surface> pvLandmarks,
-            std::vector<Surface> cvLandmarks, AngleAndDistance lastLocomotion);
+    bool recognizeSameSurface(vector<Surface> & refSurfaces, std::vector<Surface> pvLandmarks,
+        std::vector<Surface> cvLandmarks, AngleAndDistance lastLocomotion);
     
     
    

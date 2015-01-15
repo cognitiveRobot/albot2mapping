@@ -51,34 +51,38 @@ vector<AngleAndDistance> Map::getPathSegments() const {
 void Map::setTempSurfaces(const vector<Surface> & surfs) {
     tempSurfaces = surfs;
 }
-    vector<Surface> Map::getTempSurfaces() const{
-        return tempSurfaces;
-    }
-    
-    void Map::setLandmarkSurfaces(const vector<Surface> & surfs) {
-        landmarkSurfaces = surfs;
-    }
-    vector<Surface> Map::getLandmarkSurfaces() const {
-        return landmarkSurfaces;
-    }
-    
-    void Map::setRefForPreviousLS(const Surface & surf) {
-        refForPreviousLS = surf;
-    }
-    Surface Map::getRefForPreviousLS() {
-        return refForPreviousLS;
-    }
-    
-    void Map::setRefForNextLS(const Surface & surf) {
-        refForNextLS = surf;
-    }
-    Surface Map::getRefForNextLS() {
-        return refForNextLS;
-    }
-    
-   Map Map::getItself() const{
-       return *this;
-   }
+
+vector<Surface> Map::getTempSurfaces() const {
+    return tempSurfaces;
+}
+
+void Map::setLandmarkSurfaces(const vector<Surface> & surfs) {
+    landmarkSurfaces = surfs;
+}
+
+vector<Surface> Map::getLandmarkSurfaces() const {
+    return landmarkSurfaces;
+}
+
+void Map::setRefForPreviousLS(const Surface & surf) {
+    refForPreviousLS = surf;
+}
+
+Surface Map::getRefForPreviousLS() {
+    return refForPreviousLS;
+}
+
+void Map::setRefForNextLS(const Surface & surf) {
+    refForNextLS = surf;
+}
+
+Surface Map::getRefForNextLS() {
+    return refForNextLS;
+}
+
+Map Map::getItself() const {
+    return *this;
+}
 
 void Map::coordTransf(cv::Point3f *target, cv::Point3f newCenter, double hX,
         double hY) {
@@ -151,51 +155,53 @@ vector<Surface> Map::transformToGlobalMap(const vector<Surface>& rpSurfaces,
 
 //ego-centric mapping.
 //adding pv on to cv to compute egoCentric map.
+
 void Map::addPVUsingOdo(const View & curView, const AngleAndDistance & homeInfo) {
     //check the point in polygon    cleaning old.
     vector<Surface> tempSurf;
     View tempView;
-    
+
     double newX, newY, angle;
-    
+
     angle = this->pathSegments.back().angle * CONVERT_TO_RADIAN; // degree to randian.
-        //find cv center in the pv coordinate frame.
-        //need to convert robot position from mm to cm.
-        newX = (this->pathSegments.back().distance / 1.0) * sin(-angle); //x= d*cos(th) = d*cos(90-angle) = d*sin(angle) //as aris give - value for right turn
-        newY = (this->pathSegments.back().distance / 1.0) * cos(-angle); //y=d*sin(th)=d*sin(90-angle)=d*cos(angle)
-        
-        Surface refForPLS = this->getRefForPreviousLS();
+    //find cv center in the pv coordinate frame.
+    //need to convert robot position from mm to cm.
+    newX = (this->pathSegments.back().distance / 1.0) * sin(-angle); //x= d*cos(th) = d*cos(90-angle) = d*sin(angle) //as aris give - value for right turn
+    newY = (this->pathSegments.back().distance / 1.0) * cos(-angle); //y=d*sin(th)=d*sin(90-angle)=d*cos(angle)
+
+    Surface refForPLS = this->getRefForPreviousLS();
+    refForPLS = refForPLS.transFrom(newX, newY, angle);
+    this->setRefForPreviousLS(refForPLS);
+    
     for (unsigned int i = 0; i < this->map.size(); i++) {
         tempView = this->map[i];
-        
+
         //transform surfaces
         tempSurf = tempView.getSurfaces();
         for (unsigned int j = 0; j < tempSurf.size(); j++) {
-            tempSurf[j] = tempSurf[j].transFrom(newX,newY,angle);
+            tempSurf[j] = tempSurf[j].transFrom(newX, newY, angle);
         }
         tempView.setSurfaces(tempSurf);
-        
+
         //transform robotSurfaces
         tempSurf = tempView.getRobotSurfaces();
         for (unsigned int j = 0; j < tempSurf.size(); j++) {
-            tempSurf[j] = tempSurf[j].transFrom(newX,newY,angle);
+            tempSurf[j] = tempSurf[j].transFrom(newX, newY, angle);
         }
         tempView.setRobotSurfaces(tempSurf);
-        
-        refForPLS = refForPLS.transFrom(newX,newY,angle);
-        
+
         //reset View.
         this->map[i] = tempView;        
-        this->setRefForPreviousLS(refForPLS);
     }
-        
-        //add current View.
-        this->map.push_back(curView); //in the map.
-        this->setLandmarkSurfaces(curView.getSurfaces());//
+
+    //add current View.
+    this->map.push_back(curView); //in the map.
+    this->setLandmarkSurfaces(curView.getSurfaces()); //
 }
 
 //all-centric mapping.
 //transform cView to first view co-ordinate and add to expand the current local space.
+
 void Map::addCVUsingOdo(const View & curView, const AngleAndDistance & homeInfo) {
     cout << "Add curView to the map." << endl;
     vector<Surface> transformedSurfaces;
@@ -227,7 +233,7 @@ void Map::addCVUsingOdo(const View & curView, const AngleAndDistance & homeInfo)
         for (unsigned int i = 0; i < rpSurfaces.size(); i++) {
             rpSurfaces[i] = rpSurfaces[i].transformB(newX, newY, angle);
 
-        }        
+        }
     }
 
 
@@ -235,14 +241,14 @@ void Map::addCVUsingOdo(const View & curView, const AngleAndDistance & homeInfo)
     //cout << "RobotPos: " << newX << " " << newY << endl;
 
 
-    cout<<BOLDRED<<"Transfomed surfs: "<<cvSurfaces.size()<<RESET<<endl;
+    cout << BOLDRED << "Transfomed surfs: " << cvSurfaces.size() << RESET << endl;
 
     View tranView;
     tranView.setSurfaces(cvSurfaces);
     tranView.setRobotSurfaces(rpSurfaces);
 
     map.push_back(tranView);
-    this->setLandmarkSurfaces(curView.getSurfaces());//
+    this->setLandmarkSurfaces(curView.getSurfaces()); //
 }
 
 void Map::cleanMapUsingOdo(const View & curView, const AngleAndDistance & homeInfo) {
@@ -278,13 +284,13 @@ void Map::cleanMapUsingOdo(const View & curView, const AngleAndDistance & homeIn
             transformedSurfaces.push_back(boundaryLines[i].transformB(newX, newY, angle));
         }
     }
-    
+
     //for debugging only.
-//    char mapName[50];
-//    sprintf(mapName, "%s%d%s%d%s", "../outputs/Maps/LS-", this->getMapID(), "-v-", curView.getId(), "a-before-withB.png");
-//    this->setTempSurfaces(boundaryLines);
-//    plotMapGNU(mapName, this->getItself());
-//    this->getTempSurfaces().clear();
+    //    char mapName[50];
+    //    sprintf(mapName, "%s%d%s%d%s", "../outputs/Maps/LS-", this->getMapID(), "-v-", curView.getId(), "a-before-withB.png");
+    //    this->setTempSurfaces(boundaryLines);
+    //    plotMapGNU(mapName, this->getItself());
+    //    this->getTempSurfaces().clear();
 
     //making polygon from cv.
     vector<SurfaceT> polygon;
@@ -311,7 +317,7 @@ void Map::cleanMapUsingOdo(const View & curView, const AngleAndDistance & homeIn
         tempView.setSurfaces(surfacesOutsideCV);
         //tempView.setLandmarks(surfacesInsideCV);
         this->map[i] = tempView;
-        
+
         //clear variables to reuse.
         surfacesInsideCV.clear();
         surfacesOutsideCV.clear();
@@ -338,14 +344,14 @@ void Map::saveInTxtFile(const char * filename, const vector<Surface> & rpSurface
     outFile << rpSurfaces[0].getP2().x << " ";
     outFile << rpSurfaces[0].getP2().y << endl;
     outFile << endl << "@RefSurfaces: " << endl;
-            outFile << this->refForPreviousLS.getP1().x << " ";
-            outFile << this->refForPreviousLS.getP1().y << " ";
-            outFile << this->refForPreviousLS.getP2().x << " ";
-            outFile << this->refForPreviousLS.getP2().y << endl;
-            outFile << this->refForNextLS.getP1().x << " ";
-            outFile << this->refForNextLS.getP1().y << " ";
-            outFile << this->refForNextLS.getP2().x << " ";
-            outFile << this->refForNextLS.getP2().y << endl;
+    outFile << this->refForPreviousLS.getP1().x << " ";
+    outFile << this->refForPreviousLS.getP1().y << " ";
+    outFile << this->refForPreviousLS.getP2().x << " ";
+    outFile << this->refForPreviousLS.getP2().y << endl;
+    outFile << this->refForNextLS.getP1().x << " ";
+    outFile << this->refForNextLS.getP1().y << " ";
+    outFile << this->refForNextLS.getP2().x << " ";
+    outFile << this->refForNextLS.getP2().y << endl;
     outFile << endl << "@AllSurfaces: " << endl;
     for (unsigned int j = 0; j < allViews.size(); j++) {
         surfaces = allViews[j].getSurfaces();
@@ -636,35 +642,44 @@ vector<View> Map::getMap() const {
 }
 
 //mapping.
+
 void Map::findReferenceSurface(const View & curView, Surface & tempSurf) {
-    cout<<"Looking for reference surface :)"<<endl;
+    cout << "Looking for reference surface :)" << endl;
     vector<Surface> sameSurfaces;
     SameSurfaceFinderOdo sSurfaceInfo;
-    sameSurfaces = sSurfaceInfo.recognizeSameSurface(this->getLandmarkSurfaces(),curView.getSurfaces(),this->getPathSegments().back());
-    this->setRefForNextLS(sameSurfaces[0]);
-    tempSurf = sameSurfaces[1];
-}   
-
+    sSurfaceInfo.recognizeSameSurface(sameSurfaces, this->getLandmarkSurfaces(), curView.getSurfaces(), this->getPathSegments().back());
+    if (sameSurfaces.size() > 0) {
+        this->setRefForNextLS(sameSurfaces[0]);
+        tempSurf = sameSurfaces[1];
+    }
+}
 
 void Map::expandMap(const View & curView) {
-    
-    Surface refInMap = this->getPreviousView().getRPositionInPV();
-    cout<<"rp at2 "<<endl;
+
+    //Surface refInMap = this->getPreviousView().getRPositionInPV();
+    Surface refInMap = this->getPreviousView().getLandmarks().back();
+    cout << "ref @previous LS " << endl;
     refInMap.display();
-    Surface refInCV(0, 0, 0, 40);
+    //Surface refInCV(0, 0, 0, 40);
+    Surface refInCV = curView.getLandmarks()[0];
+    cout << "ref @current LS " << endl;
+    refInCV.display();
+    
     vector<Surface> cvSurfaces = curView.getSurfaces();
-    cout<<"cvSurf: "<<cvSurfaces.size()<<endl;
+    cout << "cvSurf: " << cvSurfaces.size() << endl;
     vector<Surface> cvSurfacesOnMap = trangulateSurfaces(refInMap, refInCV, cvSurfaces);
+    cout << "cvSurfOnMap: " << cvSurfacesOnMap.size() << endl;
+
+//    vector<Surface> rpSurfaces = curView.getRobotSurfaces();
+//    vector<Surface> rpInMap = trangulateSurfaces(refInMap, refInCV, rpSurfaces);
+//    cout << "rpSurfOnMap: " << rpInMap.size() << endl;
+//    displaySurfaces(rpInMap);
+
     
-    vector<Surface> rpInMap = trangulateSurfaces(refInMap, refInCV, curView.getRobotSurfaces());
-    cout<<"rpSurf: "<<rpInMap.size()<<endl;
-    displaySurfaces(rpInMap);
-    
-    cout<<"cvSurfOnMap: "<<cvSurfacesOnMap.size()<<endl;
     View newView;
     newView.setSurfaces(cvSurfacesOnMap);
-    newView.setRobotSurfaces(rpInMap);
-    
+ //   newView.setRobotSurfaces(rpInMap);
+
     this->map.push_back(newView);
 
 }
@@ -717,15 +732,12 @@ vector<double> findBoundariesOfCV(const vector<Surface> & cvSurfaces, double ext
     return result;
 }
 
-
 vector<Surface> trangulateSurfaces(const Surface & refInMap, const Surface & refInCV, const vector<Surface>& cvSurfaces) {
     vector<Surface> cvSurfacesOnMap;
     double angle, distance;
     float x1, y1, x2, y2;
-    int limit = cvSurfaces.size();
-//    if(cvSurfaces.size() > 10)
-//        limit = 10;
-    for (unsigned int i = 0; i < limit; i++) {
+
+    for (unsigned int i = 0; i < cvSurfaces.size(); i++) {
         angle = refInCV.getAngleWithSurface(Surface(0, 0, cvSurfaces[i].getP1().x, cvSurfaces[i].getP1().y));
         distance = refInCV.distFromP1ToPoint(cvSurfaces[i].getP1().x, cvSurfaces[i].getP1().y);
 
@@ -743,15 +755,15 @@ vector<Surface> trangulateSurfaces(const Surface & refInMap, const Surface & ref
         distance = refInCV.distFromP1ToPoint(cvSurfaces[i].getP2().x, cvSurfaces[i].getP2().y);
 
         angle *= CONVERT_TO_RADIAN;
-        
+
         x2 = ((refInMap.getP2().x - refInMap.getP1().x) / refInMap.length()) * cos(angle)-((refInMap.getP2().y - refInMap.getP1().y) / refInMap.length()) * sin(angle);
         y2 = ((refInMap.getP2().x - refInMap.getP1().x) / refInMap.length()) * sin(angle)+((refInMap.getP2().y - refInMap.getP1().y) / refInMap.length()) * cos(angle);
 
         x2 = x2 * distance + refInMap.getP1().x;
         y2 = y2 * distance + refInMap.getP1().y;
-        
-        cvSurfacesOnMap.push_back(Surface(x1,y1,x2,y2));
+
+        cvSurfacesOnMap.push_back(Surface(x1, y1, x2, y2));
     }
-    
+
     return cvSurfacesOnMap;
 }

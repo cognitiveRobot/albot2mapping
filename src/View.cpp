@@ -494,7 +494,7 @@ void View::constructView(const char* filename) {
         
         char viewName[50];
         sprintf(viewName, "%s%d%s", "../outputs/Maps/points2D-", this->getId(),".png");
-        plotPointsAndSurfacesGNU(viewName,points2D,this->getRobotSurfaces());
+     //   plotPointsAndSurfacesGNU(viewName,points2D,this->getRobotSurfaces());
         
         vector<SurfaceT> initialSurfaces = Laser2Surface(points2D,500,200,100);
         vector<Surface> viewSurfaces = convertSurfaceT2Surface(initialSurfaces);
@@ -503,7 +503,7 @@ void View::constructView(const char* filename) {
         this->setSurfaces(viewSurfaces);
         
         sprintf(viewName, "%s%d%s", "../outputs/Maps/pointsAndSurfaces-", this->getId(),".png");
-        plotPointsAndSurfacesGNU(viewName,points2D,viewSurfaces);
+      //  plotPointsAndSurfacesGNU(viewName,points2D,viewSurfaces);
         //waitHere();
         
         //vizualize point cloud.
@@ -593,6 +593,7 @@ void readOdometry(Robot & albot, const char* fileName) {
 
 void readALocalSpace(View & cView, const char* fileName) {
     vector<Surface> surfaces;
+    vector<Surface> landmarks;
     ifstream inputFile(fileName, ios::in);
     if (inputFile.is_open()) {
         cout << "Reading view...." << endl;
@@ -611,6 +612,21 @@ void readALocalSpace(View & cView, const char* fileName) {
                 inputFile >> x2;
                 inputFile >> y2;
                 cView.setRPositionInPV(Surface(x1, y1, x2, y2));
+                //cout << "rPosition -- x: " << x1 << " y: " << y1 << " x2: " << x2 << " y2: " << y2 << endl;
+            }
+            if (data.compare("@RefSurfaces:") == 0) {
+                //reading odometry information
+                inputFile >> x1;
+                inputFile >> y1;
+                inputFile >> x2;
+                inputFile >> y2;
+                landmarks.push_back(Surface(x1, y1, x2, y2));
+                
+                inputFile >> x1;
+                inputFile >> y1;
+                inputFile >> x2;
+                inputFile >> y2;
+                landmarks.push_back(Surface(x1, y1, x2, y2));
                 //cout << "rPosition -- x: " << x1 << " y: " << y1 << " x2: " << x2 << " y2: " << y2 << endl;
             }
             if (data.compare("@AllSurfaces:") == 0) {
@@ -637,6 +653,7 @@ void readALocalSpace(View & cView, const char* fileName) {
         cout << "Error opening " << fileName << " .." << endl;
 
     cView.setSurfaces(surfaces);
+    cView.setLandmarks(landmarks);
     cout << "View is read. Num of surfaces: " << surfaces.size() << endl;
     //return surfaces;
 }

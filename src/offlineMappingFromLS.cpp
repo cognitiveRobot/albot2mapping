@@ -107,9 +107,9 @@ int main(int argc, char** argv) {
         readALocalSpace(curView,viewName );
         curView.setRobotSurfaces(Albot.getRectRobot());
 
-        curView.markLandmarks();
+        //curView.markLandmarks();
         
-        sprintf(viewName, "%s%d%s", "../outputs/Views/View-", curView.getId(), ".png");
+        sprintf(viewName, "%s%d%s", "../outputs/Maps/View-", curView.getId(), ".png");
         plotViewGNU(viewName, curView);
         
         cout << endl << "==================================================" << endl << endl;

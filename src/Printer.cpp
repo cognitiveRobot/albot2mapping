@@ -148,10 +148,10 @@ void Printer::printMap(const char* filename, const Map & curMap) {
 
 
 //some functions
-void plotSurfacesGNU(const vector<Surface> & someSurfaces) {
-    
-}
 
+void plotSurfacesGNU(const vector<Surface> & someSurfaces) {
+
+}
 
 void plotViewGNU(const char * filename, const View & view) {
     FILE * fgnup = popen(GNUPLOT_PATH, "w");
@@ -179,6 +179,23 @@ void plotViewGNU(const char * filename, const View & view) {
         maxY = max(maxY, (double) view.getSurfaces()[j].getP2().y);
     }
 
+    if (view.getLandmarks().size() > 0) {
+        for (unsigned int j = 0; j < view.getLandmarks().size(); j++) {
+            minX = min(minX, (double) view.getLandmarks()[j].getP1().x);
+            minX = min(minX, (double) view.getLandmarks()[j].getP2().x);
+
+            maxX = max(maxX, (double) view.getLandmarks()[j].getP1().x);
+            maxX = max(maxX, (double) view.getLandmarks()[j].getP2().x);
+
+            minY = min(minY, (double) view.getLandmarks()[j].getP1().y);
+            minY = min(minY, (double) view.getLandmarks()[j].getP2().y);
+
+            maxY = max(maxY, (double) view.getLandmarks()[j].getP1().y);
+            maxY = max(maxY, (double) view.getLandmarks()[j].getP2().y);
+        }
+
+    }
+
 
     // Make sure x and y have the same range so the image isn't skewed
     double xRange = maxX - minX;
@@ -203,6 +220,13 @@ void plotViewGNU(const char * filename, const View & view) {
     fprintf(fgnup, "set output \"%s\"\n", filename);
     fprintf(fgnup, "set yrange[%g:%g]\n", minY, maxY);
     fprintf(fgnup, "set xrange[%g:%g]\n", minX, maxX);
+    
+    if (view.getLandmarks().size() > 0) {
+        for (unsigned int j = 0; j < view.getLandmarks().size(); j++) {
+            fprintf(fgnup, "set label \"%d\" at %g,%g\n", view.getLandmarks()[j].getId(),
+                    view.getLandmarks()[j].midPoint().x + 500, view.getLandmarks()[j].midPoint().y + 500);
+        }
+    }
 
     fprintf(fgnup, "plot ");
     fprintf(fgnup, "\"-\" ti \"Surfaces\" with lines 3, \\\n");
@@ -210,7 +234,7 @@ void plotViewGNU(const char * filename, const View & view) {
         fprintf(fgnup, "\"-\" ti \"Landmarks\" with lines 2, \\\n");
     fprintf(fgnup, "\"-\" ti \"Robot\" with lines 1\n");
 
-    //ploting surfaces
+    //plotting surfaces
     for (unsigned int j = 0; j < view.getSurfaces().size(); j++) {
         fprintf(fgnup, "%g ", view.getSurfaces()[j].getP1().x);
         fprintf(fgnup, "%g\n", view.getSurfaces()[j].getP1().y);
@@ -219,8 +243,8 @@ void plotViewGNU(const char * filename, const View & view) {
 
     }
     fprintf(fgnup, "e\n");
-    if (view.getLandmarks().size() > 0) {
-        //ploting landmarks
+    //plotting landmark
+    if (view.getLandmarks().size() > 0) {       
         for (unsigned int j = 0; j < view.getLandmarks().size(); j++) {
             fprintf(fgnup, "%g ", view.getLandmarks()[j].getP1().x);
             fprintf(fgnup, "%g\n", view.getLandmarks()[j].getP1().y);
@@ -230,7 +254,7 @@ void plotViewGNU(const char * filename, const View & view) {
         }
         fprintf(fgnup, "e\n");
     }
-    //ploting robot
+    //plotting robot
     for (unsigned int j = 0; j < view.getRobotSurfaces().size(); j++) {
         //if(Objects[i].getASRNo() == 1) {
         fprintf(fgnup, "%g ", view.getRobotSurfaces()[j].getP1().x);
@@ -248,7 +272,8 @@ void plotViewGNU(const char * filename, const View & view) {
 
 
 //argument printID needs to set true to print ids of each surface. by default it's false.
-void plotMapGNU(const char * filename, const Map & map, bool printID ) {
+
+void plotMapGNU(const char * filename, const Map & map, bool printID) {
     FILE * fgnup = popen(GNUPLOT_PATH, "w");
     if (!fgnup) {
         cerr << "ERROR: " << GNUPLOT_PATH << " not found" << endl;
@@ -313,15 +338,15 @@ void plotMapGNU(const char * filename, const Map & map, bool printID ) {
     fprintf(fgnup, "set output \"%s\"\n", filename);
     fprintf(fgnup, "set yrange[%g:%g]\n", minY, maxY);
     fprintf(fgnup, "set xrange[%g:%g]\n", minX, maxX);
-    
+
     //to print id
-    if(printID == true) {
-      for (unsigned int i = 0; i < views.size(); i++) {
-          for (unsigned int j = 0; j < views[i].getSurfaces().size(); j++) {
-              fprintf(fgnup, "set label \"%d\" at %g,%g\n", views[i].getSurfaces()[j].getId(),
-                      views[i].getSurfaces()[j].midPoint().x+500,views[i].getSurfaces()[j].midPoint().y+500);
-          }
-      }
+    if (printID == true) {
+        for (unsigned int i = 0; i < views.size(); i++) {
+            for (unsigned int j = 0; j < views[i].getSurfaces().size(); j++) {
+                fprintf(fgnup, "set label \"%d\" at %g,%g\n", views[i].getSurfaces()[j].getId(),
+                        views[i].getSurfaces()[j].midPoint().x + 500, views[i].getSurfaces()[j].midPoint().y + 500);
+            }
+        }
     }
 
     fprintf(fgnup, "plot ");
@@ -336,18 +361,6 @@ void plotMapGNU(const char * filename, const Map & map, bool printID ) {
 
     // Plot Objects
     for (unsigned int i = 0; i < views.size(); i++) {
-        //plot map's temp surfaces just once.
-//        if (i = (views.size() - 1) && map.getTempSurfaces().size() > 0) {
-//            
-//            for (unsigned int j = 0; j < map.getTempSurfaces().size(); j++) {
-//                fprintf(fgnup, "%g ", map.getTempSurfaces()[j].getP1().x);
-//                fprintf(fgnup, "%g\n", map.getTempSurfaces()[j].getP1().y);
-//                fprintf(fgnup, "%g ", map.getTempSurfaces()[j].getP2().x);
-//                fprintf(fgnup, "%g\n\n", map.getTempSurfaces()[j].getP2().y);
-//
-//            }
-//        }
-
         //ploting surfaces
         for (unsigned int j = 0; j < views[i].getSurfaces().size(); j++) {
             fprintf(fgnup, "%g ", views[i].getSurfaces()[j].getP1().x);
@@ -358,12 +371,10 @@ void plotMapGNU(const char * filename, const Map & map, bool printID ) {
         }
         //ploting robot
         for (unsigned int j = 0; j < views[i].getRobotSurfaces().size(); j++) {
-            //if(Objects[i].getASRNo() == 1) {
             fprintf(fgnup, "%g ", views[i].getRobotSurfaces()[j].getP1().x);
             fprintf(fgnup, "%g\n", views[i].getRobotSurfaces()[j].getP1().y);
             fprintf(fgnup, "%g ", views[i].getRobotSurfaces()[j].getP2().x);
             fprintf(fgnup, "%g\n\n", views[i].getRobotSurfaces()[j].getP2().y);
-            //}
         }
         fprintf(fgnup, "e\n");
     }
@@ -471,9 +482,9 @@ void plotPointsAndSurfacesGNU(const char * filename, const vector<PointXY> & poi
 }
 
 // Write a vector of points to a file
-void writeASCIIPoints2D(const char *filename, const vector<PointXY> & points)
-{
-    ofstream outFile (filename, ios::out);
+
+void writeASCIIPoints2D(const char *filename, const vector<PointXY> & points) {
+    ofstream outFile(filename, ios::out);
 
     // Output ASCII header (row and column)
     outFile << points.size() << " " << 2 << endl;
@@ -482,11 +493,10 @@ void writeASCIIPoints2D(const char *filename, const vector<PointXY> & points)
     outFile << fixed;
     outFile.precision(10);
 
-    for (vector<PointXY>::const_iterator it = points.begin(); it!=points.end(); ++it)
-    {
+    for (vector<PointXY>::const_iterator it = points.begin(); it != points.end(); ++it) {
         outFile << (*it).getX() << " ";
         outFile << (*it).getY() << endl;
-        
+
     }
 
     outFile.close();
@@ -513,7 +523,7 @@ vector<PointXY> readASCIIPoints2D(const char *fileName) {
             inputFile >> x1;
             inputFile >> y1;
 
-            
+
 
 
         }
