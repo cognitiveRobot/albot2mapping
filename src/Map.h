@@ -35,8 +35,10 @@ private:
     vector<AngleAndDistance> pathSegments;
     
     vector<Surface> tempSurfaces;
+    vector<Surface> landmarkSurfaces;
 
-
+    Surface refForPreviousLS;
+    Surface refForNextLS;
 
 
 public:
@@ -56,7 +58,16 @@ public:
     void setTempSurfaces(const vector<Surface> & surfs);
     vector<Surface> getTempSurfaces() const;
     
+    void setLandmarkSurfaces(const vector<Surface> & surfs);
+    vector<Surface> getLandmarkSurfaces() const;
     
+    void setRefForPreviousLS(const Surface & surf);
+    Surface getRefForPreviousLS();
+    
+    void setRefForNextLS(const Surface & surf);
+    Surface getRefForNextLS();
+    
+   
     void addPathSegment(const AngleAndDistance & lastPathSegment);
     vector<AngleAndDistance> getPathSegments() const;
     
@@ -86,7 +97,11 @@ public:
     void saveInTxtFile(const char * filename, const vector<Surface> & rpSurfaces);
     
     //mapping
+    void findReferenceSurface(const View & curView, Surface & tempSurf);
+    
     void expandMap(const View & curView);
+    
+    
 };
 
 //

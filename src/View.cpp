@@ -486,6 +486,8 @@ Surface View::getRPositionInPV() {
     return rPositionInPV;
 }
 
+
+
 void View::constructView(const char* filename) {
             
         vector<PointXY> points2D = readASCIIPoints2D(filename);

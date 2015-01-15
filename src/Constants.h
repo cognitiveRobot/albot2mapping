@@ -11,6 +11,7 @@
 //localspaces or global map type(egoCentric or allCentric)
 //true means egoCentric reference frame will be used. otherwise allCentric.
 const bool EGOCENTRIC_REFERENCE_FRAME = true;
+const bool REMEMBER_COMMON_VIEW = false;
 
 
 const int COLOR_IMAGE_WIDTH = 320;

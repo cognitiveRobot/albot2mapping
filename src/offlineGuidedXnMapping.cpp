@@ -72,9 +72,11 @@ int main(int argc, char** argv) {
     curView.setRobotSurfaces(Albot.getRectRobot());
     Map curMap(1500, 1500);
     Map localSpace(1500, 1500);
+    localSpace.setRefForPreviousLS(Surface(0,0,0,300));
+    Surface tempRefSurface;
 
 
-/*------------------------------------------ Start Xploring ------------------------------------------ */
+    /*------------------------------------------ Start Xploring ------------------------------------------ */
 
     //curView.printView();
     char viewName[50], mapName[50], pointFile[50];
@@ -83,43 +85,24 @@ int main(int argc, char** argv) {
     int localSpaceCounter = 0;
 
     /* -------- Loop ------- */
-    char tkStep = 'y';    
-    bool GLOBAL_MAP = false;
-    cout << endl << endl << "Compute Global Map? (y/n) "; // Ask user if continue
-    cin >> tkStep;
-    if (tkStep != 'n' && tkStep != 'N')
-        GLOBAL_MAP = true;
-
-    tkStep = 'y';
-
-
+    char tkStep = 'y';
     while (tkStep != 'n' && tkStep != 'N') {
         /* Increment counters */
-        
+
         //construct view from points.
         curView.setId(curView.getId() + 1);
         sprintf(pointFile, "%s%d", "../outputs/pointCloud/points2D-", curView.getId());
         curView.constructView(pointFile);
-        cout<<"View is formed :)"<<endl;
-        
-        //read view.
-//        curView.setId(curView.getId() + 1);
-//        sprintf(viewName, "%s%d", "../outputs/surfaces/surfaces-", curView.getId());
-//        readAView(curView, viewName);
-//        curView.setRobotSurfaces(Albot.getRectRobot());
-//        curView.markLandmarks();
-
-        sprintf(viewName, "%s%d%s", "../outputs/Maps/View-", curView.getId(), ".png");
-        plotViewGNU(viewName, curView);
+        cout << "View is formed :)" << endl;
 
         cout << endl << "==================================================" << endl << endl;
         cout << "View no. " << curView.getId() << ":" << endl;
         plotViewGNU("../outputs/Maps/currentView.png", curView);
         cout << endl << endl << "Initialize local space? (y/n) "; // Ask user if continue
-        //cin >> tkStep;
-        if(curView.getId() > 1)
-            tkStep = 'n';
-            
+        cin >> tkStep;
+        //        if(curView.getId() > 1)
+        //            tkStep = 'n';
+
 
         if (tkStep == 'y' or tkStep == 'Y')
             initializeLocalSpace = true;
@@ -127,20 +110,23 @@ int main(int argc, char** argv) {
         if (initializeLocalSpace == true) {
             //save localSpace in a txt file before starting new.
             if (localSpaceCounter != 0) {
-                if (EGOCENTRIC_REFERENCE_FRAME == true)
-                    localSpace.addPVUsingOdo(curView, Albot.getLocalSpaceHome());
-                else
-                    localSpace.addCVUsingOdo(curView, Albot.getLocalSpaceHome());
-                sprintf(mapName, "%s%d%s%d%s", "../outputs/Maps/LS-", localSpaceCounter, "-v-", curView.getId(), "a-before.png");
-                plotMapGNU(mapName, localSpace);
+                if (REMEMBER_COMMON_VIEW == true) {
+                    if (EGOCENTRIC_REFERENCE_FRAME == true)
+                        localSpace.addPVUsingOdo(curView, Albot.getLocalSpaceHome());
+                    else
+                        localSpace.addCVUsingOdo(curView, Albot.getLocalSpaceHome());
+                    sprintf(mapName, "%s%d%s%d%s", "../outputs/Maps/LS-", localSpaceCounter, "-v-", curView.getId(), "a-before.png");
+                    plotMapGNU(mapName, localSpace);
 
-                localSpace.cleanMapUsingOdo(curView, Albot.getLocalSpaceHome());
-                sprintf(mapName, "%s%d%s%d%s", "../outputs/Maps/LS-", localSpaceCounter, "-v-", curView.getId(), "b-after.png");
-                plotMapGNU(mapName, localSpace);
+                    localSpace.cleanMapUsingOdo(curView, Albot.getLocalSpaceHome());
+                    sprintf(mapName, "%s%d%s%d%s", "../outputs/Maps/LS-", localSpaceCounter, "-v-", curView.getId(), "b-after.png");
+                    plotMapGNU(mapName, localSpace);
+                }
 
-
+                localSpace.findReferenceSurface(curView,tempRefSurface);
                 sprintf(mapName, "%s%d", "../outputs/localSpaces/localSpace-", localSpaceCounter);
                 localSpace.saveInTxtFile(mapName, localSpace.transformToGlobalMap(curView.getRobotSurfaces(), localSpace.getPathSegments()));
+                localSpace.setRefForPreviousLS(tempRefSurface);
             }
             localSpaceCounter++;
             cout << BOLDMAGENTA << "Started local space >> " << BOLDRED << localSpaceCounter << RESET << endl;
@@ -159,7 +145,7 @@ int main(int argc, char** argv) {
             else
                 localSpace.addCVUsingOdo(curView, Albot.getLocalSpaceHome());
             sprintf(mapName, "%s%d%s%d%s", "../outputs/Maps/LS-", localSpaceCounter, "-v-", curView.getId(), "a-before.png");
-            plotMapGNU(mapName, localSpace,true);
+            plotMapGNU(mapName, localSpace, true);
 
             //            cout<<"surfaces after adding.."<<endl;
             //            for(unsigned int i=0; i<localSpace.getMap().size(); i++)
@@ -175,28 +161,7 @@ int main(int argc, char** argv) {
         }
         plotMapGNU("../outputs/Maps/curLocalSpace.png", localSpace);
 
-        if (GLOBAL_MAP == true) {
-            cout << BOLDCYAN << "Updating map >> " << BOLDRED << RESET << endl;
-            if (curView.getId() == 1) {//initialize once.
-                curMap.initializeMap(curView);
-                sprintf(mapName, "%s%d%s", "../outputs/Maps/Map-v-", curView.getId(), ".png");
-                plotMapGNU(mapName, curMap);
-            } else {
-                //update map.
-                curMap.addCVUsingOdo(curView, Albot.getFromHome());
-
-                if (PRINT_GLOBAL_MAP) {
-                    sprintf(mapName, "%s%d%s", "../outputs/Maps/Map-v-", curView.getId(), "a-before.png");
-                    plotMapGNU(mapName, curMap);
-                }
-
-                curMap.cleanMapUsingOdo(curView, Albot.getFromHome());
-                if (PRINT_GLOBAL_MAP) {
-                    sprintf(mapName, "%s%d%s", "../outputs/Maps/Map-v-", curView.getId(), "b-after.png");
-                    plotMapGNU(mapName, curMap);
-                }
-            }
-        }
+        
         cout << endl << endl << "Take another step? (y/n) "; // Ask user if continue
         //cin >> tkStep;
         tkStep = 'y';
@@ -207,15 +172,12 @@ int main(int argc, char** argv) {
             sprintf(viewName, "%s%d", "../outputs/surfaces/coordTrans-", curView.getId());
             readOdometry(Albot, viewName);
             localSpace.addPathSegment(Albot.getLastLocomotion());
-            curMap.addPathSegment(Albot.getLastLocomotion());
         }
     }
     if (localSpaceCounter != 0) {//for last local space
         sprintf(mapName, "%s%d", "../outputs/localSpaces/localSpace-", localSpaceCounter);
         localSpace.saveInTxtFile(mapName, localSpace.transformToGlobalMap(curView.getRobotSurfaces(), localSpace.getPathSegments()));
     }
-    if (GLOBAL_MAP == true)
-        plotMapGNU("../outputs/Maps/Global-Map.png", curMap);
     cout << endl;
 
     return 0;

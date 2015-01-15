@@ -55,6 +55,7 @@ private:
     vector<Surface> robotSurfaces;
     
     Surface rPositionInPV;
+    
 
     //contains color info of all pixels of ROI image
     Color colors[COLOR_IMAGE_WIDTH][COLOR_IMAGE_HEIGHT];
@@ -85,6 +86,7 @@ public:
     
     void setRPositionInPV(const Surface & surf);
     Surface getRPositionInPV();
+    
     
     void constructView(const char* filename);
     
