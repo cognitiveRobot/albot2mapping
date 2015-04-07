@@ -153,7 +153,7 @@ void plotSurfacesGNU(const vector<Surface> & someSurfaces) {
 
 }
 
-void plotViewGNU(const char * filename, const View & view) {
+void plotViewGNU(const char * filename, const View & view, bool printID) {
     FILE * fgnup = popen(GNUPLOT_PATH, "w");
     if (!fgnup) {
         cerr << "ERROR: " << GNUPLOT_PATH << " not found" << endl;
@@ -226,6 +226,16 @@ void plotViewGNU(const char * filename, const View & view) {
             fprintf(fgnup, "set label \"%d\" at %g,%g\n", view.getLandmarks()[j].getId(),
                     view.getLandmarks()[j].midPoint().x + 500, view.getLandmarks()[j].midPoint().y + 500);
         }
+    }
+    
+    //to print id
+    if (printID == true) {
+        
+            for (unsigned int j = 0; j < view.getSurfaces().size(); j++) {
+                fprintf(fgnup, "set label \"%d\" at %g,%g\n", view.getSurfaces()[j].getId(),
+                        view.getSurfaces()[j].midPoint().x + 500, view.getSurfaces()[j].midPoint().y + 500);
+            }
+       
     }
 
     fprintf(fgnup, "plot ");

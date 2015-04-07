@@ -29,43 +29,59 @@ bool SameSurfaceFinderOdo::recognizeSameSurface(vector<Surface> & refSurfaces, s
     View temp(cvLandmarks); //only for display.
     temp.setRobotSurfaces(pvLandmarksOnCV);
     temp.setId(12);
-    plotViewGNU("../outputs/Maps/LS-1-2.png",temp);
+    plotViewGNU("../outputs/Maps/LS-1-2.png",temp,true);
     //end of (debugging1)
     
     bool success = false;
     double angleDiff, distanceDiffP1, distanceDiffP2, distP1, distP2;
     double lastAngleDiff = 5.0;
     double lastDist = 10000.0;
+    ReferenceSurfaces aRefSurface;
+    vector<ReferenceSurfaces> allRefSurfaces;
     for (unsigned int i = 0; i < pvLandmarksOnCV.size(); i++) {
         for (unsigned int j = 0; j < cvLandmarks.size(); j++) {
             angleDiff = pvLandmarksOnCV[i].getAngleWithSurface(cvLandmarks[j]);
             
-            if (abs(angleDiff) < 5.0) {
-                cout << "angle Diff " << angleDiff << endl;
-                cout << pvLandmarksOnCV[i].getId() << " cv " << cvLandmarks[j].getId() << endl;
+            if (abs(angleDiff) < 10.0 && cvLandmarks[j].length() > 500.0) {
+               // cout << endl << "angle Diff " << angleDiff << endl;
+             //   cout << " pv: " << pvLandmarksOnCV[i].getId() << " cv: " << cvLandmarks[j].getId() << endl;
                 distanceDiffP1 = cvLandmarks[j].distFromP1ToPoint(pvLandmarksOnCV[i].getP1().x, pvLandmarksOnCV[i].getP1().y);
-                cout << "dist diff (p1,p1) : " << distanceDiffP1 << endl;
+            //    cout << "dist diff (p1,p1) : " << distanceDiffP1 << endl;
                 distanceDiffP2 = cvLandmarks[j].distFromP2ToPoint(pvLandmarksOnCV[i].getP2().x, pvLandmarksOnCV[i].getP2().y);
-                cout << "dist diff (p2,p2) : " << distanceDiffP2 << endl;
-                if (distanceDiffP1 < 400.0 or distanceDiffP2 < 400.0) {                    
-                    distP1 = cvLandmarks[j].distFromP1ToPoint(0, 0);
-                    distP2 = cvLandmarks[j].distFromP2ToPoint(0, 0);
-                    cout<<"dist p1 and p2 to cv robotP "<<distP1<<" "<<distP2<<endl;
-                    if ( distanceDiffP1 < lastDist ||  distanceDiffP2 < lastDist) {
+             //   cout << "dist diff (p2,p2) : " << distanceDiffP2 << endl;
+                if (distanceDiffP1 < 500.0 or distanceDiffP2 < 500.0) {                    
+//                    distP1 = cvLandmarks[j].distFromP1ToPoint(0, 0);
+//                    distP2 = cvLandmarks[j].distFromP2ToPoint(0, 0);
+//                    cout<<"dist p1 and p2 to cv robotP "<<distP1<<" "<<distP2<<endl;
+                   // if ( distanceDiffP1 < lastDist ||  distanceDiffP2 < lastDist) {
                         // if (abs(angleDiff) < lastAngleDiff) {
-                            lastAngleDiff = abs(angleDiff);
-                            if(distanceDiffP1 < distanceDiffP2)
-                                lastDist = distanceDiffP1;
-                            else
-                                lastDist = distanceDiffP2;
-                            cout << endl<<"Ref found" << endl;
-                            refSurfaces.clear();
-                            refSurfaces.push_back(pvLandmarks[i]);
-                            refSurfaces.push_back(cvLandmarks[j]);
+                         //   lastAngleDiff = abs(angleDiff);
+                    cout << "Ref found" << endl;
+                    cout << endl << "angle Diff " << angleDiff << endl;
+                cout << " pv: " << pvLandmarksOnCV[i].getId() << " cv: " << cvLandmarks[j].getId() << endl;
+                
+                cout << "dist diff (p1,p1) : " << distanceDiffP1 << endl;
+               
+                cout << "dist diff (p2,p2) : " << distanceDiffP2 << endl;
+//                            if(distanceDiffP1 < distanceDiffP2)
+//                                lastDist = distanceDiffP1;
+//                            else
+//                                lastDist = distanceDiffP2;
+                    aRefSurface.setMapSurface(pvLandmarks[i]);
+                    aRefSurface.setViewSurface(cvLandmarks[j]);
+                    if(distanceDiffP1 < distanceDiffP2)
+                        aRefSurface.setRefPoint(1);
+                    else
+                        aRefSurface.setRefPoint(2);
+                    allRefSurfaces.push_back(aRefSurface);
+                    
+//                            refSurfaces.clear();
+//                            refSurfaces.push_back(pvLandmarks[i]);
+//                            refSurfaces.push_back(cvLandmarks[j]);
                             success = true;
                             //waitHere();
                       //  }
-                    }
+                   // }
                 }
 
             }
@@ -74,7 +90,8 @@ bool SameSurfaceFinderOdo::recognizeSameSurface(vector<Surface> & refSurfaces, s
     
     cout << "above is the result from recognition module" << endl;
     if(success == true) {
-        cout<<"Ref is found :)"<<endl;
+        cout<<"Number of References: "<<allRefSurfaces.size()<<endl;
+        
         waitHere();
     }else {
         cout<<"couldn't found any ref. :("<<endl;

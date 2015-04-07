@@ -89,4 +89,31 @@ void displaySurfaces(const std::vector<Surface> & surfaces);
 //convert SurfaceT to Surface
 vector<Surface> convertSurfaceT2Surface(const vector<SurfaceT> & surfs);
 
+class ReferenceSurfaces {
+private:
+    Surface mapSurface;
+    Surface viewSurface;
+    int refPoint;
+    
+public:
+    ReferenceSurfaces();
+ReferenceSurfaces(const Surface & surf1, const Surface & surf2) ;
+~ReferenceSurfaces() ;
+
+    Surface getMapSurface() ;
+   
+    void setMapSurface(const Surface & surf1) ;
+   
+    
+    Surface getViewSurface();
+  
+    void setViewSurface(const Surface & surf1) ;
+    
+    
+    int getRefPoint() ;
+  
+    void setRefPoint(const int & i) ;
+   
+};
+
 #endif /* SURFACE_H */

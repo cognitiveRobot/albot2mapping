@@ -70,12 +70,12 @@ LIBSRCS = \
 	GeometryFuncs.cpp \
 	Laser2Surface.cpp \
 	Camera.cpp \
-	Map.cpp \
-	SameSurfaceFinderColor.cpp \
-	SameSurfaceFinderOdo.cpp \
 	Surface.cpp \
 	View.cpp \
 	Color.cpp \
+	Map.cpp \
+	SameSurfaceFinderColor.cpp \
+	SameSurfaceFinderOdo.cpp \
 	Printer.cpp \
 	PathFinder.cpp \
 	ImageProcessing.cpp

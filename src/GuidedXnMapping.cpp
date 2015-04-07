@@ -1,8 +1,8 @@
 /* 
  * File:   main.cpp
- * Author: Guillaume Diallo-Mulliez
+ * Author: Md Zulfikar Hossain
  *
- * Created on June 7, 2013, 12:52 AM
+ * Created on September, 2014, 12:52 AM
  */
 
 /* ------------------------- Basic Includes ------------------------- */

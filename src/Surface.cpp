@@ -289,6 +289,41 @@ double Surface::getAngleWithSurface(Surface s) const{
 
 
 
+// Reference Surfaces
+ReferenceSurfaces::ReferenceSurfaces() {
+    refPoint = 0;
+ }
+
+ ReferenceSurfaces::ReferenceSurfaces(const Surface & surf1, const Surface & surf2) {
+     mapSurface = surf1;
+     viewSurface = surf2;
+ }
+    ReferenceSurfaces::~ReferenceSurfaces() {
+        
+    }
+
+    Surface ReferenceSurfaces::getMapSurface() {
+        return mapSurface;
+    }
+    void ReferenceSurfaces::setMapSurface(const Surface & surf1) {
+        mapSurface = surf1;
+    }
+    
+    Surface ReferenceSurfaces::getViewSurface() {
+        return viewSurface;
+    }
+    void ReferenceSurfaces::setViewSurface(const Surface & surf1) {
+        viewSurface = surf1;
+    }
+    
+    int ReferenceSurfaces::getRefPoint() {
+        return refPoint;
+    }
+    void ReferenceSurfaces::setRefPoint(const int & i) {
+        refPoint = i;
+    }
+
+
 ///////// Some functions //////////
 bool SortBasedOnLength(Surface surf1, Surface surf2) {
     return surf1.length() < surf2.length();
