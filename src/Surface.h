@@ -80,6 +80,8 @@ public:
     void setColors(std::vector<Color> colors);
     std::vector<Color> getColors();
     Color getAverageColor();
+    
+    SurfaceT ToSurfaceT();
 };
 
 //
@@ -113,6 +115,8 @@ ReferenceSurfaces(const Surface & surf1, const Surface & surf2) ;
     int getRefPoint() ;
   
     void setRefPoint(const int & i) ;
+    
+    void display();
    
 };
 

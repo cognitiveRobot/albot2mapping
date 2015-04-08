@@ -2,7 +2,7 @@
 #include "Printer.h"
 #include "ImageProcessing.h"
 
-bool SameSurfaceFinderOdo::recognizeSameSurface(vector<Surface> & refSurfaces, std::vector<Surface> pvLandmarks,
+bool SameSurfaceFinderOdo::recognizeSameSurface(vector<ReferenceSurfaces> & allRefSurfaces, std::vector<Surface> pvLandmarks,
         std::vector<Surface> cvLandmarks, AngleAndDistance lastLocomotion) {
     cout << "Looking for same surfaces in the current view " << endl;
     cout << "No. of Lsurfaces in PV: " << pvLandmarks.size() << endl;
@@ -37,7 +37,6 @@ bool SameSurfaceFinderOdo::recognizeSameSurface(vector<Surface> & refSurfaces, s
     double lastAngleDiff = 5.0;
     double lastDist = 10000.0;
     ReferenceSurfaces aRefSurface;
-    vector<ReferenceSurfaces> allRefSurfaces;
     for (unsigned int i = 0; i < pvLandmarksOnCV.size(); i++) {
         for (unsigned int j = 0; j < cvLandmarks.size(); j++) {
             angleDiff = pvLandmarksOnCV[i].getAngleWithSurface(cvLandmarks[j]);
@@ -92,10 +91,10 @@ bool SameSurfaceFinderOdo::recognizeSameSurface(vector<Surface> & refSurfaces, s
     if(success == true) {
         cout<<"Number of References: "<<allRefSurfaces.size()<<endl;
         
-        waitHere();
+        //waitHere();
     }else {
         cout<<"couldn't found any ref. :("<<endl;
-        waitHere();
+       // waitHere();
     }
     
 

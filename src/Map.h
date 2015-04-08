@@ -81,6 +81,9 @@ public:
     //for egoCentric
     void addPVUsingOdo(const View & curView, const AngleAndDistance & homeInfo);
     
+    //updating
+    void addCVUsingMultipleRef(const View & curView);
+    
     
     void update(View newView); // Update the map according to the newView
     bool isBehind(Surface Old, Surface New, cv::Point3f rbtPos); /* NOT SURE IF DONE CORRECTLY */ // Check if Old and New surfaces are concealing each other
@@ -108,6 +111,8 @@ public:
 vector<double> findBoundariesOfCV(const vector<Surface> & cvSurfaces, double extension);
 
 //mapping 
+ReferenceSurfaces findTheClosestReference(Surface & cvSurface, vector<ReferenceSurfaces> allRefSurfaces);
+Surface trangulateSurface(const Surface & refInMap, const Surface & refInCV, const Surface & cvSurface, const int & refPoint);
 vector<Surface> trangulateSurfaces(const Surface & refInMap, const Surface & refInCV, const vector<Surface>& cvSurfaces);
 
 

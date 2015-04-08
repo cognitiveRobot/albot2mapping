@@ -324,8 +324,40 @@ void Map::cleanMapUsingOdo(const View & curView, const AngleAndDistance & homeIn
     }
 
     cout << "Has been cleaned" << endl;
+}
 
-
+//add cv to the map using multiple reference. 
+void Map::addCVUsingMultipleRef(const View & curView) {
+    cout<<endl<<"Adding cv using multiple reference surfaces!!!"<<endl;
+    //find reference surfaces
+    vector<ReferenceSurfaces> sameSurfaces;
+    SameSurfaceFinderOdo sSurfaceInfo;
+    sSurfaceInfo.recognizeSameSurface(sameSurfaces, this->getLandmarkSurfaces(), curView.getSurfaces(), this->getPathSegments().back());
+    if (sameSurfaces.size() > 0) {
+        //this->setRefForNextLS(sameSurfaces[0]);
+        //tempSurf = sameSurfaces[1];
+        cout<<"The following reference surfaces are found .."<<endl;
+        for(unsigned int i=0;i<sameSurfaces.size(); i++) {
+            sameSurfaces[i].display();
+        }
+        //waitHere();
+    }
+    ReferenceSurfaces refSurfacePair;
+    Surface cvSurfaceOnMap;
+    vector<Surface> allCVSurfacesOnMap;
+    for(unsigned int i=0; i<curView.getSurfaces().size(); i++) {
+        //find the closest ref pair using current view 
+        refSurfacePair = findTheClosestReference(curView.getSurfaces()[i],sameSurfaces);
+        //trangulate this surface.
+        cout<<curView.getSurfaces()[i].getId()<<" refID: "<<refSurfacePair.getViewSurface().getId()<<endl;
+        cvSurfaceOnMap = trangulateSurface(refSurfacePair.getMapSurface(),refSurfacePair.getViewSurface(),curView.getSurfaces()[i],refSurfacePair.getRefPoint());
+        allCVSurfacesOnMap.push_back(cvSurfaceOnMap);
+    }
+    
+    View cViewOnMap;
+    cViewOnMap.setSurfaces(allCVSurfacesOnMap);
+    this->map.push_back(cViewOnMap);
+    
 }
 
 void Map::saveInTxtFile(const char * filename, const vector<Surface> & rpSurfaces) {
@@ -645,12 +677,16 @@ vector<View> Map::getMap() const {
 
 void Map::findReferenceSurface(const View & curView, Surface & tempSurf) {
     cout << "Looking for reference surface :)" << endl;
-    vector<Surface> sameSurfaces;
+    vector<ReferenceSurfaces> sameSurfaces;
     SameSurfaceFinderOdo sSurfaceInfo;
     sSurfaceInfo.recognizeSameSurface(sameSurfaces, this->getLandmarkSurfaces(), curView.getSurfaces(), this->getPathSegments().back());
     if (sameSurfaces.size() > 0) {
-        this->setRefForNextLS(sameSurfaces[0]);
-        tempSurf = sameSurfaces[1];
+        //this->setRefForNextLS(sameSurfaces[0]);
+        //tempSurf = sameSurfaces[1];
+        for(unsigned int i=0;i<sameSurfaces.size(); i++) {
+            sameSurfaces[i].display();
+        }
+        waitHere();
     }
 }
 
@@ -732,37 +768,80 @@ vector<double> findBoundariesOfCV(const vector<Surface> & cvSurfaces, double ext
     return result;
 }
 
-vector<Surface> trangulateSurfaces(const Surface & refInMap, const Surface & refInCV, const vector<Surface>& cvSurfaces) {
-    vector<Surface> cvSurfacesOnMap;
+//it finds the closest ref pair where cvSurfaces and viewSurface in RefSurfaces are in same co-ordinate.
+ReferenceSurfaces findTheClosestReference(Surface & cvSurface, vector<ReferenceSurfaces> allRefSurfaces) {
+    double closestDist, tempDist;
+    SurfaceT cvSurfaceT = cvSurface.ToSurfaceT();
+    closestDist = distBetweenSurfs(cvSurfaceT,allRefSurfaces[0].getViewSurface().ToSurfaceT());
+    ReferenceSurfaces refPair = allRefSurfaces[0];
+    
+    for(unsigned int i = 1; i<allRefSurfaces.size(); i++) {
+        tempDist = distBetweenSurfs(cvSurfaceT,allRefSurfaces[i].getViewSurface().ToSurfaceT());
+        if( tempDist < closestDist) {
+            refPair = allRefSurfaces[i];
+            closestDist = tempDist;
+        }
+    }
+    
+    return refPair;
+}
+
+Surface trangulateSurface(const Surface & refInMap, const Surface & refInCV, const Surface & cvSurface, const int & refPoint) {
     double angle, distance;
     float x1, y1, x2, y2;
 
-    for (unsigned int i = 0; i < cvSurfaces.size(); i++) {
-        angle = refInCV.getAngleWithSurface(Surface(0, 0, cvSurfaces[i].getP1().x, cvSurfaces[i].getP1().y));
-        distance = refInCV.distFromP1ToPoint(cvSurfaces[i].getP1().x, cvSurfaces[i].getP1().y);
+    angle = refInCV.getAngleWithSurface(Surface(0, 0, cvSurface.getP1().x, cvSurface.getP1().y));
+    angle *= CONVERT_TO_RADIAN;
 
-        angle *= CONVERT_TO_RADIAN;
+    if (refPoint == 1) {
+        distance = refInCV.distFromP1ToPoint(cvSurface.getP1().x, cvSurface.getP1().y);
 
-        //cout << "angle: " << angle << " dist: " << distance << endl;
-        //waitHere();
         x1 = ((refInMap.getP2().x - refInMap.getP1().x) / refInMap.length()) * cos(angle)-((refInMap.getP2().y - refInMap.getP1().y) / refInMap.length()) * sin(angle);
         y1 = ((refInMap.getP2().x - refInMap.getP1().x) / refInMap.length()) * sin(angle)+((refInMap.getP2().y - refInMap.getP1().y) / refInMap.length()) * cos(angle);
 
         x1 = x1 * distance + refInMap.getP1().x;
         y1 = y1 * distance + refInMap.getP1().y;
+    } else {
+        distance = refInCV.distFromP2ToPoint(cvSurface.getP1().x, cvSurface.getP1().y);
 
-        angle = refInCV.getAngleWithSurface(Surface(0, 0, cvSurfaces[i].getP2().x, cvSurfaces[i].getP2().y));
-        distance = refInCV.distFromP1ToPoint(cvSurfaces[i].getP2().x, cvSurfaces[i].getP2().y);
+        x1 = ((refInMap.getP1().x - refInMap.getP2().x) / refInMap.length()) * cos(angle)-((refInMap.getP1().y - refInMap.getP2().y) / refInMap.length()) * sin(angle);
+        y1 = ((refInMap.getP1().x - refInMap.getP2().x) / refInMap.length()) * sin(angle)+((refInMap.getP1().y - refInMap.getP2().y) / refInMap.length()) * cos(angle);
 
-        angle *= CONVERT_TO_RADIAN;
+        x1 = x1 * distance + refInMap.getP2().x;
+        y1 = y1 * distance + refInMap.getP2().y;
+    }
+
+    angle = refInCV.getAngleWithSurface(Surface(0, 0, cvSurface.getP2().x, cvSurface.getP2().y));
+    angle *= CONVERT_TO_RADIAN;
+
+    if (refPoint == 1) {
+        distance = refInCV.distFromP1ToPoint(cvSurface.getP2().x, cvSurface.getP2().y);
 
         x2 = ((refInMap.getP2().x - refInMap.getP1().x) / refInMap.length()) * cos(angle)-((refInMap.getP2().y - refInMap.getP1().y) / refInMap.length()) * sin(angle);
         y2 = ((refInMap.getP2().x - refInMap.getP1().x) / refInMap.length()) * sin(angle)+((refInMap.getP2().y - refInMap.getP1().y) / refInMap.length()) * cos(angle);
 
         x2 = x2 * distance + refInMap.getP1().x;
         y2 = y2 * distance + refInMap.getP1().y;
+    } else {
+        distance = refInCV.distFromP2ToPoint(cvSurface.getP2().x, cvSurface.getP2().y);
 
-        cvSurfacesOnMap.push_back(Surface(x1, y1, x2, y2));
+        x2 = ((refInMap.getP1().x - refInMap.getP2().x) / refInMap.length()) * cos(angle)-((refInMap.getP1().y - refInMap.getP2().y) / refInMap.length()) * sin(angle);
+        y2 = ((refInMap.getP1().x - refInMap.getP2().x) / refInMap.length()) * sin(angle)+((refInMap.getP1().y - refInMap.getP2().y) / refInMap.length()) * cos(angle);
+
+        x2 = x2 * distance + refInMap.getP2().x;
+        y2 = y2 * distance + refInMap.getP2().y;
+    }
+
+    return Surface(x1, y1, x2, y2);
+}
+
+vector<Surface> trangulateSurfaces(const Surface & refInMap, const Surface & refInCV, const vector<Surface>& cvSurfaces) {
+    vector<Surface> cvSurfacesOnMap;
+    
+
+    for (unsigned int i = 0; i < cvSurfaces.size(); i++) {        
+
+        cvSurfacesOnMap.push_back(trangulateSurface(refInMap,refInCV,cvSurfaces[i],1));
     }
 
     return cvSurfacesOnMap;

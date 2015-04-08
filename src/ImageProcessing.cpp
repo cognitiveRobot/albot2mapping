@@ -454,5 +454,6 @@ void ImageProcessing::getDisparity() {
 
 void waitHere() {
     char temp;
+    cout<<"Press any key to continue..."<<endl;
     cin>>temp;
 }

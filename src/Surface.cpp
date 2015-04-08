@@ -287,6 +287,10 @@ double Surface::getAngleWithSurface(Surface s) const{
     return s.getAngleWithXaxis() - this->getAngleWithXaxis();
 }
 
+SurfaceT Surface::ToSurfaceT() {
+    return SurfaceT(PointXY(P1.x,P1.y),PointXY(P2.x,P2.y));
+}
+
 
 
 // Reference Surfaces
@@ -321,6 +325,10 @@ ReferenceSurfaces::ReferenceSurfaces() {
     }
     void ReferenceSurfaces::setRefPoint(const int & i) {
         refPoint = i;
+    }
+    
+    void ReferenceSurfaces::display() {
+        cout<<"MapId: "<<mapSurface.getId()<<" CVId: "<<viewSurface.getId()<<" RefPoint: "<<refPoint<<endl;
     }
 
 

@@ -125,7 +125,10 @@ int main(int argc, char** argv) {
                     plotMapGNU(mapName, localSpace);
                 }
 
-                localSpace.findReferenceSurface(curView,tempRefSurface);
+               // localSpace.findReferenceSurface(curView,tempRefSurface);
+                localSpace.addCVUsingMultipleRef(curView);
+                plotMapGNU("1.png", localSpace);
+                waitHere();
                 sprintf(mapName, "%s%d", "../outputs/localSpaces/localSpace-", localSpaceCounter);
                 localSpace.saveInTxtFile(mapName, localSpace.transformToGlobalMap(curView.getRobotSurfaces(), localSpace.getPathSegments()));
                 localSpace.setRefForPreviousLS(tempRefSurface);
