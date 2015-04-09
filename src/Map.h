@@ -74,6 +74,8 @@ public:
     vector<Surface> transformToGlobalMap(const vector<Surface>& rpSurfaces, 
     const vector<AngleAndDistance>& allPathSegments);
     
+    void cleanMap(const vector<SurfaceT> & polygon);
+    
     //for aloCentric
     void addCVUsingOdo(const View & curView, const AngleAndDistance & homeInfo);
     void cleanMapUsingOdo(const View & curView, const AngleAndDistance & homeInfo);
@@ -85,8 +87,8 @@ public:
     void addCVUsingMultipleRef(const View & curView);
     
     
-    void update(View newView); // Update the map according to the newView
-    bool isBehind(Surface Old, Surface New, cv::Point3f rbtPos); /* NOT SURE IF DONE CORRECTLY */ // Check if Old and New surfaces are concealing each other
+    //void update(View newView); // Update the map according to the newView
+    //bool isBehind(Surface Old, Surface New, cv::Point3f rbtPos); /* NOT SURE IF DONE CORRECTLY */ // Check if Old and New surfaces are concealing each other
     void coordTransf(cv::Point3f *target, cv::Point3f newCenter, double hX,
             double hY); // Transform the coordinates of *target with newCenter and homothetic transformation in X & Y directions
     void rotate(cv::Point2f* target, cv::Point2f Center, float angle); // Rotate *target point of angle around Center
@@ -109,6 +111,9 @@ public:
 
 //
 vector<double> findBoundariesOfCV(const vector<Surface> & cvSurfaces, double extension);
+
+//construct polygon from a set of surfaces
+vector<SurfaceT> constructPolygon(const vector<Surface> & transformedSurfaces);
 
 //mapping 
 ReferenceSurfaces findTheClosestReference(Surface & cvSurface, vector<ReferenceSurfaces> allRefSurfaces);

@@ -61,6 +61,7 @@ public:
 void plotSurfacesGNU(const vector<vector<Surface> > & allSurfaces);
 void plotMapGNU(const char * filename, const Map & map, bool printID = false);
 void plotViewGNU(const char * filename, const View & view, bool printID = false);
+void plotViewsGNU(const char * filename, const vector<View> & views, bool printID = false);
 void plotPointsAndSurfacesGNU(const char * filename, const vector<PointXY> & points, const vector<Surface> & robotSurfaces);
 
 //write a txt file

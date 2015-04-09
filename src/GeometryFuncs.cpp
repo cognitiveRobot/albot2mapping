@@ -360,12 +360,7 @@ bool pointInPolygon(const PointXY & point, const vector<SurfaceT> & polygon, boo
          */
         unsigned int numInters = 0;
         for (vector<SurfaceT>::const_iterator it = polygon.begin(); it != polygon.end(); ++it) {
-
-            if (ray.contains(it->getP1()) || ray.contains(it->getP2())) {
-                ray_change_needed = true;
-                break;
-            }
-
+            
             // Special case 2: Directly on a vertex
             if (point == it->getP1() || point == it->getP2()) {
                 return !strictly;
@@ -375,6 +370,13 @@ bool pointInPolygon(const PointXY & point, const vector<SurfaceT> & polygon, boo
             if (it->contains(point)) {
                 return !strictly;
             }
+
+            if (ray.contains(it->getP1()) || ray.contains(it->getP2())) {
+                ray_change_needed = true;
+                break;
+            }
+
+            
 
 
 

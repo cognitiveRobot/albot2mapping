@@ -251,6 +251,34 @@ void Map::addCVUsingOdo(const View & curView, const AngleAndDistance & homeInfo)
     this->setLandmarkSurfaces(curView.getSurfaces()); //
 }
 
+void Map::cleanMap(const vector<SurfaceT> & polygon) {
+    //check the point in polygon    cleaning old.
+    vector<Surface> surfacesInsideCV, surfacesOutsideCV;
+    vector<Surface> tempSurf;
+    View tempView;
+
+    for (unsigned int i = 0; i<this->map.size() - 1; i++) {
+        tempView = this->map[i];
+        tempSurf = tempView.getSurfaces();
+        for (unsigned int j = 0; j < tempSurf.size(); j++) {
+            if (pointInPolygon(PointXY((double) tempSurf[j].getP1().x, (double) tempSurf[j].getP1().y), polygon) == true ||
+                    pointInPolygon(PointXY((double) tempSurf[j].getP2().x, (double) tempSurf[j].getP2().y), polygon) == true)
+                surfacesInsideCV.push_back(tempSurf[j]);
+            else
+                surfacesOutsideCV.push_back(tempSurf[j]);
+        }
+        tempView.setSurfaces(surfacesOutsideCV);
+        //tempView.setLandmarks(surfacesInsideCV);
+        this->map[i] = tempView;
+
+        //clear variables to reuse.
+        surfacesInsideCV.clear();
+        surfacesOutsideCV.clear();
+    }
+    
+    cout << "Has been cleaned" << endl;
+}
+
 void Map::cleanMapUsingOdo(const View & curView, const AngleAndDistance & homeInfo) {
     cout << "Cleaning the map." << endl;
     vector<Surface> transformedSurfaces;
@@ -293,39 +321,16 @@ void Map::cleanMapUsingOdo(const View & curView, const AngleAndDistance & homeIn
     //    this->getTempSurfaces().clear();
 
     //making polygon from cv.
-    vector<SurfaceT> polygon;
-    for (unsigned int i = 0; i < transformedSurfaces.size(); i++) {
-        polygon.push_back(SurfaceT(PointXY((double) transformedSurfaces[i].getP1().x, (double) transformedSurfaces[i].getP1().y),
-                PointXY((double) transformedSurfaces[i].getP2().x, (double) transformedSurfaces[i].getP2().y)));
-    }
+    vector<SurfaceT> polygon = constructPolygon(transformedSurfaces);
 
     //check the point in polygon    cleaning old.
-    vector<Surface> surfacesInsideCV, surfacesOutsideCV;
-    vector<Surface> tempSurf;
-    View tempView;
+    cleanMap(polygon);
 
-    for (unsigned int i = 0; i<this->map.size() - 1; i++) {
-        tempView = this->map[i];
-        tempSurf = tempView.getSurfaces();
-        for (unsigned int j = 0; j < tempSurf.size(); j++) {
-            if (pointInPolygon(PointXY((double) tempSurf[j].getP1().x, (double) tempSurf[j].getP1().y), polygon) == true ||
-                    pointInPolygon(PointXY((double) tempSurf[j].getP2().x, (double) tempSurf[j].getP2().y), polygon) == true)
-                surfacesInsideCV.push_back(tempSurf[j]);
-            else
-                surfacesOutsideCV.push_back(tempSurf[j]);
-        }
-        tempView.setSurfaces(surfacesOutsideCV);
-        //tempView.setLandmarks(surfacesInsideCV);
-        this->map[i] = tempView;
 
-        //clear variables to reuse.
-        surfacesInsideCV.clear();
-        surfacesOutsideCV.clear();
-    }
-
-    cout << "Has been cleaned" << endl;
+    
 }
 
+//all-centric mapping.
 //add cv to the map using multiple reference. 
 void Map::addCVUsingMultipleRef(const View & curView) {
     cout<<endl<<"Adding cv using multiple reference surfaces!!!"<<endl;
@@ -350,13 +355,19 @@ void Map::addCVUsingMultipleRef(const View & curView) {
         refSurfacePair = findTheClosestReference(curView.getSurfaces()[i],sameSurfaces);
         //trangulate this surface.
         cout<<curView.getSurfaces()[i].getId()<<" refID: "<<refSurfacePair.getViewSurface().getId()<<endl;
-        cvSurfaceOnMap = trangulateSurface(refSurfacePair.getMapSurface(),refSurfacePair.getViewSurface(),curView.getSurfaces()[i],refSurfacePair.getRefPoint());
+        cvSurfaceOnMap = trangulateSurface(refSurfacePair.getMapSurface(),refSurfacePair.getViewSurface(),
+                curView.getSurfaces()[i],refSurfacePair.getRefPoint());
         allCVSurfacesOnMap.push_back(cvSurfaceOnMap);
     }
-    
+
     View cViewOnMap;
     cViewOnMap.setSurfaces(allCVSurfacesOnMap);
     this->map.push_back(cViewOnMap);
+    plotViewsGNU("../outputs/Maps/1afteraddingCV.png",this->getMap());
+    //construct polygon from cvOnMap.
+    vector<SurfaceT> polygon = constructPolygon(allCVSurfacesOnMap);
+    //cleanMap.
+    cleanMap(polygon);
     
 }
 
@@ -397,213 +408,6 @@ void Map::saveInTxtFile(const char * filename, const vector<Surface> & rpSurface
     }
     outFile.close();
     cout << "Map file saved" << endl;
-}
-
-void Map::update(View newView) {
-    currentView = newView; //it save cv for next step.
-
-    // Robot
-    cv::Point3f tmpPos;
-    cv::Point3f O(sizeX / 2, sizeY / 2, 0);
-    //cv::Point3f O(sizeX/2, sizeY-15, 0);
-
-    // Comparing surface variables
-    vector<Surface> tmpObst, tmpObst1; // Temporary surfaces vector to update Obst
-    int counter;
-    unsigned int Osize, Osize1; // Original size of Obst before adding new Surfaces to the map
-
-    cout << surfaces.size() << " Initial Surfaces in the map" << endl;
-    /* Adapt newView to compare Surfaces to previous ones */
-    newView.setSurfaces();
-    newView.rotate();
-    newView.translate();
-
-    if (surfaces.size() == 0) { // If the map is empty, place the robot in initial position and add surfaces
-        // Set robot position on the map and add it to rbtPos
-        cout << surfaces.size() << "No Surface in the map" << endl;
-        tmpPos = newView.getRobotPos();
-        coordTransf(&tmpPos, O, (double) 1 / 10, (double) - 1 / 10);
-        newView.setRobotPos(tmpPos.x, tmpPos.y, tmpPos.z);
-        rbtPos.push_back(tmpPos);
-
-        // Add the Surfaces to the map
-        surfaces = newView.getSurfaces();
-
-        newView.clearView();
-        cout << surfaces.size() << " start Surface in the map" << endl;
-    } else // Else compare surfaces
-    {
-
-        // Move the robot
-        tmpPos = newView.getRobotPos();
-
-        coordTransf(&tmpPos, O, (double) 1 / 10, (double) - 1 / 10);
-        newView.setRobotPos(tmpPos.x, tmpPos.y, tmpPos.z);
-        rbtPos.push_back(tmpPos);
-
-        Osize = surfaces.size();
-        Osize1 = surfaces.size();
-        //old and then new
-        for (unsigned int j = 0; j < newView.getSurfaces().size(); j++) { // For each surface of the new View
-
-            counter = 0;
-
-            for (unsigned int i = 0; i < Osize; i++) { // For every surface of the map
-
-                if (isBehind(surfaces[i], newView.getSurfaces()[j],
-                        rbtPos[rbtPos.size()])
-                        || isBehind(newView.getSurfaces()[j], surfaces[i],
-                        rbtPos[rbtPos.size()])) // Check if any Surfaces are concealing others
-                {
-                    counter++;
-
-                }
-                if (j == 0) {
-
-                    tmpObst.push_back(surfaces[i]); // Add it to the updated map
-
-                }
-            }
-
-            if (counter == 0) { // If an old Surface isn't concealing nor concealed....
-                tmpObst.push_back(newView.getSurfaces()[j]); // add all surfaces from new view     // Add the new Surfaces
-
-            }
-        }
-
-        // new and then old
-        //for(unsigned int i=0; i < Osize; i++)           // For every surface of the map
-
-        //{
-        //     counter=0;
-
-        // for(unsigned int j=0; j<newView.getSurfaces().size(); j++)         // For each surface of the new View
-
-        //      {
-
-        //          if(isBehind(surfaces[i], newView.getSurfaces()[j], rbtPos[rbtPos.size()]) || isBehind(newView.getSurfaces()[j], surfaces[i], rbtPos[rbtPos.size()]))     // Check if any Surfaces are concealing others
-        // {
-        //          counter++;
-
-        //          }
-        //if(i == 0 ){ 
-        //surfaces.push_back(newView.getSurfaces()[j]);
-
-        //             }
-        //             }
-        //             cout << counter << "Counter" << endl;
-        //               if(counter == 0 ){
-        //tmpObst.push_back(surfaces[i]);  // Add it to the updated map
-        // If an old Surface isn't concealing nor concealed....
-        //add all surfaces from new view     // Add the new Surfaces
-
-        //           }
-        //          }
-
-        // both new and old
-        //for(unsigned int i=0; i < Osize1; i++)           // For every surface of the map
-
-        //{tmpObst.push_back(surfaces[i]);
-        //}
-        //           for(unsigned int j=0; j<newView.getSurfaces().size(); j++)         // For each surface of the new View
-
-        //          {
-
-        //tmpObst.push_back(newView.getSurfaces()[j]);
-
-        //                  }  
-
-        surfaces.clear();
-        surfaces = tmpObst;
-        // replace the map by the updated one
-        cout << tmpObst.size() << " Surfaces in the new map" << endl;
-        tmpObst.clear();
-
-    }
-
-}
-
-bool Map::isBehind(Surface Old, Surface New, cv::Point3f rbtPos) {
-    bool ret = false;
-
-    // Translate to compare as same view
-    Old.setP1(Old.getP1().x - rbtPos.x, Old.getP1().y - rbtPos.y);
-    Old.setP2(Old.getP2().x - rbtPos.x, Old.getP2().y - rbtPos.y);
-    New.setP1(Old.getP1().x - rbtPos.x, New.getP1().y - rbtPos.y);
-    New.setP2(Old.getP2().x - rbtPos.x, New.getP2().y - rbtPos.y);
-
-    if (Old.getP1().y > 0 && Old.getP2().y > 0) {
-        if (Old.getP1().x == 0) {
-            if (New.getP1().x > 0
-                    && New.getP1().y
-                    > (float) Old.getP2().y / Old.getP2().x
-                    * New.getP1().x && New.getP2().x > 0
-                    && New.getP2().y
-                    > (float) Old.getP2().y / Old.getP2().x
-                    * New.getP2().x) {
-                ret = true;
-            }
-        } else if (Old.getP1().x < 0 && Old.getP2().x == 0) {
-            if ((New.getP1().y
-                    > (float) Old.getP1().y / Old.getP1().x * New.getP1().x
-                    && New.getP1().x < 0)
-                    || (New.getP2().y
-                    > (float) Old.getP1().y / Old.getP1().x
-                    * New.getP2().x && New.getP2().x < 0)) {
-                ret = true;
-            }
-        } else if (Old.getP1().x < 0 && Old.getP2().x < 0) {
-            if ((New.getP1().y
-                    > (float) Old.getP1().y / Old.getP1().x * New.getP1().x
-                    && New.getP1().y
-                    < (float) Old.getP2().y / Old.getP2().x
-                    * New.getP1().x)
-                    || (New.getP2().y
-                    > (float) Old.getP1().y / Old.getP1().x
-                    * New.getP2().x
-                    && New.getP2().y
-                    < (float) Old.getP2().y / Old.getP2().x
-                    * New.getP2().x)) {
-                ret = true;
-            }
-        } else if (Old.getP1().x < 0 && Old.getP2().x > 0) {
-            if ((New.getP1().y
-                    > (float) Old.getP1().y / Old.getP1().x * New.getP1().x
-                    && New.getP1().y
-                    > (float) Old.getP2().y / Old.getP2().x
-                    * New.getP1().x)
-                    || (New.getP2().y
-                    > (float) Old.getP1().y / Old.getP1().x
-                    * New.getP2().x
-                    && New.getP2().y
-                    > (float) Old.getP2().y / Old.getP2().x
-                    * New.getP2().x)) {
-                ret = true;
-            }
-        } else if (Old.getP1().x > 0 && Old.getP2().x > 0) {
-            if ((New.getP1().y
-                    < (float) Old.getP1().y / Old.getP1().x * New.getP1().x
-                    && New.getP1().y
-                    > (float) Old.getP2().y / Old.getP2().x
-                    * New.getP1().x)
-                    || (New.getP2().y
-                    < (float) Old.getP1().y / Old.getP1().x
-                    * New.getP2().x
-                    && New.getP2().y
-                    > (float) Old.getP2().y / Old.getP2().x
-                    * New.getP2().x)) {
-                ret = true;
-            }
-        }
-    }
-
-    // Set them back to original position
-    Old.setP1(Old.getP1().x + rbtPos.x, Old.getP1().y + rbtPos.y);
-    Old.setP2(Old.getP2().x + rbtPos.x, Old.getP2().y + rbtPos.y);
-    New.setP1(Old.getP1().x + rbtPos.x, New.getP1().y + rbtPos.y);
-    New.setP2(Old.getP2().x + rbtPos.x, New.getP2().y + rbtPos.y);
-
-    return ret;
 }
 
 void Map::display() {
@@ -768,6 +572,17 @@ vector<double> findBoundariesOfCV(const vector<Surface> & cvSurfaces, double ext
     return result;
 }
 
+//construct polygon from a set of surfaces
+vector<SurfaceT> constructPolygon(const vector<Surface> & transformedSurfaces) {
+    vector<SurfaceT> polygon;
+    for (unsigned int i = 0; i < transformedSurfaces.size(); i++) {
+        polygon.push_back(SurfaceT(PointXY((double) transformedSurfaces[i].getP1().x, (double) transformedSurfaces[i].getP1().y),
+                PointXY((double) transformedSurfaces[i].getP2().x, (double) transformedSurfaces[i].getP2().y)));
+    }
+    
+    return polygon;
+}
+
 //it finds the closest ref pair where cvSurfaces and viewSurface in RefSurfaces are in same co-ordinate.
 ReferenceSurfaces findTheClosestReference(Surface & cvSurface, vector<ReferenceSurfaces> allRefSurfaces) {
     double closestDist, tempDist;
@@ -790,10 +605,11 @@ Surface trangulateSurface(const Surface & refInMap, const Surface & refInCV, con
     double angle, distance;
     float x1, y1, x2, y2;
 
-    angle = refInCV.getAngleWithSurface(Surface(0, 0, cvSurface.getP1().x, cvSurface.getP1().y));
-    angle *= CONVERT_TO_RADIAN;
+    
 
     if (refPoint == 1) {
+        angle = refInCV.getAngleFromP1ToPoint(cvSurface.getP1().x, cvSurface.getP1().y);
+        angle *= CONVERT_TO_RADIAN;
         distance = refInCV.distFromP1ToPoint(cvSurface.getP1().x, cvSurface.getP1().y);
 
         x1 = ((refInMap.getP2().x - refInMap.getP1().x) / refInMap.length()) * cos(angle)-((refInMap.getP2().y - refInMap.getP1().y) / refInMap.length()) * sin(angle);
@@ -801,20 +617,9 @@ Surface trangulateSurface(const Surface & refInMap, const Surface & refInCV, con
 
         x1 = x1 * distance + refInMap.getP1().x;
         y1 = y1 * distance + refInMap.getP1().y;
-    } else {
-        distance = refInCV.distFromP2ToPoint(cvSurface.getP1().x, cvSurface.getP1().y);
-
-        x1 = ((refInMap.getP1().x - refInMap.getP2().x) / refInMap.length()) * cos(angle)-((refInMap.getP1().y - refInMap.getP2().y) / refInMap.length()) * sin(angle);
-        y1 = ((refInMap.getP1().x - refInMap.getP2().x) / refInMap.length()) * sin(angle)+((refInMap.getP1().y - refInMap.getP2().y) / refInMap.length()) * cos(angle);
-
-        x1 = x1 * distance + refInMap.getP2().x;
-        y1 = y1 * distance + refInMap.getP2().y;
-    }
-
-    angle = refInCV.getAngleWithSurface(Surface(0, 0, cvSurface.getP2().x, cvSurface.getP2().y));
-    angle *= CONVERT_TO_RADIAN;
-
-    if (refPoint == 1) {
+        
+        angle = refInCV.getAngleFromP1ToPoint(cvSurface.getP2().x, cvSurface.getP2().y);
+        angle *= CONVERT_TO_RADIAN;        
         distance = refInCV.distFromP1ToPoint(cvSurface.getP2().x, cvSurface.getP2().y);
 
         x2 = ((refInMap.getP2().x - refInMap.getP1().x) / refInMap.length()) * cos(angle)-((refInMap.getP2().y - refInMap.getP1().y) / refInMap.length()) * sin(angle);
@@ -822,7 +627,20 @@ Surface trangulateSurface(const Surface & refInMap, const Surface & refInCV, con
 
         x2 = x2 * distance + refInMap.getP1().x;
         y2 = y2 * distance + refInMap.getP1().y;
+    
     } else {
+        angle = refInCV.getAngleFromP2ToPoint(cvSurface.getP1().x, cvSurface.getP1().y);
+        angle *= CONVERT_TO_RADIAN;
+        distance = refInCV.distFromP2ToPoint(cvSurface.getP1().x, cvSurface.getP1().y);
+
+        x1 = ((refInMap.getP1().x - refInMap.getP2().x) / refInMap.length()) * cos(angle)-((refInMap.getP1().y - refInMap.getP2().y) / refInMap.length()) * sin(angle);
+        y1 = ((refInMap.getP1().x - refInMap.getP2().x) / refInMap.length()) * sin(angle)+((refInMap.getP1().y - refInMap.getP2().y) / refInMap.length()) * cos(angle);
+
+        x1 = x1 * distance + refInMap.getP2().x;
+        y1 = y1 * distance + refInMap.getP2().y;
+        
+        angle = refInCV.getAngleFromP2ToPoint(cvSurface.getP2().x, cvSurface.getP2().y);
+        angle *= CONVERT_TO_RADIAN;
         distance = refInCV.distFromP2ToPoint(cvSurface.getP2().x, cvSurface.getP2().y);
 
         x2 = ((refInMap.getP1().x - refInMap.getP2().x) / refInMap.length()) * cos(angle)-((refInMap.getP1().y - refInMap.getP2().y) / refInMap.length()) * sin(angle);

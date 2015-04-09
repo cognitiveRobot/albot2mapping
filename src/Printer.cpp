@@ -281,17 +281,18 @@ void plotViewGNU(const char * filename, const View & view, bool printID) {
 }
 
 
+
+
 //argument printID needs to set true to print ids of each surface. by default it's false.
 
-void plotMapGNU(const char * filename, const Map & map, bool printID) {
+void plotViewsGNU(const char * filename, const vector<View> & views, bool printID) {
     FILE * fgnup = popen(GNUPLOT_PATH, "w");
     if (!fgnup) {
         cerr << "ERROR: " << GNUPLOT_PATH << " not found" << endl;
         return;
     }
 
-    vector<View> views = map.getMap();
-    cout << "Num of Views: " << map.getMap().size() << endl;
+    cout << "Num of Views: " << views.size() << endl;
     // Get the plotting range
     double minX = 0, minY = 0, maxX = 0, maxY = 0;
     for (unsigned int i = 0; i < views.size(); i++) {
@@ -403,6 +404,11 @@ void plotMapGNU(const char * filename, const Map & map, bool printID) {
 
     fflush(fgnup);
     fclose(fgnup);
+}
+
+void plotMapGNU(const char * filename, const Map & map, bool printID) {
+    vector<View> views = map.getMap();
+    plotViewsGNU(filename,views,printID);
 }
 
 void plotPointsAndSurfacesGNU(const char * filename, const vector<PointXY> & points, const vector<Surface> & robotSurfaces) {

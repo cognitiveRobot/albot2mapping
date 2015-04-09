@@ -287,6 +287,76 @@ double Surface::getAngleWithSurface(Surface s) const{
     return s.getAngleWithXaxis() - this->getAngleWithXaxis();
 }
 
+//it finds angle between this surface (direction p1 to p2) and p1 and given point. 
+double Surface::getAngleFromP1ToPoint(const double & a, const double & b) const {
+    double x21=P2.x-P1.x;
+	double y21=P2.y-P1.y;
+	double x31=a-P1.x;
+	double y31=b-P1.y;
+	
+	double la=length();
+	double lb=this->distFromP1ToPoint(a, b);
+
+	double r1=x21/la;
+	double angle1=acos(r1);
+
+	double r2=x31/lb;
+	double angle2=acos(r2);
+	
+	if(lb==0)
+	return 0;
+
+	if(y21 < 0)
+	angle1 = 2*M_PI - angle1;	
+	angle1=((180/M_PI)*angle1);
+	
+	if(y31<0)
+	angle2=2*M_PI-angle2;
+	angle2=((180/M_PI)*angle2);
+	
+	double diff=angle2-angle1;
+
+	if(diff>0)
+	return diff;
+	else 
+	return 360+diff;
+}
+
+//it finds angle between this surface (direction p2 to p1) and p2 and given point. 
+double Surface::getAngleFromP2ToPoint(const double & a, const double & b) const {
+    double x21=P1.x-P2.x;
+	double y21=P1.y-P2.y;
+	double x31=a-P2.x;
+	double y31=b-P2.y;
+	
+	double la=length();
+	double lb=this->distFromP2ToPoint(a, b);
+
+	double r1=x21/la;
+	double angle1=acos(r1);
+
+	double r2=x31/lb;
+	double angle2=acos(r2);
+	
+	if(lb==0)
+	return 0;
+
+	if(y21 < 0)
+	angle1 = 2*M_PI - angle1;	
+	angle1=((180/M_PI)*angle1);
+	
+	if(y31<0)
+	angle2=2*M_PI-angle2;
+	angle2=((180/M_PI)*angle2);
+	
+	double diff=angle2-angle1;
+
+	if(diff>0)
+	return diff;
+	else 
+	return 360+diff;
+}
+
 SurfaceT Surface::ToSurfaceT() {
     return SurfaceT(PointXY(P1.x,P1.y),PointXY(P2.x,P2.y));
 }

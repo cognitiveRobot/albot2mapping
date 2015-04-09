@@ -74,6 +74,9 @@ public:
     double getAngleWithXaxis() const;
     double getAngleWithSurface(Surface s) const;
     
+    double getAngleFromP1ToPoint(const double & a, const double & b) const;
+    double getAngleFromP2ToPoint(const double & a, const double & b) const;
+    
     double distFromP1ToPoint(const float & a, const float & b) const;
       double distFromP2ToPoint(const float & a, const float & b) const;
 
