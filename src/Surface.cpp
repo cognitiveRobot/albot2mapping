@@ -2,6 +2,7 @@
 #include <cmath>
 
 #include "Surface.h"
+#include "Constants.h"
 
 using namespace std;
 
@@ -43,7 +44,7 @@ cv::Point2f Surface::midPoint() {
     return mp;
 }
 
-int Surface::getId() {
+int Surface::getId() const{
     return this->id;
 }
 
@@ -119,7 +120,7 @@ void Surface::rotate(cv::Point3f Center) {
 //transforms and returns this surface P1 and P2 (which are in old coordinate) to a new coordinate
 //whose center and angle with respect to old coordinate frame are given.
 
-Surface Surface::transFrom(double newX, double newY, double angle) {
+Surface Surface::transFrom(double newX, double newY, double angle) const {
     
     float x1, y1, x2, y2; //float gives 7digit precision. which is enough for us.
     double a = P1.x - newX; //x-x0
@@ -419,4 +420,25 @@ vector<Surface> convertSurfaceT2Surface(const vector<SurfaceT> & surfs) {
         surfaces.push_back(Surface(surfs[i].getX1(),surfs[i].getY1(),surfs[i].getX2(),surfs[i].getY2()));
     }
     return surfaces;
+}
+
+//it transform pv to cv
+vector<Surface> transform(const vector<Surface> & pvSurfaces, const double & angle, const double & distance) {
+    cout << "Angle " << angle << " dist " << distance << endl;
+
+    double ang = angle * CONVERT_TO_RADIAN; // degree to randian.
+    //find cv center in the pv coordinate frame.
+    //need to convert robot position from mm to cm.
+    double newX = (distance / 1.0) * sin(-ang); //x= d*cos(th) = d*cos(90-angle) = d*sin(angle) //as aris give - value for right turn
+    double newY = (distance / 1.0) * cos(-ang); //y=d*sin(th)=d*sin(90-angle)=d*cos(angle)
+
+    cout << "x " << newX << " y " << newY << endl;
+
+    //transform pvLandmarks to cv coordinate frame.
+    std::vector<Surface> pvSurfacesOnCV;
+    for (unsigned int i = 0; i < pvSurfaces.size(); i++) {
+        pvSurfacesOnCV.push_back(pvSurfaces[i].transFrom(newX, newY, ang));
+    }
+    
+    return pvSurfacesOnCV;
 }

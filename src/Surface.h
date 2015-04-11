@@ -19,6 +19,7 @@
 #include "Color.h"
 #include "PointAndSurface.h"
 
+
 /* Class of surfaces that are to be displayed on the map */
 
 class Surface {
@@ -38,7 +39,7 @@ public:
     Surface(float X1, float Y1, float X2, float Y2);
     ~Surface();
 
-    int getId();
+    int getId() const;
     
     
     void display() const;
@@ -58,7 +59,7 @@ public:
     //transforms and returns this surface P1 and P2 (which are in old coordinate) to a new coordinate
     //whose center and angle with respect to old coordinate frame are given.
     //from pv on to cv.
-    Surface transFrom(double newX, double newY, double angle);
+    Surface transFrom(double newX, double newY, double angle) const;
     
     Surface transformB(double newX, double newY, double angle);
 
@@ -90,6 +91,9 @@ public:
 //
 bool SortBasedOnLength(Surface surf1, Surface surf2);
 void displaySurfaces(const std::vector<Surface> & surfaces);
+
+//it transform pv to cv
+vector<Surface> transform(const vector<Surface> & pvSurfaces, const double & angle, const double & distance);
 
 //convert SurfaceT to Surface
 vector<Surface> convertSurfaceT2Surface(const vector<SurfaceT> & surfs);

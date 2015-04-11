@@ -337,7 +337,7 @@ void Map::addCVUsingMultipleRef(const View & curView) {
     //find reference surfaces
     vector<ReferenceSurfaces> sameSurfaces;
     SameSurfaceFinderOdo sSurfaceInfo;
-    sSurfaceInfo.recognizeSameSurface(sameSurfaces, this->getLandmarkSurfaces(), curView.getSurfaces(), this->getPathSegments().back());
+    sSurfaceInfo.recognizeAllSameSurface(sameSurfaces, this->getMap(), this->getLandmarkSurfaces(), curView.getSurfaces(), this->getPathSegments().back());
     if (sameSurfaces.size() > 0) {
         //this->setRefForNextLS(sameSurfaces[0]);
         //tempSurf = sameSurfaces[1];
@@ -346,6 +346,9 @@ void Map::addCVUsingMultipleRef(const View & curView) {
             sameSurfaces[i].display();
         }
         //waitHere();
+    } else {
+        cout<<"Recognition failed. Need to use odometery. "<<endl;
+        waitHere();
     }
     ReferenceSurfaces refSurfacePair;
     Surface cvSurfaceOnMap;
@@ -359,15 +362,23 @@ void Map::addCVUsingMultipleRef(const View & curView) {
                 curView.getSurfaces()[i],refSurfacePair.getRefPoint());
         allCVSurfacesOnMap.push_back(cvSurfaceOnMap);
     }
+    
+    //compute robot surfaces.
 
     View cViewOnMap;
+    
     cViewOnMap.setSurfaces(allCVSurfacesOnMap);
     this->map.push_back(cViewOnMap);
-    plotViewsGNU("../outputs/Maps/1afteraddingCV.png",this->getMap());
+    
+    char mapName[50];
+    sprintf(mapName, "%s%d%s", "../outputs/Maps/Map-", curView.getId(), "a-before.png");                    
+    plotViewsGNU(mapName,this->getMap());
     //construct polygon from cvOnMap.
     vector<SurfaceT> polygon = constructPolygon(allCVSurfacesOnMap);
     //cleanMap.
     cleanMap(polygon);
+    sprintf(mapName, "%s%d%s", "../outputs/Maps/Map-", curView.getId(), "b-after.png");
+    plotViewsGNU(mapName,this->getMap());
     
 }
 
@@ -440,26 +451,6 @@ void Map::display() {
                 rbtPos[0].y - surfaces[i].getP2().y);
         cv::line(drawing, P1, P2, cv::Scalar(0, 0, 255), 3, 8, 0); // Draw the actual line
     }
-
-    //new codes for consistency  
-    //unsigned int numline1 = 0;
-    //for (unsigned int i = 0; i<surfaces.size(); i++)
-    //  {
-    // curObst1 = surfaces[i];                  // Transform the coordinates to have the right frame of reference
-
-    //    if(curObst1.getPoints().size() > 4 ) // If there is enough points in 1 surface...
-    //   {
-    //            curObst1.setSurface();                                                     // Construct a line with the points
-    // Adapt the point to the openCV Mat drawing
-    //            curObst1.setP1(rbtPos[0].x + curObst1.getP1().x,rbtPos[0].y - curObst1.getP1().y );
-    //            curObst1.setP2(rbtPos[0].x + curObst1.getP2().x,rbtPos[0].y - curObst1.getP2().y );
-    //
-    //            cv::line(drawing, curObst1.getP1(), curObst1.getP2(), cv::Scalar(0,0,255), 3, 8, 0);    // Draw that line
-    //   numline1++;
-    // }
-    //}
-    //cout << numline1<< " Number of lines in this map" << endl;
-    // new code completes
 
     // Display the map in a file
     char filename[50];

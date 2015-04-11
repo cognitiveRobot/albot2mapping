@@ -82,12 +82,13 @@ LIBSRCS = \
 
 #main programs	
 PROGSRCS= \
+	offlineMappingUpdateAllSteps.cpp \
 	GuidedXnMapping.cpp \
-	offlineGuidedXnMapping.cpp \
-	offlineMappingFromLS.cpp \
-	testStereoMatching.cpp \
-	renameFiles.cpp \
-	robotControl.cpp
+	offlineGuidedXnMapping.cpp 
+#	offlineMappingFromLS.cpp \
+#	testStereoMatching.cpp \
+#	renameFiles.cpp \
+#	robotControl.cpp
 #	main.cpp \
 #	AutoXplorationNMapping.cpp \
 #	gotoActionExample.cpp

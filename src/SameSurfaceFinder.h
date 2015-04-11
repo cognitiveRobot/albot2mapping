@@ -14,6 +14,7 @@ struct SameSurfaceInfo {
     int mapSurfaceID; //surface id in the map vector.
     int cvSurfaceID;
     double matchingWeight; //it represents the similarity measure.
+    int refPoint; //it contains the referenc point.
 };
 
 class SameSurfaceFinder {
