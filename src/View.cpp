@@ -657,3 +657,10 @@ void readALocalSpace(View & cView, const char* fileName) {
     cout << "View is read. Num of surfaces: " << surfaces.size() << endl;
     //return surfaces;
 }
+
+//it makes a view. add some surfaces and return that view.
+View makeViewFromSurfaces(const vector<Surface> & someSurfaces) {
+    View aView;
+    aView.addSurfaces(someSurfaces);
+    return aView;
+}

@@ -321,7 +321,7 @@ void Map::cleanMapUsingOdo(const View & curView, const AngleAndDistance & homeIn
     //    this->getTempSurfaces().clear();
 
     //making polygon from cv.
-    vector<SurfaceT> polygon = constructPolygon(transformedSurfaces);
+    vector<SurfaceT> polygon = constructRectangle(transformedSurfaces);
 
     //check the point in polygon    cleaning old.
     cleanMap(polygon);
@@ -335,22 +335,29 @@ void Map::cleanMapUsingOdo(const View & curView, const AngleAndDistance & homeIn
 void Map::addCVUsingMultipleRef(const View & curView) {
     cout<<endl<<"Adding cv using multiple reference surfaces!!!"<<endl;
     //find reference surfaces
+    ReferenceSurfaces refSurfacePair;
     vector<ReferenceSurfaces> sameSurfaces;
     SameSurfaceFinderOdo sSurfaceInfo;
     sSurfaceInfo.recognizeAllSameSurface(sameSurfaces, this->getMap(), this->getLandmarkSurfaces(), curView.getSurfaces(), this->getPathSegments().back());
-    if (sameSurfaces.size() > 0) {
-        //this->setRefForNextLS(sameSurfaces[0]);
-        //tempSurf = sameSurfaces[1];
+    if (sameSurfaces.size() > 100) {
         cout<<"The following reference surfaces are found .."<<endl;
         for(unsigned int i=0;i<sameSurfaces.size(); i++) {
             sameSurfaces[i].display();
         }
-        //waitHere();
     } else {
-        cout<<"Recognition failed. Need to use odometery. "<<endl;
-        waitHere();
+        cout<<endl<<endl<<"Recognition failed. Need to use odometery. "<<endl;
+        refSurfacePair.setMapSurface(makeSurfaceWith(this->getMap().back().getRobotSurfaces()[0],
+                this->getPathSegments().back().angle,this->getPathSegments().back().distance,400.0));
+
+        refSurfacePair.setViewSurface(curView.getRobotSurfaces()[0]);
+
+        refSurfacePair.setRefPoint(1);
+         sameSurfaces.clear();   
+         sameSurfaces.push_back(refSurfacePair);
+         
+         //waitHere();
     }
-    ReferenceSurfaces refSurfacePair;
+    
     Surface cvSurfaceOnMap;
     vector<Surface> allCVSurfacesOnMap;
     for(unsigned int i=0; i<curView.getSurfaces().size(); i++) {
@@ -364,22 +371,36 @@ void Map::addCVUsingMultipleRef(const View & curView) {
     }
     
     //compute robot surfaces.
-
-    View cViewOnMap;
+    Surface cRobotSurfaceOnMap;
+    vector<Surface> cRobotSurfacesOnMap;
+    refSurfacePair = findTheClosestReference(curView.getRobotSurfaces()[0],sameSurfaces);
+    for(unsigned int i = 0; i < curView.getRobotSurfaces().size(); i++) {
+        cRobotSurfaceOnMap = trangulateSurface(refSurfacePair.getMapSurface(),refSurfacePair.getViewSurface(),
+                curView.getRobotSurfaces()[i],refSurfacePair.getRefPoint());
+        cRobotSurfacesOnMap.push_back(cRobotSurfaceOnMap);
+    }
     
+    View cViewOnMap;    
     cViewOnMap.setSurfaces(allCVSurfacesOnMap);
+    cViewOnMap.setRobotSurfaces(cRobotSurfacesOnMap);
     this->map.push_back(cViewOnMap);
     
     char mapName[50];
     sprintf(mapName, "%s%d%s", "../outputs/Maps/Map-", curView.getId(), "a-before.png");                    
     plotViewsGNU(mapName,this->getMap());
     //construct polygon from cvOnMap.
-    vector<SurfaceT> polygon = constructPolygon(allCVSurfacesOnMap);
+    vector<SurfaceT> polygon = constructPolygon(allCVSurfacesOnMap,cRobotSurfacesOnMap);
     //cleanMap.
     cleanMap(polygon);
     sprintf(mapName, "%s%d%s", "../outputs/Maps/Map-", curView.getId(), "b-after.png");
-    plotViewsGNU(mapName,this->getMap());
+    //demo1
+    vector<View> views = this->getMap();
+    views.push_back(makeViewFromSurfaces(convertSurfaceT2Surface(polygon)));
+    plotViewsGNU(mapName,views);
+    //end demo1
+    //plotViewsGNU(mapName,this->getMap());
     
+    //waitHere();
 }
 
 void Map::saveInTxtFile(const char * filename, const vector<Surface> & rpSurfaces) {
@@ -564,12 +585,37 @@ vector<double> findBoundariesOfCV(const vector<Surface> & cvSurfaces, double ext
 }
 
 //construct polygon from a set of surfaces
-vector<SurfaceT> constructPolygon(const vector<Surface> & transformedSurfaces) {
+vector<SurfaceT> constructRectangle(const vector<Surface> & transformedSurfaces) {
     vector<SurfaceT> polygon;
-    for (unsigned int i = 0; i < transformedSurfaces.size(); i++) {
-        polygon.push_back(SurfaceT(PointXY((double) transformedSurfaces[i].getP1().x, (double) transformedSurfaces[i].getP1().y),
-                PointXY((double) transformedSurfaces[i].getP2().x, (double) transformedSurfaces[i].getP2().y)));
+    for (unsigned int i = 0; i < transformedSurfaces.size()-1; i++) {
+        //surface i.
+        polygon.push_back(transformedSurfaces[i].ToSurfaceT());
     }
+    return polygon;
+}
+
+//construct polygon from a set of surfaces
+vector<SurfaceT> constructPolygon(const vector<Surface> & transformedSurfaces, const vector<Surface> & robotSurfaces) {
+    vector<SurfaceT> polygon;
+    
+    //from robotPosition to first surface.
+    polygon.push_back(SurfaceT(PointXY((double) robotSurfaces[0].getP1().x, (double) robotSurfaces[0].getP1().y),
+                PointXY((double) transformedSurfaces[0].getP1().x, (double) transformedSurfaces[0].getP1().y)));
+    for (unsigned int i = 0; i < transformedSurfaces.size()-1; i++) {
+        //surface i.
+        polygon.push_back(transformedSurfaces[i].ToSurfaceT());
+        //gap or surface i p2 to surface i+1 p1
+        polygon.push_back(SurfaceT(PointXY((double) transformedSurfaces[i].getP2().x, (double) transformedSurfaces[i].getP2().y),
+                PointXY((double) transformedSurfaces[i+1].getP1().x, (double) transformedSurfaces[i+1].getP1().y)));
+    }
+    
+    //last surface.
+    polygon.push_back(transformedSurfaces.back().ToSurfaceT());
+    //last gap or last surface p2 to robotp1
+    //gap or surface i p2 to surface i+1 p1
+    polygon.push_back(SurfaceT(PointXY((double) transformedSurfaces.back().getP2().x, (double) transformedSurfaces.back().getP2().y),
+                PointXY((double) robotSurfaces[0].getP1().x, (double) robotSurfaces[0].getP1().y)));
+    
     
     return polygon;
 }
@@ -590,6 +636,30 @@ ReferenceSurfaces findTheClosestReference(Surface & cvSurface, vector<ReferenceS
     }
     
     return refPair;
+}
+
+Surface makeSurfaceWith(const Surface & refInMap, double angle, double distance, double length) {
+    double x1, y1, x2, y2;
+    double ang = 0;
+        
+
+        x1 = ((refInMap.getP2().x - refInMap.getP1().x) / refInMap.length()) * cos(ang)-((refInMap.getP2().y - refInMap.getP1().y) / refInMap.length()) * sin(ang);
+        y1 = ((refInMap.getP2().x - refInMap.getP1().x) / refInMap.length()) * sin(ang)+((refInMap.getP2().y - refInMap.getP1().y) / refInMap.length()) * cos(ang);
+
+        x1 = x1 * distance + refInMap.getP1().x;
+        y1 = y1 * distance + refInMap.getP1().y;
+        
+        distance += length;
+        x2 = ((refInMap.getP2().x - refInMap.getP1().x) / refInMap.length()) * cos(ang)-((refInMap.getP2().y - refInMap.getP1().y) / refInMap.length()) * sin(ang);
+        y2 = ((refInMap.getP2().x - refInMap.getP1().x) / refInMap.length()) * sin(ang)+((refInMap.getP2().y - refInMap.getP1().y) / refInMap.length()) * cos(ang);
+
+        x2 = x2 * distance + refInMap.getP1().x;
+        y2 = y2 * distance + refInMap.getP1().y;
+        
+        Surface result(x1, y1, x2, y2);
+        result.rotateAroundP1(angle);
+        
+        return result;
 }
 
 Surface trangulateSurface(const Surface & refInMap, const Surface & refInCV, const Surface & cvSurface, const int & refPoint) {

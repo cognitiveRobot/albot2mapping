@@ -113,10 +113,12 @@ public:
 vector<double> findBoundariesOfCV(const vector<Surface> & cvSurfaces, double extension);
 
 //construct polygon from a set of surfaces
-vector<SurfaceT> constructPolygon(const vector<Surface> & transformedSurfaces);
+vector<SurfaceT> constructRectangle(const vector<Surface> & transformedSurfaces);
+vector<SurfaceT> constructPolygon(const vector<Surface> & transformedSurfaces, const vector<Surface> & robotSurfaces);
 
 //mapping 
 ReferenceSurfaces findTheClosestReference(Surface & cvSurface, vector<ReferenceSurfaces> allRefSurfaces);
+Surface makeSurfaceWith(const Surface & refInMap, double angle, double distance, double length);
 Surface trangulateSurface(const Surface & refInMap, const Surface & refInCV, const Surface & cvSurface, const int & refPoint);
 vector<Surface> trangulateSurfaces(const Surface & refInMap, const Surface & refInCV, const vector<Surface>& cvSurfaces);
 

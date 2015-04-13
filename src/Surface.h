@@ -52,6 +52,7 @@ public:
     // Transforming coordinates of the points into the new frame or reference centered on newCenter and with the axes being Xax*x and Yax*y
     void coordTransf(cv::Point2f newCenter, float hX, float hY); 
     void rotate(cv::Point3f Center); // Rotate P1 & P2 according to the angle Center.z
+    void rotateAroundP1(double angle); //rotates P2 according to the angle.
     std::vector<cv::Point2f> getPoints() const;
     /** internally re-creates this surface, resetting the points and assigning a new id */
     void reset();
@@ -85,7 +86,7 @@ public:
     std::vector<Color> getColors();
     Color getAverageColor();
     
-    SurfaceT ToSurfaceT();
+    SurfaceT ToSurfaceT() const;
 };
 
 //

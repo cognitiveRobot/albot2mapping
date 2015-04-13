@@ -6,6 +6,7 @@
 #include <iostream>
 #include <vector>
 
+
 /* ------------------------- PCL includes ------------------------- */
 #include <pcl/io/pcd_io.h>
 #include <pcl/point_types.h>
@@ -455,5 +456,6 @@ void ImageProcessing::getDisparity() {
 void waitHere() {
     char temp;
     cout<<"Press any key to continue..."<<endl;
+    //cout<<'\a'; //for beep. it doesn't work.
     cin>>temp;
 }

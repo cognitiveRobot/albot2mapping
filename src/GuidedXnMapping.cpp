@@ -147,7 +147,7 @@ int main(int argc, char** argv) {
         plotViewGNU("../outputs/Maps/currentView.png", curView);
 
         cout << endl << endl << "Initialize local space? (y/n) "; // Ask user if continue
-        cin >> tkStep;
+        //cin >> tkStep;
 
         if (tkStep == 'y' or tkStep == 'Y')
             initializeLocalSpace = true;

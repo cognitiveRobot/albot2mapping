@@ -130,5 +130,7 @@ void readALocalSpace(View & cView, const char* fileName);
 void readAView(View & cView, const char* fileName);
 void readOdometry(Robot & albot, const char* fileName);
 
+View makeViewFromSurfaces(const vector<Surface> & someSurfaces);
+
 #endif	/* VIEW_H */
 

@@ -117,6 +117,39 @@ void Surface::rotate(cv::Point3f Center) {
 
 }
 
+//rotates P2 according to the angle.
+void Surface::rotateAroundP1(double angle) {
+    float r;
+    float teta;
+
+    P2.x = P2.x - P1.x;
+    P2.y = P2.y - P1.y;
+    P2.y = -P2.y;
+
+    r = sqrt(P2.x * P2.x + P2.y * P2.y); // Getting distance from center
+
+    if (P2.x < 0) {
+        if (P2.y < 0) {
+            teta = atan(P2.y / P2.x) - M_PI;
+        } else {
+            teta = atan(P2.y / P2.x) + M_PI;
+        }
+    } else
+        teta = atan(P2.y / P2.x);
+
+    // Set angle for rotated point
+    angle *= M_PI;
+    angle /= (float) 180;
+    teta += -angle;
+
+    // Set new position
+    P2.x = r * cos(teta);
+    P2.y = r * sin(teta);
+
+    P2.x = P2.x + P1.x;
+    P2.y = P1.y - P2.y;
+}
+
 //transforms and returns this surface P1 and P2 (which are in old coordinate) to a new coordinate
 //whose center and angle with respect to old coordinate frame are given.
 
@@ -358,7 +391,7 @@ double Surface::getAngleFromP2ToPoint(const double & a, const double & b) const 
 	return 360+diff;
 }
 
-SurfaceT Surface::ToSurfaceT() {
+SurfaceT Surface::ToSurfaceT() const{
     return SurfaceT(PointXY(P1.x,P1.y),PointXY(P2.x,P2.y));
 }
 

@@ -16,6 +16,7 @@
 #include <math.h>
 #include <string>
 
+
 /* ------------------------- Robot includes ------------------------- */
 #include "Aria.h"
 
@@ -80,7 +81,7 @@ int main(int argc, char** argv) {
 
     /* -------- Loop ------- */
     char tkStep = 'y';
-    while (tkStep != 'n' && tkStep != 'N' && curView.getId() < 30) {
+    while (curView.getId() < 83) {
         /* Increment counters */
 
         //construct view from points.
@@ -90,7 +91,8 @@ int main(int argc, char** argv) {
         cout << "View is formed :)" << endl;
         cout << endl << "==================================================" << endl << endl;
         cout << "View no. " << curView.getId() << ":" << endl;
-        plotViewGNU("../outputs/Maps/currentView.png", curView);
+        sprintf(viewName, "%s%d", "../outputs/Maps/view-", curView.getId());
+        plotViewGNU(viewName, curView);
 
         if (curView.getId() == 1) {
             curMap.initializeMap(curView);
