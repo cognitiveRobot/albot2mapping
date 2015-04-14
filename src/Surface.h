@@ -45,7 +45,7 @@ public:
     void display() const;
     
     double length() const;
-    cv::Point2f midPoint();
+    cv::Point2f midPoint() const;
 
     void addPoint(cv::Point2f newPoint);
     

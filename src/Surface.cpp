@@ -34,7 +34,7 @@ double Surface::length() const{
     return sqrt((P2.x-P1.x)*(P2.x-P1.x)+(P2.y-P1.y)*(P2.y-P1.y));
 }
 
-cv::Point2f Surface::midPoint() {
+cv::Point2f Surface::midPoint() const{
     cv::Point2f mp;
   //  cout<<"p2.x "<<P2.x<<" p1.y "<<P1.x<<endl;
     mp.x = (P2.x + P1.x) / 2.0;

@@ -80,6 +80,10 @@ Surface Map::getRefForNextLS() {
     return refForNextLS;
 }
 
+vector<int> Map::getLostStepsNumber() const{
+    return lostSteps;
+}
+
 Map Map::getItself() const {
     return *this;
 }
@@ -251,7 +255,7 @@ void Map::addCVUsingOdo(const View & curView, const AngleAndDistance & homeInfo)
     this->setLandmarkSurfaces(curView.getSurfaces()); //
 }
 
-void Map::cleanMap(const vector<SurfaceT> & polygon) {
+void Map::cleanMap(const vector<Surface>& cvSurfacesOnMap, const vector<Surface>& cRobotSurfaces) {
     //check the point in polygon    cleaning old.
     vector<Surface> surfacesInsideCV, surfacesOutsideCV;
     vector<Surface> tempSurf;
@@ -261,12 +265,32 @@ void Map::cleanMap(const vector<SurfaceT> & polygon) {
         tempView = this->map[i];
         tempSurf = tempView.getSurfaces();
         for (unsigned int j = 0; j < tempSurf.size(); j++) {
-            if (pointInPolygon(PointXY((double) tempSurf[j].getP1().x, (double) tempSurf[j].getP1().y), polygon) == true ||
-                    pointInPolygon(PointXY((double) tempSurf[j].getP2().x, (double) tempSurf[j].getP2().y), polygon) == true)
+//            if (pointInPolygon(PointXY((double) tempSurf[j].getP1().x, (double) tempSurf[j].getP1().y), polygon) == true ||
+//                    pointInPolygon(PointXY((double) tempSurf[j].getP2().x, (double) tempSurf[j].getP2().y), polygon) == true)
+//                surfacesInsideCV.push_back(tempSurf[j]);
+//            else
+//                surfacesOutsideCV.push_back(tempSurf[j]);
+            if(PointInPolygon(tempSurf[j].getP1().x,tempSurf[j].getP1().y,cvSurfacesOnMap,cRobotSurfaces) == true ||
+                    PointInPolygon(tempSurf[j].getP2().x,tempSurf[j].getP2().y,cvSurfacesOnMap,cRobotSurfaces) == true)
                 surfacesInsideCV.push_back(tempSurf[j]);
             else
                 surfacesOutsideCV.push_back(tempSurf[j]);
+            
+            //debugging PointInPolygon
+//            cout<<j+1<<" ";
+//            cout<<PointInPolygon(tempSurf[j].getP1().x,tempSurf[j].getP1().y,cvSurfacesOnMap,cRobotSurfaces)<<" ";
+//            cout<<PointInPolygon(tempSurf[j].getP2().x,tempSurf[j].getP2().y,cvSurfacesOnMap,cRobotSurfaces)<<" "<<endl;
+            //end debugging PointInPolygon
+            
         }
+        //debugging PointInPolygon
+//        cout<<PointInPolygon(cRobotSurfaces[0].getP1().x,cRobotSurfaces[0].getP1().y,cvSurfacesOnMap,cRobotSurfaces)<<" ";
+//        cout<<PointInPolygon(cRobotSurfaces[0].getP2().x,cRobotSurfaces[0].getP2().y,cvSurfacesOnMap,cRobotSurfaces)<<" "<<endl;
+//        //mid point of 1st n last surface.
+//        cout<<PointInPolygon(cvSurfacesOnMap[0].midPoint().x,cvSurfacesOnMap[0].midPoint().y,cvSurfacesOnMap,cRobotSurfaces)<<" ";
+//        cout<<PointInPolygon(cvSurfacesOnMap.back().midPoint().x,cvSurfacesOnMap.back().midPoint().y,cvSurfacesOnMap,cRobotSurfaces)<<" "<<endl;
+//        waitHere();
+        //end debugging PointInPolygon
         tempView.setSurfaces(surfacesOutsideCV);
         //tempView.setLandmarks(surfacesInsideCV);
         this->map[i] = tempView;
@@ -324,7 +348,7 @@ void Map::cleanMapUsingOdo(const View & curView, const AngleAndDistance & homeIn
     vector<SurfaceT> polygon = constructRectangle(transformedSurfaces);
 
     //check the point in polygon    cleaning old.
-    cleanMap(polygon);
+    //cleanMap(polygon);
 
 
     
@@ -339,7 +363,7 @@ void Map::addCVUsingMultipleRef(const View & curView) {
     vector<ReferenceSurfaces> sameSurfaces;
     SameSurfaceFinderOdo sSurfaceInfo;
     sSurfaceInfo.recognizeAllSameSurface(sameSurfaces, this->getMap(), this->getLandmarkSurfaces(), curView.getSurfaces(), this->getPathSegments().back());
-    if (sameSurfaces.size() > 100) {
+    if (sameSurfaces.size() > 0) {
         cout<<"The following reference surfaces are found .."<<endl;
         for(unsigned int i=0;i<sameSurfaces.size(); i++) {
             sameSurfaces[i].display();
@@ -354,6 +378,9 @@ void Map::addCVUsingMultipleRef(const View & curView) {
         refSurfacePair.setRefPoint(1);
          sameSurfaces.clear();   
          sameSurfaces.push_back(refSurfacePair);
+         
+        //save this view number.         
+        this->lostSteps.push_back(curView.getId());
          
          //waitHere();
     }
@@ -388,17 +415,15 @@ void Map::addCVUsingMultipleRef(const View & curView) {
     char mapName[50];
     sprintf(mapName, "%s%d%s", "../outputs/Maps/Map-", curView.getId(), "a-before.png");                    
     plotViewsGNU(mapName,this->getMap());
-    //construct polygon from cvOnMap.
-    vector<SurfaceT> polygon = constructPolygon(allCVSurfacesOnMap,cRobotSurfacesOnMap);
     //cleanMap.
-    cleanMap(polygon);
+    cleanMap(allCVSurfacesOnMap,cRobotSurfacesOnMap);
     sprintf(mapName, "%s%d%s", "../outputs/Maps/Map-", curView.getId(), "b-after.png");
     //demo1
-    vector<View> views = this->getMap();
-    views.push_back(makeViewFromSurfaces(convertSurfaceT2Surface(polygon)));
-    plotViewsGNU(mapName,views);
+//    vector<View> views = this->getMap();
+//    views.push_back(makeViewFromSurfaces(convertSurfaceT2Surface(polygon)));
+//    plotViewsGNU(mapName,views);
     //end demo1
-    //plotViewsGNU(mapName,this->getMap());
+    plotViewsGNU(mapName,this->getMap());
     
     //waitHere();
 }
@@ -724,4 +749,30 @@ vector<Surface> trangulateSurfaces(const Surface & refInMap, const Surface & ref
     }
 
     return cvSurfacesOnMap;
+}
+
+
+//it finds anypoint (pointX, pointY) is inside or outside of the polygon (surfaces, and robotPosition).
+//if any point lies on the vertex of the polygon or on the edge of the polygon then it returns false.
+// http://stackoverflow.com/questions/11716268/point-in-polygon-algorithm
+// http://www.ecse.rpi.edu/~wrf/Research/Short_Notes/pnpoly.html
+bool PointInPolygon(const double & pointX, const double & pointY, const vector<Surface>& surfaces, 
+        const vector<Surface>& robotSurfaces) {
+  vector<PointXY> points; //= polygon.getPoints();
+  points.push_back(PointXY(robotSurfaces[0].getP1().x, robotSurfaces[0].getP1().y));
+  for(unsigned int i=0; i<surfaces.size(); i++) {
+      points.push_back(PointXY(surfaces[i].getP1().x, surfaces[i].getP1().y));
+      points.push_back(PointXY(surfaces[i].getP2().x, surfaces[i].getP2().y));
+  }
+  int i, j, nvert = points.size();
+  bool c = false;
+
+  for(i = 0, j = nvert - 1; i < nvert; j = i++) {
+    if( ( (points[i].getY() >= pointY ) != (points[j].getY() >= pointY) ) &&
+        (pointX <= (points[j].getX() - points[i].getX()) * (pointY - points[i].getY()) / (points[j].getY() - points[i].getY()) + points[i].getX())
+      )
+      c = !c;
+  }
+
+  return c;
 }

@@ -81,7 +81,7 @@ int main(int argc, char** argv) {
 
     /* -------- Loop ------- */
     char tkStep = 'y';
-    while (curView.getId() < 83) {
+    while (curView.getId() < 70) {
         /* Increment counters */
 
         //construct view from points.
@@ -106,7 +106,10 @@ int main(int argc, char** argv) {
         curMap.setLandmarkSurfaces(curView.getSurfaces());
 
     }
-
+    cout << "Lost cases: "<<curMap.getLostStepsNumber().size()<<endl;
+    for(unsigned int i=0; i<curMap.getLostStepsNumber().size(); i++) {
+        cout<<curMap.getLostStepsNumber()[i]<<" ";
+    }
     cout << endl;
 
     return 0;

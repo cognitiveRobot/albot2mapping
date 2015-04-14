@@ -23,6 +23,8 @@ private:
     int sizeY;
     int M;
     int ID;
+    
+    vector<int> lostSteps; //it contains view number of lost situations.
 
     View currentView;
     View previousView;
@@ -67,6 +69,7 @@ public:
     void setRefForNextLS(const Surface & surf);
     Surface getRefForNextLS();
     
+    vector<int> getLostStepsNumber() const;
    
     void addPathSegment(const AngleAndDistance & lastPathSegment);
     vector<AngleAndDistance> getPathSegments() const;
@@ -74,7 +77,7 @@ public:
     vector<Surface> transformToGlobalMap(const vector<Surface>& rpSurfaces, 
     const vector<AngleAndDistance>& allPathSegments);
     
-    void cleanMap(const vector<SurfaceT> & polygon);
+    void cleanMap(const vector<Surface>& cvSurfacesOnMap, const vector<Surface>& cRobotSurfaces);
     
     //for aloCentric
     void addCVUsingOdo(const View & curView, const AngleAndDistance & homeInfo);
@@ -121,6 +124,11 @@ ReferenceSurfaces findTheClosestReference(Surface & cvSurface, vector<ReferenceS
 Surface makeSurfaceWith(const Surface & refInMap, double angle, double distance, double length);
 Surface trangulateSurface(const Surface & refInMap, const Surface & refInCV, const Surface & cvSurface, const int & refPoint);
 vector<Surface> trangulateSurfaces(const Surface & refInMap, const Surface & refInCV, const vector<Surface>& cvSurfaces);
+
+
+//point in polygon.
+bool PointInPolygon(const double & pointX, const double & pointY, const vector<Surface>& surfaces, 
+        const vector<Surface>& robotSurfaces);
 
 
 #endif	/* MAPPER_H */
