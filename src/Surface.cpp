@@ -174,7 +174,7 @@ Surface Surface::transFrom(double newX, double newY, double angle) const {
 }
 
 
-Surface Surface::transformB(double newX, double newY, double angle) {
+Surface Surface::transformB(double newX, double newY, double angle) const {
     
     float x1, y1, x2, y2; //float gives 7digit precision. which is enough for us.
 
@@ -455,7 +455,7 @@ vector<Surface> convertSurfaceT2Surface(const vector<SurfaceT> & surfs) {
     return surfaces;
 }
 
-//it transform pv to cv
+//it transforms pv to cv
 vector<Surface> transform(const vector<Surface> & pvSurfaces, const double & angle, const double & distance) {
     cout << "Angle " << angle << " dist " << distance << endl;
 
@@ -474,4 +474,22 @@ vector<Surface> transform(const vector<Surface> & pvSurfaces, const double & ang
     }
     
     return pvSurfacesOnCV;
+}
+
+//it transforms cv to pv
+vector<Surface> transformB(const vector<Surface> & cvSurfaces, const double & angle, const double & distance) {
+        double ang = angle * CONVERT_TO_RADIAN; // degree to randian.
+        //find cv center in the pv coordinate frame.
+        //need to convert robot position from mm to cm.
+        double newX = (distance / 1.0) * sin(-ang); //x= d*cos(th) = d*cos(90-angle) = d*sin(angle) //as aris give - value for right turn
+        double newY = (distance / 1.0) * cos(-ang); //y=d*sin(th)=d*sin(90-angle)=d*cos(angle)
+        
+        //transform cvLandmarks to pv coordinate frame.
+    std::vector<Surface> cvSurfacesOnPV;
+    for (unsigned int i = 0; i < cvSurfaces.size(); i++) {
+        cvSurfacesOnPV.push_back(cvSurfaces[i].transformB(newX, newY, ang));
+    }
+    
+    return cvSurfacesOnPV;
+        
 }

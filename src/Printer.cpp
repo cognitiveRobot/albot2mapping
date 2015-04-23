@@ -149,54 +149,23 @@ void Printer::printMap(const char* filename, const Map & curMap) {
 
 //some functions
 
-void plotSurfacesGNU(const vector<Surface> & someSurfaces) {
+void findPlottingRange(double & minX, double & maxX, double & minY, double & maxY, const vector<Surface> & someSurfaces) {
+    for (unsigned int j = 0; j < someSurfaces.size(); j++) {
+        minX = min(minX, (double) someSurfaces[j].getP1().x);
+        minX = min(minX, (double) someSurfaces[j].getP2().x);
 
+        maxX = max(maxX, (double) someSurfaces[j].getP1().x);
+        maxX = max(maxX, (double) someSurfaces[j].getP2().x);
+
+        minY = min(minY, (double) someSurfaces[j].getP1().y);
+        minY = min(minY, (double) someSurfaces[j].getP2().y);
+
+        maxY = max(maxY, (double) someSurfaces[j].getP1().y);
+        maxY = max(maxY, (double) someSurfaces[j].getP2().y);
+    }
 }
 
-void plotViewGNU(const char * filename, const View & view, bool printID) {
-    FILE * fgnup = popen(GNUPLOT_PATH, "w");
-    if (!fgnup) {
-        cerr << "ERROR: " << GNUPLOT_PATH << " not found" << endl;
-        return;
-    }
-
-    //vector<View> views = map.getMap();
-
-    // Get the plotting range
-    double minX = 0, minY = 0, maxX = 0, maxY = 0;
-
-    for (unsigned int j = 0; j < view.getSurfaces().size(); j++) {
-        minX = min(minX, (double) view.getSurfaces()[j].getP1().x);
-        minX = min(minX, (double) view.getSurfaces()[j].getP2().x);
-
-        maxX = max(maxX, (double) view.getSurfaces()[j].getP1().x);
-        maxX = max(maxX, (double) view.getSurfaces()[j].getP2().x);
-
-        minY = min(minY, (double) view.getSurfaces()[j].getP1().y);
-        minY = min(minY, (double) view.getSurfaces()[j].getP2().y);
-
-        maxY = max(maxY, (double) view.getSurfaces()[j].getP1().y);
-        maxY = max(maxY, (double) view.getSurfaces()[j].getP2().y);
-    }
-
-    if (view.getLandmarks().size() > 0) {
-        for (unsigned int j = 0; j < view.getLandmarks().size(); j++) {
-            minX = min(minX, (double) view.getLandmarks()[j].getP1().x);
-            minX = min(minX, (double) view.getLandmarks()[j].getP2().x);
-
-            maxX = max(maxX, (double) view.getLandmarks()[j].getP1().x);
-            maxX = max(maxX, (double) view.getLandmarks()[j].getP2().x);
-
-            minY = min(minY, (double) view.getLandmarks()[j].getP1().y);
-            minY = min(minY, (double) view.getLandmarks()[j].getP2().y);
-
-            maxY = max(maxY, (double) view.getLandmarks()[j].getP1().y);
-            maxY = max(maxY, (double) view.getLandmarks()[j].getP2().y);
-        }
-
-    }
-
-
+void addBorder(FILE * fgnup, const char * filename, double & minX, double & maxX, double & minY, double & maxY) {
     // Make sure x and y have the same range so the image isn't skewed
     double xRange = maxX - minX;
     double yRange = maxY - minY;
@@ -220,6 +189,50 @@ void plotViewGNU(const char * filename, const View & view, bool printID) {
     fprintf(fgnup, "set output \"%s\"\n", filename);
     fprintf(fgnup, "set yrange[%g:%g]\n", minY, maxY);
     fprintf(fgnup, "set xrange[%g:%g]\n", minX, maxX);
+}
+
+void addSurfaces(FILE * fgnup, vector<Surface> someSurfaces) {
+    //plotting surfaces
+    for (unsigned int j = 0; j < someSurfaces.size(); j++) {
+        fprintf(fgnup, "%g ", someSurfaces[j].getP1().x);
+        fprintf(fgnup, "%g\n", someSurfaces[j].getP1().y);
+        fprintf(fgnup, "%g ", someSurfaces[j].getP2().x);
+        fprintf(fgnup, "%g\n\n", someSurfaces[j].getP2().y);
+
+    }
+    fprintf(fgnup, "e\n");
+}
+
+void plotSurfacesGNU(const vector<Surface> & someSurfaces) {
+
+}
+
+void plotViewGNU(const char * filename, const View & view, bool printID) {
+    //open a file.
+    FILE * fgnup = popen(GNUPLOT_PATH, "w");
+    if (!fgnup) {
+        cerr << "ERROR: " << GNUPLOT_PATH << " not found" << endl;
+        return;
+    } else {
+        cout<<filename<<" is opened. :)"<<endl;
+    }
+
+    cout<<fgnup<<endl;
+    waitHere();
+
+    // Get the plotting range
+    double minX = 0, minY = 0, maxX = 0, maxY = 0;
+
+    //find plotting range for view surfaces.
+    findPlottingRange(minX,maxX,minY,maxY,view.getSurfaces());
+
+    //find plotting range for landmarks.
+    if (view.getLandmarks().size() > 0) {
+        findPlottingRange(minX,maxX,minY,maxY,view.getLandmarks());
+    }
+
+    //add border to the image.
+    addBorder(fgnup,filename,minX,maxX,minY,maxY);
     
     if (view.getLandmarks().size() > 0) {
         for (unsigned int j = 0; j < view.getLandmarks().size(); j++) {
@@ -245,35 +258,14 @@ void plotViewGNU(const char * filename, const View & view, bool printID) {
     fprintf(fgnup, "\"-\" ti \"Robot\" with lines 1\n");
 
     //plotting surfaces
-    for (unsigned int j = 0; j < view.getSurfaces().size(); j++) {
-        fprintf(fgnup, "%g ", view.getSurfaces()[j].getP1().x);
-        fprintf(fgnup, "%g\n", view.getSurfaces()[j].getP1().y);
-        fprintf(fgnup, "%g ", view.getSurfaces()[j].getP2().x);
-        fprintf(fgnup, "%g\n\n", view.getSurfaces()[j].getP2().y);
+    addSurfaces(fgnup,view.getSurfaces());
 
-    }
-    fprintf(fgnup, "e\n");
     //plotting landmark
     if (view.getLandmarks().size() > 0) {       
-        for (unsigned int j = 0; j < view.getLandmarks().size(); j++) {
-            fprintf(fgnup, "%g ", view.getLandmarks()[j].getP1().x);
-            fprintf(fgnup, "%g\n", view.getLandmarks()[j].getP1().y);
-            fprintf(fgnup, "%g ", view.getLandmarks()[j].getP2().x);
-            fprintf(fgnup, "%g\n\n", view.getLandmarks()[j].getP2().y);
-
-        }
-        fprintf(fgnup, "e\n");
+        addSurfaces(fgnup,view.getLandmarks());
     }
     //plotting robot
-    for (unsigned int j = 0; j < view.getRobotSurfaces().size(); j++) {
-        //if(Objects[i].getASRNo() == 1) {
-        fprintf(fgnup, "%g ", view.getRobotSurfaces()[j].getP1().x);
-        fprintf(fgnup, "%g\n", view.getRobotSurfaces()[j].getP1().y);
-        fprintf(fgnup, "%g ", view.getRobotSurfaces()[j].getP2().x);
-        fprintf(fgnup, "%g\n\n", view.getRobotSurfaces()[j].getP2().y);
-        //}
-    }
-    fprintf(fgnup, "e\n");
+    addSurfaces(fgnup,view.getRobotSurfaces());
 
 
     fflush(fgnup);
@@ -389,18 +381,6 @@ void plotViewsGNU(const char * filename, const vector<View> & views, bool printI
         }
         fprintf(fgnup, "e\n");
     }
-
-    //    //deleted surfaces
-    //    //ploting landmarks
-    //        for (unsigned int j = 0; j < views[views.size()-2].getLandmarks().size(); j++) {
-    //            //if(Objects[i].getASRNo() == 1) {
-    //            fprintf(fgnup, "%g ", views[views.size()-2].getLandmarks()[j].getP1().x);
-    //            fprintf(fgnup, "%g\n", views[views.size()-2].getLandmarks()[j].getP1().y);
-    //            fprintf(fgnup, "%g ", views[views.size()-2].getLandmarks()[j].getP2().x);
-    //            fprintf(fgnup, "%g\n\n", views[views.size()-2].getLandmarks()[j].getP2().y);
-    //            //}
-    //        }
-    //        fprintf(fgnup, "e\n");
 
     fflush(fgnup);
     fclose(fgnup);

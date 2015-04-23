@@ -62,7 +62,7 @@ public:
     //from pv on to cv.
     Surface transFrom(double newX, double newY, double angle) const;
     
-    Surface transformB(double newX, double newY, double angle);
+    Surface transformB(double newX, double newY, double angle) const;
 
     void set(float X1, float Y1, float X2, float Y2);
     void setP1(float X, float Y);
@@ -95,6 +95,8 @@ void displaySurfaces(const std::vector<Surface> & surfaces);
 
 //it transform pv to cv
 vector<Surface> transform(const vector<Surface> & pvSurfaces, const double & angle, const double & distance);
+//it transform cv to pv
+vector<Surface> transformB(const vector<Surface> & cvSurfaces, const double & angle, const double & distance);
 
 //convert SurfaceT to Surface
 vector<Surface> convertSurfaceT2Surface(const vector<SurfaceT> & surfs);

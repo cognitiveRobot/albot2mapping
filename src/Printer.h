@@ -58,6 +58,9 @@ public:
     
 };
 
+void findPlottingRange(double & minX, double & maxX, double & minY, double & maxY, const vector<Surface> & someSurfaces);
+void addBorder(FILE * fgnup, const char * filename, double & minX, double & maxX, double & minY, double & maxY);
+void addSurfaces(FILE * fgnup, vector<Surface> someSurfaces);
 void plotSurfacesGNU(const vector<vector<Surface> > & allSurfaces);
 void plotMapGNU(const char * filename, const Map & map, bool printID = false);
 void plotViewGNU(const char * filename, const View & view, bool printID = false);

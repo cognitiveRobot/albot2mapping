@@ -363,7 +363,8 @@ void Map::addCVUsingMultipleRef(const View & curView) {
     vector<ReferenceSurfaces> sameSurfaces;
     SameSurfaceFinderOdo sSurfaceInfo;
     sSurfaceInfo.recognizeAllSameSurface(sameSurfaces, this->getMap(), this->getLandmarkSurfaces(), curView.getSurfaces(), this->getPathSegments().back());
-    if (sameSurfaces.size() > 0) {
+    if ( sameSurfaces.size() > 0 && 
+            (curView.getId() == 7 or curView.getId() == 19 or curView.getId() == 33 or curView.getId() == 67)) {
         cout<<"The following reference surfaces are found .."<<endl;
         for(unsigned int i=0;i<sameSurfaces.size(); i++) {
             sameSurfaces[i].display();

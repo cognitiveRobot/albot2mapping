@@ -117,8 +117,10 @@ bool SameSurfaceFinderOdo::recognizeAllSameSurface(vector<ReferenceSurfaces> & a
     
     bool success = matchSameSurfaces(matchingInfoForAll,pvLandmarksOnCV,cvLandmarks,10.0,500.0);
     cout<<matchingInfoForAll.size()<<endl;
+    vector<Surface> cvLandmarksOnPV = transformB(cvLandmarks,lastLocomotion.angle,lastLocomotion.distance);
     for (unsigned int i = 0; i < matchingInfoForAll.size(); i++) {
-        aRefSurface.setMapSurface(views.back().getSurfaces()[matchingInfoForAll[i].mapSurfaceID]);
+        //aRefSurface.setMapSurface(views.back().getSurfaces()[matchingInfoForAll[i].mapSurfaceID]);
+        aRefSurface.setMapSurface(cvLandmarksOnPV[matchingInfoForAll[i].cvSurfaceID]);
         aRefSurface.setViewSurface(cvLandmarks[matchingInfoForAll[i].cvSurfaceID]);
         
         aRefSurface.setRefPoint(matchingInfoForAll[i].refPoint);
