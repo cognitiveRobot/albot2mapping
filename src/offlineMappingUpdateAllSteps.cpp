@@ -92,7 +92,7 @@ int main(int argc, char** argv) {
         cout << endl << "==================================================" << endl << endl;
         cout << "View no. " << curView.getId() << ":" << endl;
         sprintf(viewName, "%s%d", "../outputs/Maps/view-", curView.getId());
-        plotViewGNU(viewName, curView);
+        plotViewGNU(viewName, curView);        
 
         if (curView.getId() == 1) {
             curMap.initializeMap(curView);

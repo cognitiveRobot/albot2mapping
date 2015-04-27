@@ -80,7 +80,10 @@ public:
     double getAngleFromP2ToPoint(const double & a, const double & b) const;
     
     double distFromP1ToPoint(const float & a, const float & b) const;
-      double distFromP2ToPoint(const float & a, const float & b) const;
+    double distFromP2ToPoint(const float & a, const float & b) const;
+    
+    //given that angle, distance, and reference direction, find the x and y co-ordinate with respect to this surface.
+    void locatePointAt(double & x, double & y, const double & ang, const double & distance, const int & refDirection);
 
     void setColors(std::vector<Color> colors);
     std::vector<Color> getColors();
@@ -100,6 +103,10 @@ vector<Surface> transformB(const vector<Surface> & cvSurfaces, const double & an
 
 //convert SurfaceT to Surface
 vector<Surface> convertSurfaceT2Surface(const vector<SurfaceT> & surfs);
+
+
+
+//Reference Surface Class.
 
 class ReferenceSurfaces {
 private:

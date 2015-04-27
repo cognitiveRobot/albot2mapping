@@ -107,7 +107,7 @@ bool SameSurfaceFinderOdo::recognizeAllSameSurface(vector<ReferenceSurfaces> & a
     
     //(debugging1)
     View temp(cvLandmarks); //only for display.
-    temp.setRobotSurfaces(pvLandmarksOnCV);
+    temp.setLandmarks(pvLandmarksOnCV);
     temp.setId(12);
     plotViewGNU("../outputs/Maps/LS-1-2.png", temp, true);
     //end of (debugging1)

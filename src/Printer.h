@@ -58,20 +58,21 @@ public:
     
 };
 
+//GNU plotting
 void findPlottingRange(double & minX, double & maxX, double & minY, double & maxY, const vector<Surface> & someSurfaces);
 void addBorder(FILE * fgnup, const char * filename, double & minX, double & maxX, double & minY, double & maxY);
 void addSurfaces(FILE * fgnup, vector<Surface> someSurfaces);
-void plotSurfacesGNU(const vector<vector<Surface> > & allSurfaces);
+void addSurfacesAndRobot(FILE * fgnup, vector<Surface> someSurfaces, vector<Surface> robotSurfaces);
+void plotSurfacesGNU(const char * filename, const vector<Surface> & someSurfaces);
+void plotSurfacesGNU(const char * filename, const vector<vector<Surface> > & someSurfaces);
 void plotMapGNU(const char * filename, const Map & map, bool printID = false);
 void plotViewGNU(const char * filename, const View & view, bool printID = false);
 void plotViewsGNU(const char * filename, const vector<View> & views, bool printID = false);
 void plotPointsAndSurfacesGNU(const char * filename, const vector<PointXY> & points, const vector<Surface> & robotSurfaces);
 
+
 //write a txt file
 void writeASCIIPoints2D(const char *filename, const vector<PointXY> & points);
 vector<PointXY> readASCIIPoints2D(const char *filename);
-
-
-
 
 #endif /* PRINTER_H */

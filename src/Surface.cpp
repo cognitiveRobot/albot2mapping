@@ -391,6 +391,44 @@ double Surface::getAngleFromP2ToPoint(const double & a, const double & b) const 
 	return 360+diff;
 }
 
+//given that angle, distance, and reference direction, find the x and y co-ordinate with respect to this surface.
+//refDirection 12 means, from p1 to p2 of this surface is the direction of reference.
+
+//for testing.
+//double x1, y1, x2, y2, ang, dist;
+//        vector<Surface> cvLocated;
+//        for(unsigned int i=1; i<curView.getSurfaces().size(); i++) {
+//            ang = curView.getSurfaces()[0].getAngleFromP2ToPoint(curView.getSurfaces()[i].getP1().x,curView.getSurfaces()[i].getP1().y);
+//            dist = curView.getSurfaces()[0].distFromP2ToPoint(curView.getSurfaces()[i].getP1().x,curView.getSurfaces()[i].getP1().y);
+//            
+//            curView.getSurfaces()[0].locatePointAt(x1,y1,ang,dist,2);
+//            
+//            ang = curView.getSurfaces()[0].getAngleFromP2ToPoint(curView.getSurfaces()[i].getP2().x,curView.getSurfaces()[i].getP2().y);
+//            dist = curView.getSurfaces()[0].distFromP2ToPoint(curView.getSurfaces()[i].getP2().x,curView.getSurfaces()[i].getP2().y);
+//            
+//            curView.getSurfaces()[0].locatePointAt(x2,y2,ang,dist,2);
+//            
+//            cvLocated.push_back(Surface(x1,y1,x2,y2));
+//        }
+//        plotSurfacesGNU("../outputs/Maps/cvLocated.png",cvLocated);
+//        waitHere();
+void Surface::locatePointAt(double & x, double & y, const double & ang, const double & distance, const int & refDirection) {
+    double angle = ang * CONVERT_TO_RADIAN;
+    if(refDirection == 12) {
+        x = ((this->getP2().x - this->getP1().x) / this->length()) * cos(angle)-((this->getP2().y - this->getP1().y) / this->length()) * sin(angle);
+        y = ((this->getP2().x - this->getP1().x) / this->length()) * sin(angle)+((this->getP2().y - this->getP1().y) / this->length()) * cos(angle);
+
+        x = x * distance + this->getP1().x;
+        y = y * distance + this->getP1().y; 
+    } else {
+        x = ((this->getP1().x - this->getP2().x) / this->length()) * cos(angle)-((this->getP1().y - this->getP2().y) / this->length()) * sin(angle);
+        y = ((this->getP1().x - this->getP2().x) / this->length()) * sin(angle)+((this->getP1().y - this->getP2().y) / this->length()) * cos(angle);
+
+        x = x * distance + this->getP2().x;
+        y = y * distance + this->getP2().y;
+    }
+}
+
 SurfaceT Surface::ToSurfaceT() const{
     return SurfaceT(PointXY(P1.x,P1.y),PointXY(P2.x,P2.y));
 }
