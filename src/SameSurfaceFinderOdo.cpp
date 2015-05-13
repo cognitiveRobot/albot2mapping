@@ -7,6 +7,12 @@ bool SameSurfaceFinderOdo::matchSameSurfaces(vector<SameSurfaceInfo> & matchingI
     SameSurfaceInfo matchingInfo;
     bool success = false;
     double angleDiff, distanceDiffP1, distanceDiffP2;
+    
+    //for test.
+    vector<Surface> tempS1, tempS2;
+   
+    vector<vector<Surface> > tempBoth;
+    //end of test
     for (unsigned int i = 0; i < pvLandmarksOnCV.size(); i++) {
         for (unsigned int j = 0; j < cvLandmarks.size(); j++) {
             angleDiff = pvLandmarksOnCV[i].getAngleWithSurface(cvLandmarks[j]);
@@ -39,10 +45,31 @@ bool SameSurfaceFinderOdo::matchSameSurfaces(vector<SameSurfaceInfo> & matchingI
                     matchingInfo.mapSurfaceID = i;
                     matchingInfo.cvSurfaceID = j;
 
-                    if (distanceDiffP1 < distanceDiffP2)
+                    //to find angle and distance error between same surfaces we considered pvLandmarksOnCV is the ref. then
+                    //with respect to refPoint of pvLandmarksOnCV (dir - from refPoint to other end).
+                    //angle is angle between pvLandmarksOnCV and newSurface(from refPoint and p1/p2 of cvLandmarks)
+                    //dist is distance between refPoint and p1/p2 of surface2
+                    
+                    if (distanceDiffP1 < distanceDiffP2) {
                         matchingInfo.refPoint = 1;
-                    else
+                        
+                        matchingInfo.p1Angle = pvLandmarksOnCV[i].getAngleFromP1ToPoint(cvLandmarks[j].getP1().x,cvLandmarks[j].getP1().y);
+                        matchingInfo.p1Distance = pvLandmarksOnCV[i].distFromP1ToPoint(cvLandmarks[j].getP1().x,cvLandmarks[j].getP1().y);
+                        matchingInfo.p2Angle = pvLandmarksOnCV[i].getAngleFromP1ToPoint(cvLandmarks[j].getP2().x,cvLandmarks[j].getP2().y);
+                        matchingInfo.p2Distance = pvLandmarksOnCV[i].distFromP1ToPoint(cvLandmarks[j].getP2().x,cvLandmarks[j].getP2().y);
+                        
+                    } else {
                         matchingInfo.refPoint = 2;
+                        
+                        matchingInfo.p1Angle = pvLandmarksOnCV[i].getAngleFromP2ToPoint(cvLandmarks[j].getP1().x,cvLandmarks[j].getP1().y);
+                        matchingInfo.p1Distance = pvLandmarksOnCV[i].distFromP2ToPoint(cvLandmarks[j].getP1().x,cvLandmarks[j].getP1().y);
+                        matchingInfo.p2Angle = pvLandmarksOnCV[i].getAngleFromP2ToPoint(cvLandmarks[j].getP2().x,cvLandmarks[j].getP2().y);
+                        matchingInfo.p2Distance = pvLandmarksOnCV[i].distFromP2ToPoint(cvLandmarks[j].getP2().x,cvLandmarks[j].getP2().y);
+                    }  
+                    //for test.
+                    tempS1.push_back(pvLandmarksOnCV[i]);
+                    tempS2.push_back(cvLandmarks[j]);
+                    //end of test
                     matchingInfoForAll.push_back(matchingInfo);
                     success = true;
 
@@ -51,6 +78,11 @@ bool SameSurfaceFinderOdo::matchSameSurfaces(vector<SameSurfaceInfo> & matchingI
             }
         }
     }
+    //for test.
+    tempBoth.push_back(tempS1);
+    tempBoth.push_back(tempS2);
+    plotSurfacesGNU("../outputs/Maps/test1.png",tempBoth);
+    //end of test
     cout<<matchingInfoForAll.size()<<endl;
     return success;
 }
@@ -66,7 +98,7 @@ bool SameSurfaceFinderOdo::recognizeSameSurface(vector<ReferenceSurfaces> & allR
     View temp(cvLandmarks); //only for display.
     temp.setRobotSurfaces(pvLandmarksOnCV);
     temp.setId(12);
-    plotViewGNU("../outputs/Maps/LS-1-2.png", temp, true);
+    //plotViewGNU("../outputs/Maps/LS-1-2.png", temp, true);
     //end of (debugging1)
 
     
@@ -117,16 +149,36 @@ bool SameSurfaceFinderOdo::recognizeAllSameSurface(vector<ReferenceSurfaces> & a
     
     bool success = matchSameSurfaces(matchingInfoForAll,pvLandmarksOnCV,cvLandmarks,10.0,500.0);
     cout<<matchingInfoForAll.size()<<endl;
-    vector<Surface> cvLandmarksOnPV = transformB(cvLandmarks,lastLocomotion.angle,lastLocomotion.distance);
+    Surface tempSurf;
+    //for test.
+    vector<Surface> tempS1, tempS2;
+    vector<vector<Surface> > tempBoth;
+    //end of test
     for (unsigned int i = 0; i < matchingInfoForAll.size(); i++) {
+        //make a surface.
+        tempSurf = views.back().getSurfaces()[matchingInfoForAll[i].mapSurfaceID].makeASurfaceAt(matchingInfoForAll[i].p1Angle,matchingInfoForAll[i].p1Distance,matchingInfoForAll[i].p2Angle,matchingInfoForAll[i].p2Distance,matchingInfoForAll[i].refPoint);
+        //cut or extend a surface.
+        tempSurf.shiftOneEnd(0,views.back().getSurfaces()[matchingInfoForAll[i].mapSurfaceID].length(),matchingInfoForAll[i].refPoint);
+        //for test.
+        tempS1.push_back(views.back().getSurfaces()[matchingInfoForAll[i].mapSurfaceID]);
+        tempS2.push_back(tempSurf);
+        //end of test
+        
+        aRefSurface.setMapSurface(tempSurf);//shifting map's ref surf according to the pv and cv error.
         //aRefSurface.setMapSurface(views.back().getSurfaces()[matchingInfoForAll[i].mapSurfaceID]);
-        aRefSurface.setMapSurface(cvLandmarksOnPV[matchingInfoForAll[i].cvSurfaceID]);
         aRefSurface.setViewSurface(cvLandmarks[matchingInfoForAll[i].cvSurfaceID]);
         
         aRefSurface.setRefPoint(matchingInfoForAll[i].refPoint);
        
         allRefSurfaces.push_back(aRefSurface);
     }
+    
+    //for test
+    tempBoth.push_back(tempS1);
+    tempBoth.push_back(tempS2);
+    plotSurfacesGNU("../outputs/Maps/test2.png",tempBoth);
+    //waitHere();
+    //end of test
 
     cout << "above is the result from recognition module" << endl;
     if (success == true) {

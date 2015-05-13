@@ -15,6 +15,12 @@ struct SameSurfaceInfo {
     int cvSurfaceID;
     double matchingWeight; //it represents the similarity measure.
     int refPoint; //it contains the referenc point.
+    
+    
+    double p1Angle;
+    double p1Distance;
+    double p2Angle;
+    double p2Distance;
 };
 
 class SameSurfaceFinder {

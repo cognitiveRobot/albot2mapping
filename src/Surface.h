@@ -84,6 +84,9 @@ public:
     
     //given that angle, distance, and reference direction, find the x and y co-ordinate with respect to this surface.
     void locatePointAt(double & x, double & y, const double & ang, const double & distance, const int & refDirection);
+    //given that angle, distance of two points, and reference direction, find the surface with respect to this surface.
+    Surface makeASurfaceAt(const double & ang1, const double & dist1, const double & ang2, const double & dist2, const int & refDirection);
+    void shiftOneEnd(const double & ang, const double & distance, const int & refDirection);
 
     void setColors(std::vector<Color> colors);
     std::vector<Color> getColors();

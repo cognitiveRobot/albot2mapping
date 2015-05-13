@@ -255,6 +255,8 @@ void Map::addCVUsingOdo(const View & curView, const AngleAndDistance & homeInfo)
     this->setLandmarkSurfaces(curView.getSurfaces()); //
 }
 
+
+//have to add more logic to produce clean map.
 void Map::cleanMap(const vector<Surface>& cvSurfacesOnMap, const vector<Surface>& cRobotSurfaces) {
     //check the point in polygon    cleaning old.
     vector<Surface> surfacesInsideCV, surfacesOutsideCV;
@@ -363,23 +365,20 @@ void Map::addCVUsingMultipleRef(const View & curView) {
     vector<ReferenceSurfaces> sameSurfaces;
     SameSurfaceFinderOdo sSurfaceInfo;
     sSurfaceInfo.recognizeAllSameSurface(sameSurfaces, this->getMap(), this->getLandmarkSurfaces(), curView.getSurfaces(), this->getPathSegments().back());
-    if ( sameSurfaces.size() > 0 && 
-            (curView.getId() == 7 or curView.getId() == 19 or curView.getId() == 33 or curView.getId() == 67)) {
+    if ( sameSurfaces.size() > 0) { //using landmark as reference.
+//    if ( sameSurfaces.size() > 0 && 
+//            (curView.getId() == 7 or curView.getId() == 19 or curView.getId() == 33 or curView.getId() == 67)) {
         cout<<"The following reference surfaces are found .."<<endl;
         for(unsigned int i=0;i<sameSurfaces.size(); i++) {
             sameSurfaces[i].display();
         }
-    } else {
+    } else {//using odometer.
         cout<<endl<<endl<<"Recognition failed. Need to use odometery. "<<endl;
         refSurfacePair.setMapSurface(makeSurfaceWith(this->getMap().back().getRobotSurfaces()[0],
                 this->getPathSegments().back().angle,this->getPathSegments().back().distance,400.0));
-
         refSurfacePair.setViewSurface(curView.getRobotSurfaces()[0]);
-
         refSurfacePair.setRefPoint(1);
-         sameSurfaces.clear();   
-         sameSurfaces.push_back(refSurfacePair);
-         
+        
         //save this view number.         
         this->lostSteps.push_back(curView.getId());
          
@@ -390,7 +389,8 @@ void Map::addCVUsingMultipleRef(const View & curView) {
     vector<Surface> allCVSurfacesOnMap;
     for(unsigned int i=0; i<curView.getSurfaces().size(); i++) {
         //find the closest ref pair using current view 
-        refSurfacePair = findTheClosestReference(curView.getSurfaces()[i],sameSurfaces);
+        if(sameSurfaces.size() > 0)
+            refSurfacePair = findTheClosestReference(curView.getSurfaces()[i],sameSurfaces);
         //trangulate this surface.
         cout<<curView.getSurfaces()[i].getId()<<" refID: "<<refSurfacePair.getViewSurface().getId()<<endl;
         cvSurfaceOnMap = trangulateSurface(refSurfacePair.getMapSurface(),refSurfacePair.getViewSurface(),
@@ -401,7 +401,8 @@ void Map::addCVUsingMultipleRef(const View & curView) {
     //compute robot surfaces.
     Surface cRobotSurfaceOnMap;
     vector<Surface> cRobotSurfacesOnMap;
-    refSurfacePair = findTheClosestReference(curView.getRobotSurfaces()[0],sameSurfaces);
+    if(sameSurfaces.size() > 0)
+        refSurfacePair = findTheClosestReference(curView.getRobotSurfaces()[0],sameSurfaces);
     for(unsigned int i = 0; i < curView.getRobotSurfaces().size(); i++) {
         cRobotSurfaceOnMap = trangulateSurface(refSurfacePair.getMapSurface(),refSurfacePair.getViewSurface(),
                 curView.getRobotSurfaces()[i],refSurfacePair.getRefPoint());
@@ -416,6 +417,8 @@ void Map::addCVUsingMultipleRef(const View & curView) {
     char mapName[50];
     sprintf(mapName, "%s%d%s", "../outputs/Maps/Map-", curView.getId(), "a-before.png");                    
     plotViewsGNU(mapName,this->getMap());
+    
+    
     //cleanMap.
     cleanMap(allCVSurfacesOnMap,cRobotSurfacesOnMap);
     sprintf(mapName, "%s%d%s", "../outputs/Maps/Map-", curView.getId(), "b-after.png");

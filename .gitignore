@@ -28,6 +28,7 @@ renameFiles
 
 
 #to ignore folders
+inputs/
 outputs/
 nbproject/
 src/.idea

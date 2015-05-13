@@ -392,7 +392,7 @@ double Surface::getAngleFromP2ToPoint(const double & a, const double & b) const 
 }
 
 //given that angle, distance, and reference direction, find the x and y co-ordinate with respect to this surface.
-//refDirection 12 means, from p1 to p2 of this surface is the direction of reference.
+//refDirection 1 means, from p1 to p2 of this surface is the direction of reference.
 
 //for testing.
 //double x1, y1, x2, y2, ang, dist;
@@ -414,7 +414,7 @@ double Surface::getAngleFromP2ToPoint(const double & a, const double & b) const 
 //        waitHere();
 void Surface::locatePointAt(double & x, double & y, const double & ang, const double & distance, const int & refDirection) {
     double angle = ang * CONVERT_TO_RADIAN;
-    if(refDirection == 12) {
+    if(refDirection == 1) {
         x = ((this->getP2().x - this->getP1().x) / this->length()) * cos(angle)-((this->getP2().y - this->getP1().y) / this->length()) * sin(angle);
         y = ((this->getP2().x - this->getP1().x) / this->length()) * sin(angle)+((this->getP2().y - this->getP1().y) / this->length()) * cos(angle);
 
@@ -428,6 +428,30 @@ void Surface::locatePointAt(double & x, double & y, const double & ang, const do
         y = y * distance + this->getP2().y;
     }
 }
+
+//given that angle, distance of two points, and reference direction, find the surface with respect to this surface.
+Surface Surface::makeASurfaceAt(const double & ang1, const double & dist1, const double & ang2, const double & dist2, const int & refDirection) {
+    double x1,y1,x2,y2;
+    //point1
+    locatePointAt(x1,y1,ang1,dist1,refDirection);
+    //point2
+    locatePointAt(x2,y2,ang2,dist2,refDirection);
+    
+    return Surface(x1,y1,x2,y2);
+}
+
+void Surface::shiftOneEnd(const double & ang, const double & distance, const int & refDirection) {
+    double x, y;
+    //locate the shifting point;
+    locatePointAt(x,y, ang,distance,refDirection);
+    
+    if(refDirection == 1)
+        this->setP2(x,y);
+    else
+        this->setP1(x,y);
+}
+
+
 
 SurfaceT Surface::ToSurfaceT() const{
     return SurfaceT(PointXY(P1.x,P1.y),PointXY(P2.x,P2.y));

@@ -65,8 +65,7 @@ void print(std::map<int, int> map);
 
 int main(int argc, char** argv) {
     /*------------------------------------------ Variables declaration ------------------------------------------ */
-
-    Robot Albot;
+     Robot Albot;
 
     Camera Bumblebee;
     View curView;
@@ -86,7 +85,7 @@ int main(int argc, char** argv) {
 
         //construct view from points.
         curView.setId(curView.getId() + 1);
-        sprintf(pointFile, "%s%d", "../outputs/pointCloud/points2D-", curView.getId());
+        sprintf(pointFile, "%s%s%s%d", "../inputs/",argv[1],"/pointCloud/points2D-", curView.getId());
         curView.constructView(pointFile);
         cout << "View is formed :)" << endl;
         cout << endl << "==================================================" << endl << endl;
@@ -99,8 +98,9 @@ int main(int argc, char** argv) {
         } else {
             curMap.addCVUsingMultipleRef(curView);
         }
+        
         //read odometer info
-        sprintf(viewName, "%s%d", "../outputs/surfaces/coordTrans-", curView.getId());
+        sprintf(viewName, "%s%s%s%d", "../inputs/",argv[1],"/surfaces/coordTrans-", curView.getId());
         readOdometry(Albot, viewName);
         curMap.addPathSegment(Albot.getLastLocomotion());
         curMap.setLandmarkSurfaces(curView.getSurfaces());
