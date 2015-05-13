@@ -177,8 +177,6 @@ bool SameSurfaceFinderOdo::recognizeAllSameSurface(vector<ReferenceSurfaces> & a
     tempBoth.push_back(tempS1);
     tempBoth.push_back(tempS2);
     plotSurfacesGNU("../outputs/Maps/test2.png",tempBoth);
-    //waitHere();
-    //end of test
 
     cout << "above is the result from recognition module" << endl;
     if (success == true) {
