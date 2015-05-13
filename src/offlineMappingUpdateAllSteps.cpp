@@ -1,6 +1,7 @@
 /* 
  * File:   main.cpp
  * Author: Guillaume Diallo-Mulliez
+* Author 2 : Segolene Minjard
  *
  * Created on June 7, 2013, 12:52 AM
  */
