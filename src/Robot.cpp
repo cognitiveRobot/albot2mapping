@@ -196,7 +196,7 @@ void Robot::move() {
 
     //save angle and distance in a txt file.
     char sname[50];
-    sprintf(sname, "%s%d", "../outputs/surfaces/coordTrans-", step);
+    sprintf(sname, "%s%d", "../inputs/surfaces/coordTrans-", step);
     saveTravelInfo(odoDistanceDiff, angleDiff, sname);
 
 }

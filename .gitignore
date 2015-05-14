@@ -16,6 +16,7 @@ gotoActionExample
 main
 robotControl
 GuidedXnMapping
+onlineMapping
 offlineMappingUpdateAllSteps
 offlineGuidedXnMapping
 offlineMappingFromLS

@@ -192,7 +192,7 @@ void Camera::getImage() {
     triclopsSetSubpixelInterpolation(triclops, 1);
     //sprintf(filenameDepth, "%s%d%s", "depth/depth-", v, ".pgm");
 
-    if (sprintf(filenameDepth, "../outputs/depth/depth.pgm") == -1) {
+    if (sprintf(filenameDepth, "../inputs/depth/depth.pgm") == -1) {
         cout << "Impossible to write depth.pgm file" << endl;
         exit(EXIT_FAILURE);
     }
@@ -205,7 +205,7 @@ void Camera::getImage() {
     _HANDLE_TRICLOPS_ERROR("triclopsGetImage()", error);
 
     // save the rectified image
-    if (sprintf(filenameRectified, "%s%d%s", "../outputs/rectified/rectified-",
+    if (sprintf(filenameRectified, "%s%d%s", "../inputs/rectified/rectified-",
             v, ".pgm") == -1) {
         cout << "Impossible to write rectified.pgm file" << endl;
         exit(EXIT_FAILURE);
@@ -220,7 +220,7 @@ void Camera::getImage() {
             &rectifiedColor);
     _HANDLE_TRICLOPS_ERROR("triclopsRectifyColorImage()", error);
 
-    if (sprintf(filenameColor, "%s%d%s", "../outputs/color/color-", v, ".ppm")
+    if (sprintf(filenameColor, "%s%d%s", "../inputs/color/color-", v, ".ppm")
             == -1) {
         cout << "Impossible to write color file" << endl;
         exit(EXIT_FAILURE);
@@ -238,7 +238,7 @@ void Camera::getImage() {
     //               error = triclopsRectifyColorImage(triclops, TriCam_LEFT, &colorInput,
     //			&leftImage);
     _HANDLE_TRICLOPS_ERROR("triclopsLeftImage()", error);
-    if (sprintf(filenameColor, "%s%d%s", "../outputs/raw/left-", v, ".pgm")
+    if (sprintf(filenameColor, "%s%d%s", "../inputs/raw/left-", v, ".pgm")
             == -1) {
         cout << "Impossible to write left image" << endl;
         exit(EXIT_FAILURE);
@@ -252,7 +252,7 @@ void Camera::getImage() {
     //              error = triclopsRectifyColorImage(triclops, TriCam_RIGHT, &colorInput,
     //			&rightImage);
     _HANDLE_TRICLOPS_ERROR("triclopsLeftImage()", error);
-    if (sprintf(filenameColor, "%s%d%s", "../outputs/raw/right-", v, ".pgm")
+    if (sprintf(filenameColor, "%s%d%s", "../inputs/raw/right-", v, ".pgm")
             == -1) {
         cout << "Impossible to write right image" << endl;
         exit(EXIT_FAILURE);
@@ -462,7 +462,7 @@ The Z axis points forward from the camera.
  //   waitHere();
 
     char fileName[50];
-    sprintf(fileName, "%s%d%s", "../outputs/pointCloud/pointCloud-", this->getV(),".pcd");
+    sprintf(fileName, "%s%d%s", "../inputs/pointCloud/pointCloud-", this->getV(),".pcd");
 
     pcl::io::savePCDFileASCII(fileName, cloud);
     std::cerr << "Saved " << savedPoints << " data points @pointCloud-" <<this->getV()<< std::endl;
@@ -471,7 +471,7 @@ The Z axis points forward from the camera.
    // plotPointsGNU("../outputs/Maps/points2D-",points);
     //sprintf(fileName, "%s%d%s", "../outputs/pointCloud/points2D-", this->getV(),".png");
    // plotPointsGNU(fileName,points);
-    sprintf(fileName, "%s%d", "../outputs/pointCloud/points2D-", this->getV());
+    sprintf(fileName, "%s%d", "../inputs/pointCloud/points2D-", this->getV());
     writeASCIIPoints2D(fileName,avgPoints);
     cout<<"Points are plotted using GNU."<<endl;
 }

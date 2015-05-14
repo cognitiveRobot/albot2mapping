@@ -84,7 +84,8 @@ LIBSRCS = \
 PROGSRCS= \
 	offlineMappingUpdateAllSteps.cpp \
 	GuidedXnMapping.cpp \
-	offlineGuidedXnMapping.cpp 
+	offlineGuidedXnMapping.cpp \
+	onlineMapping.cpp
 #	offlineMappingFromLS.cpp \
 #	testStereoMatching.cpp \
 #	renameFiles.cpp \
@@ -148,6 +149,14 @@ cleanimages:
 	rm -f ../outputs/raw/*
 	rm -f ../outputs/rectified/*
 	rm -f ../outputs/depth/*
+	
+cleaninputs:
+	rm -f ../inputs/raw/*
+	rm -f ../inputs/rectified/*
+	rm -f ../inputs/depth/*
+	rm -f ../inputs/color/*
+	rm -f ../inputs/pointCloud/*
+	rm -f ../inputs/surfaces/*
 
 
 

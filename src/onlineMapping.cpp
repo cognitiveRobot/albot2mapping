@@ -74,6 +74,12 @@ int main(int argc, char** argv) {
     View curView;
     curView.setRobotSurfaces(Albot.getRectRobot());
     Map curMap(1500, 1500);
+    
+    ArSimpleConnector connector(&argc, argv);
+    Albot.connect(argc, argv, &connector);
+    Bumblebee.initialize();
+    Bumblebee.setV(0);
+    Albot.saveTravelInfo(0, 0, "../inputs/surfaces/coordTrans-0");
 
     /*------------------------------------------ Start Xploring ------------------------------------------ */
 
@@ -85,9 +91,18 @@ int main(int argc, char** argv) {
     char tkStep = 'y';
     while (curView.getId() < 70) {
         /* Increment counters */
+        Bumblebee.incV();
+        curView.setId(curView.getId() + 1);
+        
+
+        /* This part is unresolved : we must acquire 2 times the image or the camera gives the previous View instead of the new */
+        Bumblebee.getImage();
+        curView.setView(Bumblebee.getTriclops(), Bumblebee.getDepthImage(), Albot.getPos());
+
+        Bumblebee.getImage(); // Acquire image from camera
+        curView.setView(Bumblebee.getTriclops(), Bumblebee.getDepthImage(), Albot.getPos()); // Set view from camera photograph
 
         //construct view from points.
-        curView.setId(curView.getId() + 1);
         sprintf(pointFile, "%s%s%s%d", "../inputs/",argv[1],"/pointCloud/points2D-", curView.getId());
         curView.constructView(pointFile);
         cout << "View is formed :)" << endl;
@@ -102,6 +117,8 @@ int main(int argc, char** argv) {
             curMap.addCVUsingMultipleRef(curView);
         }
         
+        //move the 
+        Albot.move();
         //read odometer info
         sprintf(viewName, "%s%s%s%d", "../inputs/",argv[1],"/surfaces/coordTrans-", curView.getId());
         readOdometry(Albot, viewName);
@@ -117,4 +134,5 @@ int main(int argc, char** argv) {
 
     return 0;
 }
+
 

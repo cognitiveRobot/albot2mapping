@@ -80,9 +80,9 @@ void View::setView(TriclopsContext triclops, TriclopsImage16 depthImage,
 
     // read colors
     char filename[50];
-    sprintf(filename, "%s%d%s", "../outputs/color/color-", Id, ".ppm");
+    sprintf(filename, "%s%d%s", "../inputs/color/color-", Id, ".ppm");
     cv::Mat mat = cv::imread(filename);
-    sprintf(filename, "%s%d%s", "../outputs/color/colorarea-", Id, ".ppm");
+    sprintf(filename, "%s%d%s", "../inputs/color/colorarea-", Id, ".ppm");
     markAndSave(mat, filename);
     matToColorMatrix(mat, this->colors); //saving color info for the whole image.
 
@@ -161,11 +161,11 @@ void View::setView(TriclopsContext triclops, TriclopsImage16 depthImage,
     }
 
     // save area colors
-    sprintf(filename, "%s%d%s", "../outputs/color/areacolors-", Id, ".jpg");
+    sprintf(filename, "%s%d%s", "../inputs/color/areacolors-", Id, ".jpg");
     saveAreaColors(areaColors, filename);
 
     //save surfaces like laser
-    sprintf(filename, "%s%d", "../outputs/surfaces/surfaces-", Id);
+    sprintf(filename, "%s%d", "../inputs/surfaces/surfaces-", Id);
     saveSurfaces(this->surfaces, filename);
 
     //setting surfaces
