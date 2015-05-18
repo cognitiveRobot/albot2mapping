@@ -396,5 +396,20 @@ bool pointInPolygon(const PointXY & point, const vector<SurfaceT> & polygon, boo
     }
 }
 
+cv::Point3f getNewPosFromDistanceAngle(cv::Point3f lastPos, const AngleAndDistance & distanceAngle){
+    double newAngle=lastPos.z+  distanceAngle.angle;
+    
+    //Normalize the angle
+    if(newAngle>180){
+        newAngle-=360;
+    }else if(newAngle<-180){
+        newAngle+=360;
+    }
+    cout<<"angle "<<newAngle<<endl;
 
+    return cv::Point3f(lastPos.x+(distanceAngle.distance*sin(deg2rad(newAngle))),
+            lastPos.y+(distanceAngle.distance*cos(deg2rad(newAngle))),
+            newAngle);
+    
+}
 

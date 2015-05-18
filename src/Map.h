@@ -70,6 +70,8 @@ public:
     Surface getRefForNextLS();
     
     vector<int> getLostStepsNumber() const;
+    
+    void addRbtPos(const AngleAndDistance & angAndDist);
    
     void addPathSegment(const AngleAndDistance & lastPathSegment);
     vector<AngleAndDistance> getPathSegments() const;
@@ -129,7 +131,7 @@ vector<Surface> trangulateSurfaces(const Surface & refInMap, const Surface & ref
 //point in polygon.
 bool PointInPolygon(const double & pointX, const double & pointY, const vector<Surface>& surfaces, 
         const vector<Surface>& robotSurfaces);
-
+bool PointInHiddenSurface(const PointXY pointToCheck, const vector<Surface>& allSurfaces, const vector<Surface>& robotSurfaces);
 
 #endif	/* MAPPER_H */
 

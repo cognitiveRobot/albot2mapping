@@ -11,6 +11,7 @@ sizeX(_sizeX), sizeY(_sizeY) {
     sizeY = 2000;
     M = 0;
     ID = 0;
+    //=vector<cv::Point3f>(1,cv::Point3f(0,0,0));
 }
 
 Map::~Map() {
@@ -38,6 +39,11 @@ void Map::setPreviousView(const View & pView) {
 
 View Map::getPreviousView() {
     return previousView;
+}
+
+void Map::addRbtPos(const AngleAndDistance & angAndDist){
+    cv::Point3f rbtPosition=getNewPosFromDistanceAngle(rbtPos[rbtPos.size()-1], angAndDist);
+    rbtPos.push_back(rbtPosition);
 }
 
 void Map::addPathSegment(const AngleAndDistance & lastPathSegment) {
@@ -260,11 +266,15 @@ void Map::addCVUsingOdo(const View & curView, const AngleAndDistance & homeInfo)
 void Map::cleanMap(const vector<Surface>& cvSurfacesOnMap, const vector<Surface>& cRobotSurfaces) {
     //check the point in polygon    cleaning old.
     vector<Surface> surfacesInsideCV, surfacesOutsideCV;
+    vector<Surface> finalSurfaces;
     vector<Surface> tempSurf;
     View tempView;
+  /*  for(int k=0; k<rbtPos.size(); k++){
+        cout<<"rbtPos "<<rbtPos[k]<<endl;
+    }*/
 
     for (unsigned int i = 0; i<this->map.size() - 1; i++) {
-        tempView = this->map[i];
+        tempView = this->map[i]; 
         tempSurf = tempView.getSurfaces();
         for (unsigned int j = 0; j < tempSurf.size(); j++) {
 //            if (pointInPolygon(PointXY((double) tempSurf[j].getP1().x, (double) tempSurf[j].getP1().y), polygon) == true ||
@@ -293,13 +303,33 @@ void Map::cleanMap(const vector<Surface>& cvSurfacesOnMap, const vector<Surface>
 //        cout<<PointInPolygon(cvSurfacesOnMap.back().midPoint().x,cvSurfacesOnMap.back().midPoint().y,cvSurfacesOnMap,cRobotSurfaces)<<" "<<endl;
 //        waitHere();
         //end debugging PointInPolygon
-        tempView.setSurfaces(surfacesOutsideCV);
+        
+        
+       
+            for(int j=0; j<surfacesOutsideCV.size(); j++){
+                if(!PointInHiddenSurface(PointXY(surfacesOutsideCV[j].getP1().x,surfacesOutsideCV[j].getP1().y),cvSurfacesOnMap, cRobotSurfaces)){
+                    // && !PointInHiddenSurface(PointXY(surfacesOutsideCV[i].getP2().x,surfacesOutsideCV[i].getP2().y),cvSurfacesOnMap, rbtPos[i], finalSurfaces)
+                    
+                    finalSurfaces.push_back(surfacesOutsideCV[j]);
+                    
+                    cout<<"PUSHED"<<endl;
+                }else{
+                    cout<<"Surface to delete : "<< surfacesOutsideCV[j].getP1().x <<" "<<surfacesOutsideCV[j].getP1().y
+                            <<" "<<surfacesOutsideCV[j].getP2().x<< " "<< surfacesOutsideCV[j].getP2().y<<endl;
+                }
+            }
+
+        
+        
+        tempView.setSurfaces(finalSurfaces);
+        //tempView.setSurfaces(surfacesOutsideCV);
         //tempView.setLandmarks(surfacesInsideCV);
         this->map[i] = tempView;
 
         //clear variables to reuse.
         surfacesInsideCV.clear();
         surfacesOutsideCV.clear();
+        finalSurfaces.clear();
     }
     
     cout << "Has been cleaned" << endl;
@@ -779,4 +809,33 @@ bool PointInPolygon(const double & pointX, const double & pointY, const vector<S
   }
 
   return c;
+}
+
+bool PointInHiddenSurface(const PointXY pointToCheck, const vector<Surface>& allSurfaces,  const vector<Surface>& robotSurfaces){
+    PointXY robotPos=PointXY(robotSurfaces[0].getP1().x, robotSurfaces[0].getP1().y);
+    for(int i=0; i<allSurfaces.size(); i++){
+        Surface surface=allSurfaces[i];
+        if(isBehindLine(pointToCheck,surface.ToSurfaceT(),robotPos)){
+            Surface s1=Surface(robotPos.getX(), robotPos.getY(), surface.getP1().x, surface.getP1().y);
+            Surface s2=Surface(robotPos.getX(), robotPos.getY(), surface.getP2().x, surface.getP2().y);
+            Surface stest=Surface(robotPos.getX(), robotPos.getY(), pointToCheck.getX(), pointToCheck.getY());           
+            double stestAngle=stest.getAngleWithXaxis();
+            
+            if((stestAngle<= s1.getAngleWithXaxis() && stestAngle>=s2.getAngleWithXaxis())
+                    ){
+                
+                //|| (stestAngle>= s1.getAngleWithXaxis() && stestAngle<=s2.getAngleWithXaxis())
+                cout<<"deletion operation "<<endl;
+            /*    cout<<"stestAngle "<<stestAngle<<endl;
+               cout<<"s2 angle "<<s2.getAngleWithXaxis()<<endl;
+               cout<<"s1 angle "<<s1.getAngleWithXaxis()<<endl;
+                final->push_back(s1);
+                final->push_back(s2);
+                final->push_back(stest);*/
+                return true;
+            }
+        }
+    }
+    return false;
+    
 }

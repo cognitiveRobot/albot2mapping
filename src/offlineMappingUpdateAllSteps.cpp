@@ -83,7 +83,11 @@ int main(int argc, char** argv) {
 
     /* -------- Loop ------- */
     char tkStep = 'y';
-    while (curView.getId() < 70) {
+    int numOfStept;
+    cout <<"How many steps? ";
+    cin >> numOfStept;
+            
+    while (curView.getId() < numOfStept && tkStep == 'y') {
         /* Increment counters */
 
         //construct view from points.
@@ -106,7 +110,11 @@ int main(int argc, char** argv) {
         sprintf(viewName, "%s%s%s%d", "../inputs/",argv[1],"/surfaces/coordTrans-", curView.getId());
         readOdometry(Albot, viewName);
         curMap.addPathSegment(Albot.getLastLocomotion());
+    //    curMap.addRbtPos(Albot.getLastLocomotion());
         curMap.setLandmarkSurfaces(curView.getSurfaces());
+        
+        cout << endl << endl << "Take another step? (y/n) "; // Ask user if continue
+        cin >> tkStep;
 
     }
     cout << "Lost cases: "<<curMap.getLostStepsNumber().size()<<endl;

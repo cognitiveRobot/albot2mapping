@@ -11,6 +11,7 @@
 #include <iostream>
 #include <vector>
 #include "PointAndSurface.h"
+#include "Robot.h"
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
@@ -66,6 +67,8 @@ double rad2deg(double radAngle);
 
 // Reduces an angle to the smallest difference bewtween two intersecting lines (always <=90 deg)
 double normAngleDiff(double degAngle);
+
+cv::Point3f getNewPosFromDistanceAngle(cv::Point3f lastPos,const AngleAndDistance & distanceAngle);
 
 #endif
 
