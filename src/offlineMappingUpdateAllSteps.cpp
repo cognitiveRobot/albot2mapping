@@ -114,7 +114,7 @@ int main(int argc, char** argv) {
         curMap.setLandmarkSurfaces(curView.getSurfaces());
         
         cout << endl << endl << "Take another step? (y/n) "; // Ask user if continue
-        cin >> tkStep;
+        //cin >> tkStep;
 
     }
     cout << "Lost cases: "<<curMap.getLostStepsNumber().size()<<endl;

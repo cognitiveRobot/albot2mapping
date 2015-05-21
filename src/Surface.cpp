@@ -25,6 +25,16 @@ Surface::~Surface() {
 
 }
 
+bool Surface::operator==(Surface const& b){
+    if(this->getP1().x==b.getP1().x
+            && this->getP1().y==b.getP1().y
+            && this->getP2().x==b.getP2().x
+            && this->getP2().y==b.getP2().y){
+        return true;
+    }
+    return false;
+}
+
 void Surface::display() const{
     cout<<"X1: "<<P1.x<<" Y1: "<<P1.y<<" X2: "<<P2.x<<" Y2: "<<P2.y<<endl;
     cout<<"L: "<<this->length()<<endl;
@@ -293,6 +303,10 @@ double Surface::distFromP1ToPoint(const float & a, const float & b) const{
 
 double Surface::distFromP2ToPoint(const float & a, const float & b) const{
     return sqrt((P2.x-a)*(P2.x-a)+(P2.y-b)*(P2.y-b));
+}
+
+double Surface::distFromMiddlePointToPoint(const float & a, const float & b) const{
+    return sqrt((this->midPoint().x-a)*(this->midPoint().x-a)+(this->midPoint().y-b)*(this->midPoint().y-b));
 }
 
 double Surface::getAngleWithXaxis() const{

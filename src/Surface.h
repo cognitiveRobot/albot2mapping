@@ -38,6 +38,8 @@ public:
     Surface();
     Surface(float X1, float Y1, float X2, float Y2);
     ~Surface();
+    
+    bool operator==(Surface const& b);
 
     int getId() const;
     
@@ -81,6 +83,7 @@ public:
     
     double distFromP1ToPoint(const float & a, const float & b) const;
     double distFromP2ToPoint(const float & a, const float & b) const;
+    double distFromMiddlePointToPoint(const float & a, const float & b) const;
     
     //given that angle, distance, and reference direction, find the x and y co-ordinate with respect to this surface.
     void locatePointAt(double & x, double & y, const double & ang, const double & distance, const int & refDirection);

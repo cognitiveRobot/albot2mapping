@@ -48,7 +48,6 @@ public:
     Map(int _sizeX, int _sizeY);
     ~Map();
     
-
     void initializeMap(const View & firstView);
     
     void setMapID(const int & a);
@@ -111,6 +110,8 @@ public:
     
     void expandMap(const View & curView);
     
+   void AdjustSurfacesPosition(const vector<Surface>& robotSurfaces);
+    
     
 };
 
@@ -131,7 +132,13 @@ vector<Surface> trangulateSurfaces(const Surface & refInMap, const Surface & ref
 //point in polygon.
 bool PointInPolygon(const double & pointX, const double & pointY, const vector<Surface>& surfaces, 
         const vector<Surface>& robotSurfaces);
+
+/**
+ * Return true if the point to check can't be seen from the robot position because it's hidden by a surface in allSurfaces
+ */
 bool PointInHiddenSurface(const PointXY pointToCheck, const vector<Surface>& allSurfaces, const vector<Surface>& robotSurfaces);
+
+ 
 
 #endif	/* MAPPER_H */
 

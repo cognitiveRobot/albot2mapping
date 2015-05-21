@@ -68,6 +68,9 @@ double rad2deg(double radAngle);
 // Reduces an angle to the smallest difference bewtween two intersecting lines (always <=90 deg)
 double normAngleDiff(double degAngle);
 
+/**
+ * Return the new position after moving the distance and angle of distanceAngle from lastPos
+ */
 cv::Point3f getNewPosFromDistanceAngle(cv::Point3f lastPos,const AngleAndDistance & distanceAngle);
 
 #endif
