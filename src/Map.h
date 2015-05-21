@@ -15,6 +15,7 @@
 using namespace std;
 //using namespace cv;
 
+const int MIN_DISTANCE_VISION=1000; 
 
 class Map {
 private:
