@@ -470,7 +470,7 @@ void Map::addCVUsingMultipleRef(const View & curView) {
     //end demo1
     plotViewsGNU(mapName,this->getMap());
 //    
-//    waitHere();
+   // waitHere();
 }
 
 void Map::saveInTxtFile(const char * filename, const vector<Surface> & rpSurfaces) {
@@ -839,22 +839,31 @@ bool PointInPolygon(const double & pointX, const double & pointY, const vector<S
 }
 
 bool PointInHiddenSurface(const PointXY pointToCheck, const vector<Surface>& allSurfaces,  const vector<Surface>& robotSurfaces){
-    PointXY robotPos=PointXY(robotSurfaces[0].getP1().x, robotSurfaces[0].getP1().y);
-    for(int i=0; i<allSurfaces.size(); i++){
-        Surface surface=allSurfaces[i];
-        if(isBehindLine(pointToCheck,surface.ToSurfaceT(),robotPos)){
-            Surface s1=Surface(robotPos.getX(), robotPos.getY(), surface.getP1().x, surface.getP1().y);
-            Surface s2=Surface(robotPos.getX(), robotPos.getY(), surface.getP2().x, surface.getP2().y);
-            Surface stest=Surface(robotPos.getX(), robotPos.getY(), pointToCheck.getX(), pointToCheck.getY());           
-            double stestAngle=stest.getAngleWithXaxis();
-            
-            if(stestAngle<= s1.getAngleWithXaxis() && stestAngle>=s2.getAngleWithXaxis()){
-                return true;
-            }
+    if(allSurfaces.size()>0){
+            PointXY robotPos=PointXY(robotSurfaces[0].getP1().x, robotSurfaces[0].getP1().y);
+        vector<Surface>lineStarted;
+        lineStarted.push_back(allSurfaces[0]);
+        for(int i=1; i<allSurfaces.size(); i++){
+                if(lineStarted[lineStarted.size()-1].getP2() == allSurfaces[i].getP1()){
+                        lineStarted.push_back(allSurfaces[i]);
+                        continue;
+                }
+                if(!PointInPolygon(pointToCheck.getX(), pointToCheck.getY(), lineStarted, robotSurfaces)){ //Not necessary ?
+                    Surface s1=Surface(robotPos.getX(), robotPos.getY(), lineStarted[0].getP1().x, lineStarted[0].getP1().y);
+                    Surface s2=Surface(robotPos.getX(), robotPos.getY(), lineStarted[lineStarted.size()-1].getP2().x, lineStarted[lineStarted.size()-1].getP2().y);
+                    Surface stest=Surface(robotPos.getX(), robotPos.getY(), pointToCheck.getX(), pointToCheck.getY());           
+                    double stestAngle=stest.getAngleWithXaxis();
+
+                    if(stestAngle<= s1.getAngleWithXaxis() && stestAngle>=s2.getAngleWithXaxis()){
+                        cout<<"HIDDEN"<<endl;
+                        return true;
+                    }
+                    lineStarted.clear();
+                    lineStarted.push_back(allSurfaces[i]);
+                }
         }
     }
     return false;
-    
 }
 
 void Map::AdjustSurfacesPosition( const vector<Surface>& robotSurfaces){
@@ -912,12 +921,5 @@ void Map::AdjustSurfacesPosition( const vector<Surface>& robotSurfaces){
     lastView.setSurfaces(surfacesAdjusted);
     //plotViewGNU("../outputs/Maps/2lastView.png",lastView);
     //waitHere();
-    this->map[this->map.size()-1]=lastView;
-    
-/*   cout<<"ADJUSTED :"<<endl;
-    for(int i=0; i<surfacesAdjusted.size(); i++){
-        surfacesAdjusted[i].display();
-    }
-*/
-        
+    this->map[this->map.size()-1]=lastView;   
 }
