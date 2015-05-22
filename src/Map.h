@@ -137,7 +137,7 @@ bool PointInPolygon(const double & pointX, const double & pointY, const vector<S
 /**
  * Return true if the point to check can't be seen from the robot position because it's hidden by a surface in allSurfaces
  */
-bool PointInHiddenSurface(const PointXY pointToCheck, const vector<Surface>& allSurfaces, const vector<Surface>& robotSurfaces);
+bool PointInHiddenSurface(const cv::Point2f pointToCheck, const vector<Surface>& allSurfaces, const vector<Surface>& robotSurfaces);
 
  
 

@@ -59,6 +59,8 @@ public:
     /** internally re-creates this surface, resetting the points and assigning a new id */
     void reset();
     
+    std::vector<cv::Point2f> getAllPoints();
+    
     //transforms and returns this surface P1 and P2 (which are in old coordinate) to a new coordinate
     //whose center and angle with respect to old coordinate frame are given.
     //from pv on to cv.
