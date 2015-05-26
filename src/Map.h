@@ -111,7 +111,7 @@ public:
     
     void expandMap(const View & curView);
     
-   void AdjustSurfacesPosition(const vector<Surface>& robotSurfaces);
+   void ClearCloseSurfaces(const vector<Surface>& robotSurfaces);
     
     
 };
