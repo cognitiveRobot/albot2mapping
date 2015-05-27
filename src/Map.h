@@ -15,7 +15,7 @@
 using namespace std;
 //using namespace cv;
 
-const int MIN_DISTANCE_VISION=1000; 
+const int MIN_DISTANCE_VISION=800; 
 
 class Map {
 private:
@@ -111,7 +111,9 @@ public:
     
     void expandMap(const View & curView);
     
-   void ClearCloseSurfaces(const vector<Surface>& robotSurfaces);
+    //delete surfaces less than MIN_DISTANCE_VISION away
+    //returns the surfaces of the last view with the robot position in place of the deleted surfaces (for PointInPolygon)
+   vector<Surface> ClearCloseSurfaces(const vector<Surface>& robotSurfaces);
     
     
 };
