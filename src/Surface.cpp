@@ -219,11 +219,13 @@ void Surface::reset() {
 std::vector<cv::Point2f> Surface::getAllPoints(){
     std::vector<cv::Point2f> allPoints;
     allPoints.push_back(P1);
-    double slope=(P2.y-P1.y)/(P2.x-P1.x);
-    double b=P1.y-(slope*P1.x);
-    for(int i=P1.x; i<P2.x; i+=10){
-        allPoints.push_back(cv::Point2f(i, slope*i+b));
-    }
+    if(P2.x != P1.x){
+        double slope=(P2.y-P1.y)/(P2.x-P1.x);
+        double b=P1.y-(slope*P1.x);
+        for(int i=P1.x; i<P2.x; i+=10){
+            allPoints.push_back(cv::Point2f(i, slope*i+b));
+        }
+    } 
     allPoints.push_back(P2);
     return allPoints;
 }

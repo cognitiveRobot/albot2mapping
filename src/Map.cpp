@@ -289,24 +289,24 @@ void Map::cleanMap(const vector<Surface>& cvSurfacesOnMap, const vector<Surface>
                     continue;
                 }else if(P1inPolygon || P2inPolygon || MiddleInPolygon){
                     // Keeps only the parts of the surface outside polygon
-                    vector<cv::Point2f> points=tempSurf[j].getAllPoints();    
-                    cv::Point2f lastVisiblePoint;
+                    vector<cv::Point2f> tempPoints=tempSurf[j].getAllPoints();    
+                    cv::Point2f lastPointOut;
                     bool inPolygon=P1inPolygon;
                     if(!P1inPolygon){
-                        lastVisiblePoint=points[0];
+                        lastPointOut=tempPoints[0];
                     }                   
-                    for(int k=1; k<points.size(); k++){
-                        bool test=PointInPolygon(points[k].x, points[k].y, surfacesForPointInPolygon, cRobotSurfaces);
+                    for(int k=1; k<tempPoints.size(); k++){
+                        bool test=PointInPolygon(tempPoints[k].x, tempPoints[k].y, surfacesForPointInPolygon, cRobotSurfaces);
                         if(inPolygon && !test){
-                            lastVisiblePoint=points[k];
+                            lastPointOut=tempPoints[k];
                             inPolygon=false;
                         }else if(!inPolygon && test){
-                            surfacesOutsideCV.push_back(Surface(lastVisiblePoint.x, lastVisiblePoint.y, points[k-1].x, points[k-1].y));
+                            surfacesOutsideCV.push_back(Surface(lastPointOut.x, lastPointOut.y, tempPoints[k-1].x, tempPoints[k-1].y));
                             inPolygon=true;
                         }
                     }
                     if(!inPolygon){
-                        surfacesOutsideCV.push_back(Surface(lastVisiblePoint.x, lastVisiblePoint.y, points[points.size()-1].x, points[points.size()-1].y));
+                        surfacesOutsideCV.push_back(Surface(lastPointOut.x, lastPointOut.y, tempPoints[tempPoints.size()-1].x, tempPoints[tempPoints.size()-1].y));
                     }              
                 }else if(!P1inPolygon && !P2inPolygon && !MiddleInPolygon){
                     // Keeps the whole surface
@@ -322,8 +322,8 @@ void Map::cleanMap(const vector<Surface>& cvSurfacesOnMap, const vector<Surface>
                     // Don't keep the surface
                     continue;
                 }else if(P1hidden || P2hidden){
-                    // Keeps only the parts of the surface outside polygon
-                    vector<cv::Point2f> points=tempSurf[j].getAllPoints();    
+                    // Keeps only the parts of the surface not hidden
+                    vector<cv::Point2f> points=surfacesOutsideCV[j].getAllPoints();    
                     cv::Point2f lastVisiblePoint;
                     bool hidden=P1hidden;
                     if(!P1hidden){
@@ -334,7 +334,7 @@ void Map::cleanMap(const vector<Surface>& cvSurfacesOnMap, const vector<Surface>
                         if(hidden && !test){
                             lastVisiblePoint=points[k];
                             hidden=false;
-                        }else if(!hidden&& test){
+                        }else if(!hidden&& test){                    
                             finalSurfaces.push_back(Surface(lastVisiblePoint.x, lastVisiblePoint.y, points[k-1].x, points[k-1].y));
                             hidden=true;
                         }
