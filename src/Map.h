@@ -141,7 +141,6 @@ bool PointInPolygon(const double & pointX, const double & pointY, const vector<S
  */
 bool PointInHiddenSurface(const cv::Point2f pointToCheck, const vector<Surface>& allSurfaces, const vector<Surface>& robotSurfaces);
 
- 
 
 #endif	/* MAPPER_H */
 
