@@ -333,83 +333,79 @@ double normAngleDiff(double degAngle) {
     return degAngle;
 }
 
+
+bool pointInPolygon(const double & pointX, const double & pointY, const vector<PointXY>& points){
+    int i, j, nvert = points.size();
+        bool c = false;
+
+        for(i = 0, j = nvert - 1; i < nvert; j = i++) {
+          if( ( (points[i].getY() >= pointY ) != (points[j].getY() >= pointY) ) &&
+              (pointX <= (points[j].getX() - points[i].getX()) * (pointY - points[i].getY()) / (points[j].getY() - points[i].getY()) + points[i].getX())
+            )
+            c = !c;
+        }
+
+        return c;
+}
+
+
+
+
+
+
 /* Determines if a point is inside a polygon. Uses ray casting algorithm.
  * NOTE: if the point is EXACTLY ON a vertex or edge, then result is true (inside).
  */
-bool pointInPolygon(const PointXY & point, const vector<SurfaceT> & polygon, bool strictly) {
+//bool pointInPolygon(const PointXY & point, const vector<SurfaceT> & polygon, bool strictly) {
+//
+//    bool first_time = false;
+//    bool ray_change_needed;
+//    SurfaceT ray;
+//
+//    while (true) {
+//        ray_change_needed = false;
+//
+//        if (!first_time) { // avoid too much calls to 
+//            ray = SurfaceT(point, PointXY(point.getX(), point.getY() + 10000000.0+rand()));
+//            //cout<<ray.getX1()<<" "<<ray.getY1()<<" "<<ray.getX2()<<" "<<ray.getY2()<<" "<<endl;
+//            first_time = true;
+//            //waitHere();
+//        } else {
+//            ray = SurfaceT(point, PointXY(point.getX() + rand(), point.getY() + rand()));
+//        }
+//
+//
+//        /* Intersect the ray with the polygon edges.
+//         * If the number of intersections is uneven, then the point is inside.
+//         */
+//        unsigned int numInters = 0;
+//        for (vector<SurfaceT>::const_iterator it = polygon.begin(); it != polygon.end(); ++it) {
+//            
+//            // Special case 2: Directly on a vertex
+//            if (point == it->getP1() || point == it->getP2()) {
+//                return !strictly;
+//            }
+//
+//            // Special case 3 : On an edge
+//            if (it->contains(point)) {
+//                return !strictly;
+//            }
+//
+//            if (ray.contains(it->getP1()) || ray.contains(it->getP2())) {
+//                ray_change_needed = true;
+//                break;
+//            }
 
-    bool first_time = false;
-    bool ray_change_needed;
-    SurfaceT ray;
-
-    while (true) {
-        ray_change_needed = false;
-
-        if (!first_time) { // avoid too much calls to 
-            ray = SurfaceT(point, PointXY(point.getX(), point.getY() + 10000000.0+rand()));
-            //cout<<ray.getX1()<<" "<<ray.getY1()<<" "<<ray.getX2()<<" "<<ray.getY2()<<" "<<endl;
-            first_time = true;
-            //waitHere();
-        } else {
-            ray = SurfaceT(point, PointXY(point.getX() + rand(), point.getY() + rand()));
-        }
-
-
-        /* Intersect the ray with the polygon edges.
-         * If the number of intersections is uneven, then the point is inside.
-         */
-        unsigned int numInters = 0;
-        for (vector<SurfaceT>::const_iterator it = polygon.begin(); it != polygon.end(); ++it) {
-            
-            // Special case 2: Directly on a vertex
-            if (point == it->getP1() || point == it->getP2()) {
-                return !strictly;
-            }
-
-            // Special case 3 : On an edge
-            if (it->contains(point)) {
-                return !strictly;
-            }
-
-            if (ray.contains(it->getP1()) || ray.contains(it->getP2())) {
-                ray_change_needed = true;
-                break;
-            }
-
-            
-
-
-
-
-
-            // Otherwise, calculate the intersection.
-            if (it->intersects(ray)) {
-                numInters++;
-            }
-        }
-        
-        //cout<<ray_change_needed<<endl;
-
-        if (!ray_change_needed) {
-            return numInters % 2 != 0;
-        }
-    }
-}
-
-cv::Point3f getNewPosFromDistanceAngle(cv::Point3f lastPos, const AngleAndDistance & distanceAngle){
-    double newAngle=lastPos.z+  distanceAngle.angle;
-    
-    //Normalize the angle
-    if(newAngle>180){
-        newAngle-=360;
-    }else if(newAngle<-180){
-        newAngle+=360;
-    }
-    cout<<"angle "<<newAngle<<endl;
-
-    return cv::Point3f(lastPos.x+(distanceAngle.distance*sin(deg2rad(newAngle))),
-            lastPos.y+(distanceAngle.distance*cos(deg2rad(newAngle))),
-            newAngle);
-    
-}
-
+//            // Otherwise, calculate the intersection.
+//            if (it->intersects(ray)) {
+//                numInters++;
+//            }
+//        }
+//        
+//        //cout<<ray_change_needed<<endl;
+//
+//        if (!ray_change_needed) {
+//            return numInters % 2 != 0;
+//        }
+//    }
+//}

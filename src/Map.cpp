@@ -28,10 +28,23 @@ int Map::getMapID() {
 }
 
 void Map::initializeMap(const View & firstView) {
+   
     map.clear(); //make sure the map is empty.
     map.push_back(firstView); //add the first view.
+    
+     pathSegments.clear(); //make sure the pathsegments is empty.
 
-    pathSegments.clear(); //make sure the pathsegments is empty.
+    vector<Surface> surfaces=firstView.getSurfaces();
+    boundaries=list<Surface>(surfaces.begin(),surfaces.end());
+    
+    Surface robotOrientation=firstView.getRobotSurfaces()[0];
+    leftBoundaryAngle=robotOrientation.getAngleFromP1ToPoint(boundaries.front().getP1().x, boundaries.front().getP1().y);
+    rightBoundaryAngle=robotOrientation.getAngleFromP1ToPoint(boundaries.back().getP2().x, boundaries.back().getP2().y);   
+    
+    char mapName[50];
+    sprintf(mapName, "%s%d%s%d%s", "../outputs/Maps/GM-",getMapID(),"-Map-", firstView.getId(), "a-before.png");   
+    plotViewsGNU(mapName,this->getMap());
+    cout<<mapName<<" writen"<<endl;
 }
 
 void Map::setPreviousView(const View & pView) {
@@ -42,9 +55,16 @@ View Map::getPreviousView() {
     return previousView;
 }
 
-void Map::addRbtPos(const AngleAndDistance & angAndDist){
-    cv::Point3f rbtPosition=getNewPosFromDistanceAngle(rbtPos[rbtPos.size()-1], angAndDist);
-    rbtPos.push_back(rbtPosition);
+list<Surface> Map::getBoundaries(){
+    return boundaries;
+}
+
+double Map::getLeftBoundaryAngle(){
+    return leftBoundaryAngle;
+}
+    
+double Map::getRightBoundaryAngle(){
+    return rightBoundaryAngle;
 }
 
 void Map::addPathSegment(const AngleAndDistance & lastPathSegment) {
@@ -294,7 +314,7 @@ void Map::cleanMap(const vector<Surface>& cvSurfacesOnMap, const vector<Surface>
                     if(!P1inPolygon){
                         lastPointOut=tempPoints[0];
                     }                   
-                    for(int k=1; k<tempPoints.size(); k++){
+                    for(unsigned int k=1; k<tempPoints.size(); k++){
                         bool test=PointInPolygon(tempPoints[k].x, tempPoints[k].y, surfacesForPointInPolygon, cRobotSurfaces);
                         if(inPolygon && !test){
                             lastPointOut=tempPoints[k];
@@ -315,7 +335,7 @@ void Map::cleanMap(const vector<Surface>& cvSurfacesOnMap, const vector<Surface>
             }
 
             //Point hidden by a surface
-            for(int j=0; j<surfacesOutsideCV.size(); j++){
+            for(unsigned int j=0; j<surfacesOutsideCV.size(); j++){
                 bool P1hidden=PointHiddenBySurfaces(surfacesOutsideCV[j].getP1(),lastViewSurfaces, tempView.getRobotSurfaces());
                 bool P2hidden=PointHiddenBySurfaces(surfacesOutsideCV[j].getP2(),lastViewSurfaces, tempView.getRobotSurfaces());
                  if( P1hidden && P2hidden){ 
@@ -329,7 +349,7 @@ void Map::cleanMap(const vector<Surface>& cvSurfacesOnMap, const vector<Surface>
                     if(!P1hidden){
                         lastVisiblePoint=points[0];
                     }                   
-                    for(int k=1; k<points.size(); k++){
+                    for(unsigned int k=1; k<points.size(); k++){
                         bool test=PointHiddenBySurfaces(points[k], lastViewSurfaces, cRobotSurfaces);
                         if(hidden && !test){
                             lastVisiblePoint=points[k];
@@ -415,12 +435,15 @@ void Map::cleanMapUsingOdo(const View & curView, const AngleAndDistance & homeIn
 //all-centric mapping.
 //add cv to the map using multiple reference. 
 void Map::addCVUsingMultipleRef(const View & curView) {
-    cout<<endl<<"Adding cv using multiple reference surfaces!!!"<<endl;
+    
+  //  cout<<endl<<"Adding cv using multiple reference surfaces!!!"<<endl;
     //find reference surfaces
+    
     ReferenceSurfaces refSurfacePair;
-    vector<ReferenceSurfaces> sameSurfaces;
+    
+ /*  vector<ReferenceSurfaces> sameSurfaces;
     SameSurfaceFinderOdo sSurfaceInfo;
-    //sSurfaceInfo.recognizeAllSameSurface(sameSurfaces, this->getMap(), this->getLandmarkSurfaces(), curView.getSurfaces(), this->getPathSegments().back());
+    sSurfaceInfo.recognizeAllSameSurface(sameSurfaces, this->getMap(), this->getLandmarkSurfaces(), curView.getSurfaces(), this->getPathSegments().back());
     if ( sameSurfaces.size() > 1000) { //using landmark as reference.
 //    if ( sameSurfaces.size() > 0 && 
 //            (curView.getId() == 7 or curView.getId() == 19 or curView.getId() == 33 or curView.getId() == 67)) {
@@ -430,8 +453,10 @@ void Map::addCVUsingMultipleRef(const View & curView) {
             sameSurfaces[i].display();
             //sameSurfaces[i].getMapSurface().display();
         }
-    } else {//using odometer.
-        cout<<endl<<endl<<"Recognition failed. Need to use odometery. "<<endl;
+    } else {*/    
+      //  cout<<endl<<endl<<"Recognition failed. Need to use odometery. "<<endl;
+    
+        //using odometer.
         refSurfacePair.setMapSurface(makeSurfaceWith(this->getMap().back().getRobotSurfaces()[0],
                 this->getPathSegments().back().angle,this->getPathSegments().back().distance,400.0));
         refSurfacePair.setViewSurface(curView.getRobotSurfaces()[0]);
@@ -440,14 +465,13 @@ void Map::addCVUsingMultipleRef(const View & curView) {
         //save this view number.         
         this->lostSteps.push_back(curView.getId());
         //waitHere();
-    }
-    
-    
-    
-    
+        
+    //}
+
     Surface cvSurfaceOnMap;
     vector<Surface> allCVSurfacesOnMap;
     for(unsigned int i=0; i<curView.getSurfaces().size(); i++) {
+        
         //find the closest ref pair using current view 
 //        if(sameSurfaces.size() > 0)
 //            refSurfacePair = findTheClosestReference(curView.getSurfaces()[i],sameSurfaces);
@@ -480,7 +504,7 @@ void Map::addCVUsingMultipleRef(const View & curView) {
  
     
     char mapName[50];
-    sprintf(mapName, "%s%d%s", "../outputs/Maps/Map-", curView.getId(), "a-before.png");                    
+    sprintf(mapName, "%s%d%s%d%s", "../outputs/Maps/GM-",getMapID(),"-Map-", curView.getId(), "a-before.png");   
     plotViewsGNU(mapName,this->getMap());
     
     //cleanMap.
@@ -494,6 +518,65 @@ void Map::addCVUsingMultipleRef(const View & curView) {
     //end demo1
     plotViewsGNU(mapName,this->getMap());
 //    
+  //  waitHere();
+}
+
+View Map::computeCVUsingMultipleRef(const View& curView){
+     ReferenceSurfaces refSurfacePair;
+
+    //using odometer.
+    refSurfacePair.setMapSurface(makeSurfaceWith(this->getMap().back().getRobotSurfaces()[0],
+            this->getPathSegments().back().angle, this->getPathSegments().back().distance, 400.0));
+    refSurfacePair.setViewSurface(curView.getRobotSurfaces()[0]);
+    refSurfacePair.setRefPoint(1);
+
+    //save this view number.         
+    this->lostSteps.push_back(curView.getId());
+    //waitHere();
+
+    Surface cvSurfaceOnMap;
+    vector<Surface> allCVSurfacesOnMap;
+    for (unsigned int i = 0; i < curView.getSurfaces().size(); i++) {
+        //trangulate this surface.
+        cout << curView.getSurfaces()[i].getId() << " refID: " << refSurfacePair.getViewSurface().getId() << endl;
+
+        cvSurfaceOnMap = trangulateSurface(refSurfacePair.getMapSurface(), refSurfacePair.getViewSurface(),
+                curView.getSurfaces()[i], refSurfacePair.getRefPoint());
+        allCVSurfacesOnMap.push_back(cvSurfaceOnMap);
+    }
+    
+    //compute robot surfaces.
+    Surface cRobotSurfaceOnMap;
+    vector<Surface> cRobotSurfacesOnMap;
+
+    for(unsigned int i = 0; i < curView.getRobotSurfaces().size(); i++) {
+        cRobotSurfaceOnMap = trangulateSurface(refSurfacePair.getMapSurface(),refSurfacePair.getViewSurface(),
+                curView.getRobotSurfaces()[i],refSurfacePair.getRefPoint());
+        cRobotSurfacesOnMap.push_back(cRobotSurfaceOnMap);
+    }
+
+    View cViewOnMap;    
+    cViewOnMap.setSurfaces(allCVSurfacesOnMap);
+    cViewOnMap.setRobotSurfaces(cRobotSurfacesOnMap);
+    cViewOnMap.setId(curView.getId());
+
+    return cViewOnMap;
+}
+
+void Map::addCv(const View& view){
+    this->map.push_back(view);
+
+    char mapName[50];
+    sprintf(mapName, "%s%d%s%d%s", "../outputs/Maps/GM-",getMapID(),"-Map-", view.getId(), "a-before.png");   
+    plotViewsGNU(mapName,this->getMap());
+    cout<<mapName<<" writen"<<endl;
+    
+    //cleanMap.
+    cleanMap(view.getSurfaces(),view.getRobotSurfaces());
+    sprintf(mapName, "%s%d%s%d%s", "../outputs/Maps/GM-",getMapID(),"-Map-", view.getId(), "b-after.png");
+    plotViewsGNU(mapName,this->getMap());
+    cout<<mapName<<" writen"<<endl;
+    
   //  waitHere();
 }
 
@@ -849,17 +932,18 @@ bool PointInPolygon(const double & pointX, const double & pointY, const vector<S
             points.push_back(PointXY(surfaces[i].getP1().x, surfaces[i].getP1().y));
             points.push_back(PointXY(surfaces[i].getP2().x, surfaces[i].getP2().y));
         }
-        int i, j, nvert = points.size();
-        bool c = false;
-
-        for(i = 0, j = nvert - 1; i < nvert; j = i++) {
-          if( ( (points[i].getY() >= pointY ) != (points[j].getY() >= pointY) ) &&
-              (pointX <= (points[j].getX() - points[i].getX()) * (pointY - points[i].getY()) / (points[j].getY() - points[i].getY()) + points[i].getX())
-            )
-            c = !c;
-        }
-
-        return c;
+//        int i, j, nvert = points.size();
+//        bool c = false;
+//
+//        for(i = 0, j = nvert - 1; i < nvert; j = i++) {
+//          if( ( (points[i].getY() >= pointY ) != (points[j].getY() >= pointY) ) &&
+//              (pointX <= (points[j].getX() - points[i].getX()) * (pointY - points[i].getY()) / (points[j].getY() - points[i].getY()) + points[i].getX())
+//            )
+//            c = !c;
+//        }
+//
+//        return c;
+        return pointInPolygon(pointX, pointY, points);
 }
 
 bool PointHiddenBySurfaces(const cv::Point2f pointToCheck, const vector<Surface>& allSurfaces,  const vector<Surface>& robotSurfaces){
@@ -868,7 +952,7 @@ bool PointHiddenBySurfaces(const cv::Point2f pointToCheck, const vector<Surface>
         vector<Surface> adjacentSurfaces;
         adjacentSurfaces.push_back(allSurfaces[0]);
         
-        for(int i=1; i<allSurfaces.size(); i++){
+        for(unsigned int i=1; i<allSurfaces.size(); i++){
                 if(adjacentSurfaces[adjacentSurfaces.size()-1].getP2() == allSurfaces[i].getP1()){
                         adjacentSurfaces.push_back(allSurfaces[i]);
                         continue;
@@ -903,7 +987,7 @@ vector<Surface> Map::ClearCloseSurfaces( const vector<Surface>& robotSurfaces){
     vector<Surface> lastSurfaces=lastView.getSurfaces();
             
 
-    for(int i=0; i<lastSurfaces.size(); i++){ 
+    for(unsigned int i=0; i<lastSurfaces.size(); i++){ 
             
             double distFromRobot = lastSurfaces[i].distFromP1ToPoint(robotPos.x, robotPos.y);
         double distFromRobot2 = lastSurfaces[i].distFromP2ToPoint(robotPos.x, robotPos.y);

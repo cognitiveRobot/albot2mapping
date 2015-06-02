@@ -59,7 +59,9 @@ bool isBehindLine(const PointXY & pointToCheck, const SurfaceT & line, const Poi
 /* Determines if a point is inside a polygon. Uses ray casting algorithm.
  * NOTE: if the point is EXACTLY ON a vertex or edge, then result is true (inside).
  */
-bool pointInPolygon(const PointXY & point, const std::vector<SurfaceT> & polygon, bool strictly = false);
+//bool pointInPolygon(const PointXY & point, const std::vector<SurfaceT> & polygon, bool strictly = false);
+
+bool pointInPolygon(const double & pointX, const double & pointY, const vector<PointXY>& points);
 
 double deg2rad(double degAngle);
 

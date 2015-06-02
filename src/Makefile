@@ -78,7 +78,8 @@ LIBSRCS = \
 	SameSurfaceFinderOdo.cpp \
 	Printer.cpp \
 	PathFinder.cpp \
-	ImageProcessing.cpp
+	ImageProcessing.cpp \
+	GlobalMap.cpp
 
 #main programs	
 PROGSRCS= \

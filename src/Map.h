@@ -32,6 +32,9 @@ private:
     vector<Surface> surfaces;
     vector<cv::Point3f> rbtPos;
     cv::Mat drawing;
+    std::list<Surface> boundaries;
+    double leftBoundaryAngle;
+    double rightBoundaryAngle;
     
     vector<View> map;
     
@@ -57,6 +60,12 @@ public:
     void setPreviousView(const View & pView);
     View getPreviousView();
     
+    list<Surface> getBoundaries();
+    
+    double getLeftBoundaryAngle();
+    
+    double getRightBoundaryAngle();
+    
     void setTempSurfaces(const vector<Surface> & surfs);
     vector<Surface> getTempSurfaces() const;
     
@@ -70,8 +79,6 @@ public:
     Surface getRefForNextLS();
     
     vector<int> getLostStepsNumber() const;
-    
-    void addRbtPos(const AngleAndDistance & angAndDist);
    
     void addPathSegment(const AngleAndDistance & lastPathSegment);
     vector<AngleAndDistance> getPathSegments() const;
@@ -89,7 +96,11 @@ public:
     void addPVUsingOdo(const View & curView, const AngleAndDistance & homeInfo);
     
     //updating
-    void addCVUsingMultipleRef(const View & curView);
+    void addCVUsingMultipleRef(const View & curView); //Deprecated
+    
+    //addCVUsingMultipleRef split in 2 parts
+    View computeCVUsingMultipleRef(const View & curView);
+    void addCv(const View & view);
     
     
     //void update(View newView); // Update the map according to the newView
@@ -139,7 +150,7 @@ bool PointInPolygon(const double & pointX, const double & pointY, const vector<S
 /**
  * Return true if the point to check can't be seen from the robot position because it's hidden by a surface in allSurfaces
  */
-bool PointInHiddenSurface(const cv::Point2f pointToCheck, const vector<Surface>& allSurfaces, const vector<Surface>& robotSurfaces);
+bool PointHiddenBySurfaces(const cv::Point2f pointToCheck, const vector<Surface>& allSurfaces, const vector<Surface>& robotSurfaces);
 
 
 #endif	/* MAPPER_H */
