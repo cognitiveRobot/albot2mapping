@@ -32,9 +32,10 @@ private:
     vector<Surface> surfaces;
     vector<cv::Point3f> rbtPos;
     cv::Mat drawing;
-    std::list<Surface> boundaries;
-    double leftBoundaryAngle;
-    double rightBoundaryAngle;
+    list<Surface> boundaries;
+   // double leftBoundaryAngle;
+  //  double rightBoundaryAngle;
+    vector< pair<double,double> > anglesWithoutBoundaries;
     
     vector<View> map;
     
@@ -61,10 +62,11 @@ public:
     View getPreviousView();
     
     list<Surface> getBoundaries();
+    void addBoundary(Surface newBoundary);
     
-    double getLeftBoundaryAngle();
-    
-    double getRightBoundaryAngle();
+    vector< pair<double,double> >  getAnglesWithoutBoundaries();
+    bool setAnglesWithoutBoundaries(unsigned int index, pair<double,double> value);
+    void addAnglesWithoutBoundaries(pair<double,double> value);
     
     void setTempSurfaces(const vector<Surface> & surfs);
     vector<Surface> getTempSurfaces() const;
@@ -126,6 +128,7 @@ public:
     //returns the surfaces of the last view with the robot position in place of the deleted surfaces (for PointInPolygon)
    vector<Surface> ClearCloseSurfaces(const vector<Surface>& robotSurfaces);
     
+   bool compareSurfaces(const Surface & a, const Surface & b);
     
 };
 
@@ -151,6 +154,7 @@ bool PointInPolygon(const double & pointX, const double & pointY, const vector<S
  * Return true if the point to check can't be seen from the robot position because it's hidden by a surface in allSurfaces
  */
 bool PointHiddenBySurfaces(const cv::Point2f pointToCheck, const vector<Surface>& allSurfaces, const vector<Surface>& robotSurfaces);
+
 
 
 #endif	/* MAPPER_H */

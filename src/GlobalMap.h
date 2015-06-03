@@ -24,7 +24,34 @@ private:
     vector<Map> maps;
 };
 
+/**
+ * Returns true if a new map (local space) must begin, false if the robot is 
+ * still in the same local space
+ * @param map
+ * @param newView view to be added to a map
+
+ */
 bool localSpaceChanged(Map& map, const View& newView);
+
+/**
+ * Adds the surfaces that can be considered as boundaries to map's boundaries
+ * @param map
+ * @param viewSurfaces surfaces to check
+ */
+void updateBoundaries(Map& map, const vector<Surface> & viewSurfaces);
+
+/**
+ * Adds the surfaces between minAngle and maxAngle to map's boundaries 
+ * (without them covering same angles)
+ * @param map
+ * @param viewSurfaces surfaces to check
+ * @param minAngle angle from robot origin orientation from which boundaries
+ *  can be added
+ * @param maxAngle angle from robot origin orientation until which boundaries 
+ * can be added
+ */
+void findAndAddBoundaries(Map& map, const vector<Surface> & viewSurfaces, double minAngle, double maxAngle );
+
 
 #endif	/* GLOBALMAP_H */
 
