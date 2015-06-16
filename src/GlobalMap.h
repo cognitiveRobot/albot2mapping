@@ -36,9 +36,9 @@ bool localSpaceChanged(Map& map, const View& newView);
 /**
  * Adds the surfaces that can be considered as boundaries to map's boundaries
  * @param map
- * @param viewSurfaces surfaces to check
+ * @param view view containing the surfaces to add
  */
-void updateBoundaries(Map& map, const vector<Surface> & viewSurfaces);
+void updateBoundaries(Map& map, const View& view);
 
 /**
  * Adds the surfaces between minAngle and maxAngle to map's boundaries 
@@ -50,8 +50,9 @@ void updateBoundaries(Map& map, const vector<Surface> & viewSurfaces);
  * @param maxAngle angle from robot origin orientation until which boundaries 
  * can be added
  */
-void findAndAddBoundaries(Map& map, const vector<Surface> & viewSurfaces, double minAngle, double maxAngle );
+vector< pair<double,double> > findAndAddBoundaries(Map& map, const vector<Surface> & viewSurfaces, double minAngle, double maxAngle );
 
 
+vector<Surface> findTrustedSurfaces(const View& view);
 #endif	/* GLOBALMAP_H */
 

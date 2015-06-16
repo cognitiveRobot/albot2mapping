@@ -16,6 +16,7 @@ using namespace std;
 //using namespace cv;
 
 const int MIN_DISTANCE_VISION=800; 
+const int MAX_DISTANCE_VISION=5000; 
 
 class Map {
 private:
@@ -126,10 +127,7 @@ public:
     
     //delete surfaces less than MIN_DISTANCE_VISION away
     //returns the surfaces of the last view with the robot position in place of the deleted surfaces (for PointInPolygon)
-   vector<Surface> ClearCloseSurfaces(const vector<Surface>& robotSurfaces);
-    
-   bool compareSurfaces(const Surface & a, const Surface & b);
-    
+   vector<Surface> ClearCloseSurfaces(const vector<Surface>& robotSurfaces);    
 };
 
 //
@@ -155,7 +153,7 @@ bool PointInPolygon(const double & pointX, const double & pointY, const vector<S
  */
 bool PointHiddenBySurfaces(const cv::Point2f pointToCheck, const vector<Surface>& allSurfaces, const vector<Surface>& robotSurfaces);
 
-
+bool SurfaceHidingPoint(const cv::Point2f pointToCheck, const Surface& surface, const vector<Surface>& robotSurfaces);
 
 #endif	/* MAPPER_H */
 

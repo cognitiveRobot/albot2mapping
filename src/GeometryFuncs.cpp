@@ -333,7 +333,10 @@ double normAngleDiff(double degAngle) {
     return degAngle;
 }
 
-
+//it finds anypoint (pointX, pointY) is inside or outside of the polygon (surfaces, and robotPosition).
+//if any point lies on the vertex of the polygon or on the edge of the polygon then it returns false.
+// http://stackoverflow.com/questions/11716268/point-in-polygon-algorithm
+// http://www.ecse.rpi.edu/~wrf/Research/Short_Notes/pnpoly.html
 bool pointInPolygon(const double & pointX, const double & pointY, const vector<PointXY>& points){
     int i, j, nvert = points.size();
         bool c = false;

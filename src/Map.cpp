@@ -4,6 +4,7 @@
 #include "ImageProcessing.h"
 #include "Printer.h"
 #include "SameSurfaceFinderOdo.h"
+#include "GlobalMap.h"
 #include <list>
 
 Map::Map(int _sizeX, int _sizeY) :
@@ -35,7 +36,7 @@ void Map::initializeMap(const View & firstView) {
 
     pathSegments.clear(); //make sure the pathsegments is empty.
 
-    vector<Surface> surfaces = firstView.getSurfaces();
+    vector<Surface> surfaces = firstView.getSurfaces(); // findTrustedSurfaces(firstView);
     boundaries = list<Surface>(surfaces.begin(), surfaces.end());
 
     Surface robotOrientation = firstView.getRobotSurfaces()[0];
@@ -352,9 +353,36 @@ void Map::cleanMap(const vector<Surface>& cvSurfacesOnMap, const vector<Surface>
         for (unsigned int i = 0; i<this->map.size() - 1; i++) {
             tempView = this->map[i];
             tempSurf = tempView.getSurfaces();
+            
 
-            //Point in polygon
+            //Check for surfaces we're seeing through
             for (unsigned int j = 0; j < tempSurf.size(); j++) {
+             /*   if (tempSurf[j].distFromP1ToPoint(cRobotSurfaces[0].getP1().x, cRobotSurfaces[0].getP1().y) < MIN_DISTANCE_VISION
+                        || tempSurf[j].distFromP2ToPoint(cRobotSurfaces[0].getP1().x, cRobotSurfaces[0].getP1().y) < MIN_DISTANCE_VISION) {
+                    // Too close to use PointInPolygon
+                    bool surfaceToBeDeleted = false;
+                    for (unsigned int k = 0; k < lastViewSurfaces.size(); k++) {
+                        if (cRobotSurfaces[0].distFromP1ToPoint(lastViewSurfaces[k].getP1().x, lastViewSurfaces[k].getP1().y) > MIN_DISTANCE_VISION
+                                && cRobotSurfaces[0].distFromP1ToPoint(lastViewSurfaces[k].getP2().x, lastViewSurfaces[k].getP2().y) > MIN_DISTANCE_VISION) {
+                            bool P1isHidden = SurfaceHidingPoint(lastViewSurfaces[k].getP1(), tempSurf[j], cRobotSurfaces);
+                            bool P2isHidden = SurfaceHidingPoint(lastViewSurfaces[k].getP2(), tempSurf[j], cRobotSurfaces);
+                            bool MiddleisHidden = SurfaceHidingPoint(lastViewSurfaces[k].midPoint(), tempSurf[j], cRobotSurfaces);
+
+                            if (P1isHidden && P2isHidden && MiddleisHidden) {
+                                surfaceToBeDeleted = true;
+                                break;
+                            }
+                        }     
+                    }
+                    if(!surfaceToBeDeleted){
+                        finalSurfaces.push_back(tempSurf[j]);    
+                    }
+                        
+                    continue; //Surface cleaned, skip the other cleaning algorithms
+                }*/
+
+                
+                //Point in polygon
                 bool P1inPolygon = PointInPolygon(tempSurf[j].getP1().x, tempSurf[j].getP1().y, surfacesForPointInPolygon, cRobotSurfaces);
                 bool P2inPolygon = PointInPolygon(tempSurf[j].getP2().x, tempSurf[j].getP2().y, surfacesForPointInPolygon, cRobotSurfaces);
                 bool MiddleInPolygon = PointInPolygon(tempSurf[j].midPoint().x, tempSurf[j].midPoint().y, surfacesForPointInPolygon, cRobotSurfaces);
@@ -389,7 +417,7 @@ void Map::cleanMap(const vector<Surface>& cvSurfacesOnMap, const vector<Surface>
                 }
             }
 
-            //Point hidden by a surface
+            //Check for points hidden by a surface
             for (unsigned int j = 0; j < surfacesOutsideCV.size(); j++) {
                 bool P1hidden = PointHiddenBySurfaces(surfacesOutsideCV[j].getP1(), lastViewSurfaces, tempView.getRobotSurfaces());
                 bool P2hidden = PointHiddenBySurfaces(surfacesOutsideCV[j].getP2(), lastViewSurfaces, tempView.getRobotSurfaces());
@@ -535,7 +563,7 @@ void Map::addCVUsingMultipleRef(const View & curView) {
         //            refSurfacePair = findTheClosestReference(curView.getSurfaces()[i],sameSurfaces);
 
         //trangulate this surface.
-        cout << curView.getSurfaces()[i].getId() << " refID: " << refSurfacePair.getViewSurface().getId() << endl;
+        //   cout << curView.getSurfaces()[i].getId() << " refID: " << refSurfacePair.getViewSurface().getId() << endl;
 
         cvSurfaceOnMap = trangulateSurface(refSurfacePair.getMapSurface(), refSurfacePair.getViewSurface(),
                 curView.getSurfaces()[i], refSurfacePair.getRefPoint());
@@ -597,7 +625,7 @@ View Map::computeCVUsingMultipleRef(const View& curView) {
     vector<Surface> allCVSurfacesOnMap;
     for (unsigned int i = 0; i < curView.getSurfaces().size(); i++) {
         //trangulate this surface.
-        cout << curView.getSurfaces()[i].getId() << " refID: " << refSurfacePair.getViewSurface().getId() << endl;
+        //     cout << curView.getSurfaces()[i].getId() << " refID: " << refSurfacePair.getViewSurface().getId() << endl;
 
         cvSurfaceOnMap = trangulateSurface(refSurfacePair.getMapSurface(), refSurfacePair.getViewSurface(),
                 curView.getSurfaces()[i], refSurfacePair.getRefPoint());
@@ -777,7 +805,35 @@ void Map::expandMap(const View & curView) {
 
 }
 
+vector<Surface> Map::ClearCloseSurfaces(const vector<Surface>& robotSurfaces) {
 
+    vector<Surface> surfacesCleaned;
+    vector<Surface> surfacesForPointInPolygon; // Contains the robot position in place of deleted surfaces
+    cv::Point2f robotPos = robotSurfaces[0].getP1();
+    View lastView = this->map[map.size() - 1];
+    vector<Surface> lastSurfaces = lastView.getSurfaces();
+
+
+    for (unsigned int i = 0; i < lastSurfaces.size(); i++) {
+
+        double distFromRobot = lastSurfaces[i].distFromP1ToPoint(robotPos.x, robotPos.y);
+        double distFromRobot2 = lastSurfaces[i].distFromP2ToPoint(robotPos.x, robotPos.y);
+        if (distFromRobot > MIN_DISTANCE_VISION && distFromRobot2 > MIN_DISTANCE_VISION) {
+            // Keep new surfaces more than MIN_DISTANCE_VISION away
+            surfacesCleaned.push_back(lastSurfaces[i]);
+            surfacesForPointInPolygon.push_back(lastSurfaces[i]);
+        } else {
+            // Ignore new surfaces less than MIN_DISTANCE_VISION away and replace them by robotPos so the PointInPolygon still work
+            if (i > 0 && i < lastSurfaces.size() - 1) {
+                surfacesForPointInPolygon.push_back(Surface(robotPos.x, robotPos.y, robotPos.x, robotPos.y));
+            }
+        }
+    }
+
+    lastView.setSurfaces(surfacesCleaned);
+    this->map[this->map.size() - 1] = lastView;
+    return surfacesForPointInPolygon;
+}
 
 // some function
 //it takes current view surfaces
@@ -1004,6 +1060,7 @@ bool PointInPolygon(const double & pointX, const double & pointY, const vector<S
         points.push_back(PointXY(surfaces[i].getP1().x, surfaces[i].getP1().y));
         points.push_back(PointXY(surfaces[i].getP2().x, surfaces[i].getP2().y));
     }
+
     //        int i, j, nvert = points.size();
     //        bool c = false;
     //
@@ -1051,49 +1108,25 @@ bool PointHiddenBySurfaces(const cv::Point2f pointToCheck, const vector<Surface>
     return false;
 }
 
-vector<Surface> Map::ClearCloseSurfaces(const vector<Surface>& robotSurfaces) {
-
-    vector<Surface> surfacesCleaned;
-    vector<Surface> surfacesForPointInPolygon; // Contains the robot position in place of deleted surfaces
+bool SurfaceHidingPoint(const cv::Point2f pointToCheck, const Surface& surface, const vector<Surface>& robotSurfaces){
     cv::Point2f robotPos = robotSurfaces[0].getP1();
-    View lastView = this->map[map.size() - 1];
-    vector<Surface> lastSurfaces = lastView.getSurfaces();
+    vector<Surface> vectSurfaces;
+    vectSurfaces.push_back(surface);
+    if (!PointInPolygon(pointToCheck.x, pointToCheck.y, vectSurfaces, robotSurfaces)) {
 
+        // Test whether the point is in the right angle range to be hidden by adjacentSurfaces
+        Surface s1 = Surface(robotPos.x, robotPos.y, surface.getP1().x, surface.getP1().y);
+        Surface s2 = Surface(robotPos.x, robotPos.y, surface.getP2().x, surface.getP2().y);
+        Surface stest = Surface(robotPos.x, robotPos.y, pointToCheck.x, pointToCheck.y);
+        double stestAngle = stest.getAngleWithXaxis();
+        double diffAngle = s1.getAngleFromP1ToPoint(s2.getP2().x, s2.getP2().y);
 
-    for (unsigned int i = 0; i < lastSurfaces.size(); i++) {
+        if ((diffAngle > 180 && stestAngle <= s1.getAngleWithXaxis() && stestAngle >= s2.getAngleWithXaxis())
+                || (diffAngle < 180 && stestAngle >= s1.getAngleWithXaxis() && stestAngle <= s2.getAngleWithXaxis())) {
 
-        double distFromRobot = lastSurfaces[i].distFromP1ToPoint(robotPos.x, robotPos.y);
-        double distFromRobot2 = lastSurfaces[i].distFromP2ToPoint(robotPos.x, robotPos.y);
-        if (distFromRobot > MIN_DISTANCE_VISION && distFromRobot2 > MIN_DISTANCE_VISION) {
-            // Keep new surfaces more than MIN_DISTANCE_VISION away
-            surfacesCleaned.push_back(lastSurfaces[i]);
-            surfacesForPointInPolygon.push_back(lastSurfaces[i]);
-        } else {
-            // Ignore new surfaces less than MIN_DISTANCE_VISION away and replace them by robotPos so the PointInPolygon still work
-            if (i > 0 && i < lastSurfaces.size() - 1) {
-                surfacesForPointInPolygon.push_back(Surface(robotPos.x, robotPos.y, robotPos.x, robotPos.y));
-            }
+            return true;
         }
     }
-
-    lastView.setSurfaces(surfacesCleaned);
-    this->map[this->map.size() - 1] = lastView;
-    return surfacesForPointInPolygon;
+    return false;
 }
 
-bool Map::compareSurfaces(const Surface & a, const Surface & b) {
-
-    Surface rbtOrientation = this->map[0].getRobotSurfaces()[0];
-    double angleAP1 = rbtOrientation.getAngleFromP1ToPoint(a.getP1().x, a.getP1().y);
-    double angleAP2 = rbtOrientation.getAngleFromP1ToPoint(a.getP2().x, a.getP2().y);
-    double angleBP1 = rbtOrientation.getAngleFromP1ToPoint(b.getP1().x, b.getP1().y);
-    double angleBP2 = rbtOrientation.getAngleFromP1ToPoint(b.getP2().x, b.getP2().y);
-
-    if (angleAP1 < angleBP1 && angleAP2 < angleBP2 && angleAP1 < angleBP2 && angleAP2 < angleBP1) {
-        return true;
-    } else if (angleAP1 > angleBP1 && angleAP2 > angleBP2 && angleAP1 > angleBP2 && angleAP2 > angleBP1) {
-        return false;
-    } else {
-        return a.length() > b.length();
-    }
-}
