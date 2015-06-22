@@ -337,18 +337,19 @@ double normAngleDiff(double degAngle) {
 //if any point lies on the vertex of the polygon or on the edge of the polygon then it returns false.
 // http://stackoverflow.com/questions/11716268/point-in-polygon-algorithm
 // http://www.ecse.rpi.edu/~wrf/Research/Short_Notes/pnpoly.html
-bool pointInPolygon(const double & pointX, const double & pointY, const vector<PointXY>& points){
+
+bool pointInPolygon(const double & pointX, const double & pointY, const vector<PointXY>& points) {
     int i, j, nvert = points.size();
-        bool c = false;
+    bool c = false;
 
-        for(i = 0, j = nvert - 1; i < nvert; j = i++) {
-          if( ( (points[i].getY() >= pointY ) != (points[j].getY() >= pointY) ) &&
-              (pointX <= (points[j].getX() - points[i].getX()) * (pointY - points[i].getY()) / (points[j].getY() - points[i].getY()) + points[i].getX())
-            )
+    for (i = 0, j = nvert - 1; i < nvert; j = i++) {
+        if (((points[i].getY() >= pointY) != (points[j].getY() >= pointY)) &&
+                (pointX <= (points[j].getX() - points[i].getX()) * (pointY - points[i].getY()) / (points[j].getY() - points[i].getY()) + points[i].getX())
+                )
             c = !c;
-        }
+    }
 
-        return c;
+    return c;
 }
 
 
@@ -412,3 +413,140 @@ bool pointInPolygon(const double & pointX, const double & pointY, const vector<P
 //        }
 //    }
 //}
+
+Surface principalComponentAnalysis(vector<PointXY> pointsToAnalyze) {
+    int numPoints = pointsToAnalyze.size();
+
+    // Substract the mean
+ /*   double xMean = 0;
+    double yMean = 0;
+    for (unsigned int i = 0; i < numPoints; i++) {
+        xMean += pointsToAnalyze[i].getX();
+        yMean += pointsToAnalyze[i].getY();
+    }
+    xMean = xMean / numPoints;
+    yMean = yMean / numPoints;
+
+    PointXY points [numPoints];
+
+    for (unsigned int i = 0; i < numPoints; i++) {
+        points[i] = PointXY(pointsToAnalyze[i].getX() - xMean, pointsToAnalyze[i].getY() - yMean);
+    }
+
+    // Calculate covariance matrix
+    double covarianceMatrix [2][2] = {
+        {0, 0},
+        {0, 0}};
+    for (unsigned int i = 0; i < numPoints; i++) {
+        covarianceMatrix[0][0] += (points[i].getX() - xMean) * (points[i].getX() - xMean);
+        covarianceMatrix[0][1] += (points[i].getX() - xMean) * (points[i].getY() - yMean);
+        covarianceMatrix[1][1] += (points[i].getY() - yMean) * (points[i].getY() - yMean);
+    }
+    covarianceMatrix[0][0] = covarianceMatrix[0][0] / (numPoints - 1);
+    covarianceMatrix[0][1] = covarianceMatrix[0][1] / (numPoints - 1);
+    covarianceMatrix[1][1] = covarianceMatrix[1][1] / (numPoints - 1);
+    covarianceMatrix[1][0] = covarianceMatrix[0][1]; //cov(x,y)=cov(y,x)
+*/
+    cv::Mat data_pts(numPoints, 2, CV_64FC1);
+    for (unsigned int i = 0; i < data_pts.rows; ++i) {
+        data_pts.at<double>(i, 0) = pointsToAnalyze[i].getX();
+        data_pts.at<double>(i, 1) = pointsToAnalyze[i].getY();
+    }
+
+    cv::PCA pca_analysis(data_pts, cv::Mat(), CV_PCA_DATA_AS_ROW);
+
+    PointXY eigenVec(pca_analysis.eigenvectors.at<double>(0, 0), pca_analysis.eigenvectors.at<double>(0, 1));
+    double eigenVal = pca_analysis.eigenvalues.at<double>(0, 0);
+
+    double coordsAlongVector [numPoints];
+    coordsAlongVector[0] = pointsToAnalyze[0].getX() * eigenVec.getX() + pointsToAnalyze[0].getY() * eigenVec.getY();
+    int indexMinCoord = 0;
+    int indexMaxCoord = 0;
+    double minCoord = coordsAlongVector[0];
+    double maxCoord = coordsAlongVector[0];
+    for (unsigned int i = 1; i < numPoints; i++) {
+        coordsAlongVector[i] = pointsToAnalyze[i].getX() * eigenVec.getX() + pointsToAnalyze[i].getY() * eigenVec.getY();
+        if (coordsAlongVector[i] < minCoord) {
+            minCoord = coordsAlongVector[i];
+            indexMinCoord = i;
+        } else if (coordsAlongVector[i] > maxCoord) {
+            maxCoord = coordsAlongVector[i];
+            indexMaxCoord = i;
+        }
+    }
+    long halfLength = (maxCoord - minCoord) / 2;
+    PointXY start(pca_analysis.mean.at<double>(0, 0), pca_analysis.mean.at<double>(0, 1));
+    return Surface(start.getX() - halfLength * eigenVec.getX(), start.getY() - halfLength * eigenVec.getY(), start.getX() + halfLength * eigenVec.getX(), start.getY() + halfLength * eigenVec.getY());
+}
+
+/* DBSCAN - density-based spatial clustering of applications with noise */
+vector<vector<PointXY> > DBSCAN_points(vector<PointXY> *points, float eps, int minPts) {
+    vector<vector<PointXY> > clusters;
+    vector<bool> clustered;
+    vector<int> noise;
+    vector<bool> visited;
+    vector<int> neighborPts;
+    vector<int> neighborPts_;
+    int c;
+
+    int nbPoints = points->size();
+
+    //init clustered and visited
+    for (int k = 0; k < nbPoints; k++) {
+        clustered.push_back(false);
+        visited.push_back(false);
+    }
+
+    //C =0;
+    c = 0;
+    clusters.push_back(vector<PointXY>()); //will stay empty?
+
+    //for each unvisted point P in dataset points
+    for (int i = 0; i < nbPoints; i++) {
+        if (!visited[i]) {
+            //Mark P as visited
+            visited[i] = true;
+            neighborPts = regionQuery(points, &points->at(i), eps);
+            if (neighborPts.size() < minPts)
+                //Mark P as Noise
+                noise.push_back(i);
+            else {
+                clusters.push_back(vector<PointXY>());
+                c++;
+                //expand cluster
+                // add P to cluster c
+                clusters[c].push_back(points->at(i));
+                //for each point P' in neighborPts
+                for (int j = 0; j < neighborPts.size(); j++) {
+                    //if P' is not visited
+                    if (!visited[neighborPts[j]]) {
+                        //Mark P' as visited
+                        visited[neighborPts[j]] = true;
+                        neighborPts_ = regionQuery(points, &points->at(neighborPts[j]), eps);
+                        if (neighborPts_.size() >= minPts) {
+                            neighborPts.insert(neighborPts.end(), neighborPts_.begin(), neighborPts_.end());
+                        }
+                    }
+                    // if P' is not yet a member of any cluster
+                    // add P' to cluster c
+                    if (!clustered[neighborPts[j]])
+                        clusters[c].push_back(points->at(neighborPts[j]));
+                }
+            }
+
+        }
+    }
+    return clusters;
+}
+
+vector<int> regionQuery(vector<PointXY> *points, PointXY *keypoint, float eps) {
+    float dist;
+    vector<int> retKeys;
+    for (int i = 0; i < points->size(); i++) {
+        dist = sqrt(pow((keypoint->getX() - points->at(i).getX()), 2) + pow((keypoint->getY() - points->at(i).getY()), 2));
+        if (dist <= eps && dist != 0.0f) {
+            retKeys.push_back(i);
+        }
+    }
+    return retKeys;
+}

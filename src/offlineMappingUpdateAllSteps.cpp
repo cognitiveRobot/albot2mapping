@@ -2,7 +2,7 @@
  * File:   main.cpp
  * Author: Md 
  * Author: Guillaume Diallo-Mulliez
-* Author 2 : Segolene Minjard
+ * Author 2 : Segolene Minjard
  * 
  *
  * Created on June 7, 2013, 12:52 AM
@@ -58,6 +58,7 @@
 #include "Printer.h"
 #include "PathFinder.h"
 #include "GlobalMap.h"
+#include "GeometryFuncs.h"
 
 /* ------------------------- Namespaces ------------------------- */
 
@@ -69,15 +70,15 @@ void print(std::map<int, int> map);
 
 int main(int argc, char** argv) {
     /*------------------------------------------ Variables declaration ------------------------------------------ */
-     Robot Albot;
-     
-     GlobalMap globalMap;
+    Robot Albot;
+
+    GlobalMap globalMap;
 
     Camera Bumblebee;
     View curView;
     curView.setRobotSurfaces(Albot.getRectRobot());
-    Map *curMap=new Map(1500, 1500);
-    
+    Map *curMap = new Map(1500, 1500);
+
 
     /*------------------------------------------ Start Xploring ------------------------------------------ */
 
@@ -88,65 +89,89 @@ int main(int argc, char** argv) {
     /* -------- Loop ------- */
     char tkStep = 'y';
     int numOfStept;
-    cout <<"How many steps? ";
+    cout << "How many steps? ";
     cin >> numOfStept;
-            
+
     while (curView.getId() < numOfStept && tkStep == 'y') {
         /* Increment counters */
 
         //construct view from points.
         curView.setId(curView.getId() + 1);
-        sprintf(pointFile, "%s%s%s%d", "../inputs/",argv[1],"/pointCloud/points2D-", curView.getId());
+        sprintf(pointFile, "%s%s%s%d", "../inputs/", argv[1], "/pointCloud/points2D-", curView.getId());
         curView.constructView(pointFile);
-        
-       
-        
+
+
+
         cout << "View is formed :)" << endl;
         cout << endl << "==================================================" << endl << endl;
         cout << "View no. " << curView.getId() << ":" << endl;
         sprintf(viewName, "%s%d", "../outputs/Maps/view-", curView.getId());
-        plotViewGNU(viewName, curView); 
-        
+        plotViewGNU(viewName, curView);
 
-        if (curView.getId()==1) {
-            curMap->initializeMap(curView);
-        } else {
-            View viewOnMap=curMap->computeCVUsingMultipleRef(curView);
-            if(localSpaceChanged(*curMap, viewOnMap)){
-                cout<<"Create new local space"<<endl;
-                globalMap.addMap(*curMap);
-                
-                int mapId=curMap->getMapID();
-                delete curMap;
-                
-                curMap=new Map(1500, 1500);
-                curMap->setMapID(mapId+1);
-                curMap->initializeMap(curView);
-            }else{
-                curMap->addCv(viewOnMap);   
-            }
-        }
+        curView.setGap(FindGap(curView.getSurfaces(), curView.getRobotSurfaces()));
         
+        if (curView.getId() == 1) {
+            curMap->initializeMap(curView);
+            /*  } else {
+                  View viewOnMap=curMap->computeCVUsingMultipleRef(curView);
+                  if(localSpaceChanged(*curMap, viewOnMap)){
+                      cout<<"Create new local space"<<endl;
+                      globalMap.addMap(*curMap);
+                
+                      int mapId=curMap->getMapID();
+                      delete curMap;
+                
+                      curMap=new Map(1500, 1500);
+                      curMap->setMapID(mapId+1);
+                      curMap->initializeMap(curView);
+                  }else{
+                      curMap->addCv(viewOnMap);   
+                  } 
+              }*/
+        } else if (curView.getId() % 2 == 0) {
+            curMap->addCvUsingGap(curView);
+        } else {
+            globalMap.addMap(*curMap);
+
+            int mapId = curMap->getMapID();
+            delete curMap;
+
+            curMap = new Map(1500, 1500);
+            curMap->setMapID(mapId + 1);
+            curMap->initializeMap(curView);
+        }
+
+        /*    Surface robotOrientation=curView.getRobotSurfaces()[0];
+            vector<Surface> surfacesConsidered;
+            for(unsigned int i=0; i<curView.getSurfaces().size(); i++){
+                if(robotOrientation.distFromP1ToPoint(curView.getSurfaces()[i].midPoint().x,curView.getSurfaces()[i].midPoint().y)<6000){
+                    surfacesConsidered.push_back(curView.getSurfaces()[i]);
+                }
+            }*/
+        //  Surface gap=FindGap(curView.getSurfaces(), curView.getRobotSurfaces());
+
+
+
         //read odometer info
-        sprintf(viewName, "%s%s%s%d", "../inputs/",argv[1],"/surfaces/coordTrans-", curView.getId());
+        sprintf(viewName, "%s%s%s%d", "../inputs/", argv[1], "/surfaces/coordTrans-", curView.getId());
         readOdometry(Albot, viewName);
         curMap->addPathSegment(Albot.getLastLocomotion());
         curMap->setLandmarkSurfaces(curView.getSurfaces());
-        
+
         cout << endl << endl << "Take another step? (y/n) "; // Ask user if continue
         //cin >> tkStep;
 
     }
-    
+
     globalMap.addMap(*curMap);
     delete curMap;
-    
-/*    cout << "Lost cases: "<<curMap.getLostStepsNumber().size()<<endl;
-    for(unsigned int i=0; i<curMap.getLostStepsNumber().size(); i++) {
-        cout<<curMap.getLostStepsNumber()[i]<<" ";
-    }*/
+
+    /*    cout << "Lost cases: "<<curMap.getLostStepsNumber().size()<<endl;
+        for(unsigned int i=0; i<curMap.getLostStepsNumber().size(); i++) {
+            cout<<curMap.getLostStepsNumber()[i]<<" ";
+        }*/
     cout << endl;
-        cout<<"Number of local spaces : "<<globalMap.getMaps().size()<<endl;
+    cout << "Number of local spaces : " << globalMap.getMaps().size() << endl;
 
     return 0;
 }

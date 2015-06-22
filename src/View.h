@@ -56,6 +56,7 @@ private:
     
     Surface rPositionInPV;
     
+    Surface gap;
 
     //contains color info of all pixels of ROI image
     Color colors[COLOR_IMAGE_WIDTH][COLOR_IMAGE_HEIGHT];
@@ -123,6 +124,11 @@ public:
     
     //save view to a jpg file.
     void printView();
+
+    Surface getGap() const;
+
+    void setGap(Surface gap);
+
 
 };
 int readFolderNumber(const char* fileName);

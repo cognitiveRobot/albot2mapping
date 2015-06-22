@@ -75,5 +75,11 @@ double normAngleDiff(double degAngle);
  */
 cv::Point3f getNewPosFromDistanceAngle(cv::Point3f lastPos,const AngleAndDistance & distanceAngle);
 
+Surface principalComponentAnalysis(vector<PointXY> points);
+
+vector<vector<PointXY> > DBSCAN_points(vector<PointXY> *points, float eps, int minPts);
+
+vector<int> regionQuery(vector<PointXY> *points, PointXY *point, float eps);
+
 #endif
 

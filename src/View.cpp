@@ -486,53 +486,83 @@ Surface View::getRPositionInPV() {
     return rPositionInPV;
 }
 
-
-
 void View::constructView(const char* filename) {
-            
-        vector<PointXY> points2D = readASCIIPoints2D(filename);
-        
-        char viewName[50];
-        sprintf(viewName, "%s%d%s", "../outputs/Maps/points2D-", this->getId(),".png");
-     //   plotPointsAndSurfacesGNU(viewName,points2D,this->getRobotSurfaces());
-        
-        vector<SurfaceT> initialSurfaces = Laser2Surface(points2D,500,200,100);
-        vector<Surface> viewSurfaces = convertSurfaceT2Surface(initialSurfaces);
-        
-        //saving surfaces in this view.
-        this->setSurfaces(viewSurfaces);
-        
-        sprintf(viewName, "%s%d%s", "../outputs/Maps/pointsAndSurfaces-", this->getId(),".png");
-      //  plotPointsAndSurfacesGNU(viewName,points2D,viewSurfaces);
-        //waitHere();
-        
-        //vizualize point cloud.
-//        ImageProcessing imgTool;        
-//        sprintf(viewName, "%s%d%s", "../outputs/pointCloud/pointCloud-", this->getId(),".pcd");
-//        imgTool.visualizePointCloud(viewName);
-       //imgTool.segEuclideanClusters(viewName); 
-       //imgTool.segRegionGrowing(viewName);
+
+    vector<PointXY> points2D = readASCIIPoints2D(filename);
+
+    /*
+    // DBSCAN density clustering
+    vector<vector<PointXY> > clusters = DBSCAN_points(&points2D, 200, 5);
+    cout << "clusters " << clusters.size() << endl;
+    
+    //PCA
+    vector<Surface> pcaSurfaces;
+    for (unsigned int i = 0; i < clusters.size(); i++) {
+        if (clusters[i].size() > 0) {
+            Surface pcaSurf=principalComponentAnalysis(clusters[i]);
+            vector<Surface> surfToPlot=this->getRobotSurfaces();
+            surfToPlot.push_back(pcaSurf);
+            char vName[50];
+            sprintf(vName, "%s%d%s%d%s", "../outputs/Maps/clusters-", this->getId(), "-", i, ".png");
+            plotPointsAndSurfacesGNU(vName, clusters[i], surfToPlot);
+            // cout<<" - "<<clusters[i].size()<<endl;
+            pcaSurfaces.push_back(pcaSurf);
+        }
+
+    }
+    
+    vector<Surface> surfacesToPlot=pcaSurfaces;   
+    for(unsigned int i=0; i<this->getRobotSurfaces().size(); i++){
+        surfacesToPlot.push_back(this->getRobotSurfaces()[i]);
+    }
+    char pcaName[50];
+    sprintf(pcaName, "%s%d%s", "../outputs/Maps/pca-", this->getId(), ".png");
+    plotPointsAndSurfacesGNU(pcaName,points2D,pcaSurfaces);
+     */
+
+
+
+    char viewName[50];
+    sprintf(viewName, "%s%d%s", "../outputs/Maps/points2D-", this->getId(), ".png");
+    plotPointsAndSurfacesGNU(viewName, points2D, this->getRobotSurfaces());
+
+    vector<SurfaceT> initialSurfaces = Laser2Surface(points2D, 500, 200, 100);
+    vector<Surface> viewSurfaces = convertSurfaceT2Surface(initialSurfaces);
+
+    //saving surfaces in this view.
+    this->setSurfaces(viewSurfaces);
+
+    sprintf(viewName, "%s%d%s", "../outputs/Maps/pointsAndSurfaces-", this->getId(), ".png");
+    //  plotPointsAndSurfacesGNU(viewName,points2D,viewSurfaces);
+    //waitHere();
+
+    //vizualize point cloud.
+    //        ImageProcessing imgTool;        
+    //        sprintf(viewName, "%s%d%s", "../outputs/pointCloud/pointCloud-", this->getId(),".pcd");
+    //        imgTool.visualizePointCloud(viewName);
+    //imgTool.segEuclideanClusters(viewName); 
+    //imgTool.segRegionGrowing(viewName);
 }
 
 int readFolderNumber(const char* fileName) {
-    
+
     ifstream inputFile(fileName, ios::in);
     int number = 0;
     if (inputFile.is_open()) {
-        
+
         inputFile >> number;
     } else
         cout << "Error opening " << fileName << " .." << endl;
     inputFile.close();
-    
+
     ofstream outFile(fileName, ios::out);
     if (outFile.is_open()) {
-        
-        outFile << number+1;
+
+        outFile << number + 1;
     } else
         cout << "Error opening " << fileName << " .." << endl;
     outFile.close();
-    
+
     return number;
 
 }
@@ -582,13 +612,13 @@ void readOdometry(Robot & albot, const char* fileName) {
 
         inputFile >> dist;
         inputFile >> angle;
-        
-        albot.setLastLocomotion(dist,angle);
-        cout << "Odometry is read. Dist: " << dist <<" angle: " << angle << endl;
-        
+
+        albot.setLastLocomotion(dist, angle);
+        cout << "Odometry is read. Dist: " << dist << " angle: " << angle << endl;
+
     } else
         cout << "Error opening " << fileName << " .." << endl;
-    
+
 }
 
 void readALocalSpace(View & cView, const char* fileName) {
@@ -621,7 +651,7 @@ void readALocalSpace(View & cView, const char* fileName) {
                 inputFile >> x2;
                 inputFile >> y2;
                 landmarks.push_back(Surface(x1, y1, x2, y2));
-                
+
                 inputFile >> x1;
                 inputFile >> y1;
                 inputFile >> x2;
@@ -659,8 +689,17 @@ void readALocalSpace(View & cView, const char* fileName) {
 }
 
 //it makes a view. add some surfaces and return that view.
+
 View makeViewFromSurfaces(const vector<Surface> & someSurfaces) {
     View aView;
     aView.addSurfaces(someSurfaces);
     return aView;
 }
+
+Surface View::getGap() const {
+        return gap;
+    }
+
+    void View::setGap(Surface gap) {
+        this->gap = gap;
+    }

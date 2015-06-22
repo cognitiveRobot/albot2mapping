@@ -16,7 +16,7 @@ using namespace std;
 //using namespace cv;
 
 const int MIN_DISTANCE_VISION=800; 
-const int MAX_DISTANCE_VISION=5000; 
+const int MAX_DISTANCE_VISION=3000; 
 
 class Map {
 private:
@@ -105,6 +105,8 @@ public:
     View computeCVUsingMultipleRef(const View & curView);
     void addCv(const View & view);
     
+    View computeCVUsingGap(View & curView, double angleLastLocomotion);
+    void addCvUsingGap(View & curView);
     
     //void update(View newView); // Update the map according to the newView
     //bool isBehind(Surface Old, Surface New, cv::Point3f rbtPos); /* NOT SURE IF DONE CORRECTLY */ // Check if Old and New surfaces are concealing each other
@@ -154,6 +156,10 @@ bool PointInPolygon(const double & pointX, const double & pointY, const vector<S
 bool PointHiddenBySurfaces(const cv::Point2f pointToCheck, const vector<Surface>& allSurfaces, const vector<Surface>& robotSurfaces);
 
 bool SurfaceHidingPoint(const cv::Point2f pointToCheck, const Surface& surface, const vector<Surface>& robotSurfaces);
+
+Surface FindGap(const vector<Surface>& surfaces, const vector<Surface>& robotSurfaces);
+
+Surface FindGapWithDistance(const vector<Surface>& surfaces, const vector<Surface>& robotSurfaces, const double approximateDistance);
 
 #endif	/* MAPPER_H */
 
