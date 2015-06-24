@@ -30,20 +30,20 @@ int Map::getMapID() {
 }
 
 void Map::initializeMap(const View & firstView) {
-    
+
     map.clear(); //make sure the map is empty.
     map.push_back(firstView); //add the first view.
 
     pathSegments.clear(); //make sure the pathsegments is empty.
 
-/*    vector<Surface> surfaces = firstView.getSurfaces(); // findTrustedSurfaces(firstView);
-    boundaries = list<Surface>(surfaces.begin(), surfaces.end());
+    /*    vector<Surface> surfaces = firstView.getSurfaces(); // findTrustedSurfaces(firstView);
+        boundaries = list<Surface>(surfaces.begin(), surfaces.end());
 
-    Surface robotOrientation = firstView.getRobotSurfaces()[0];
-    double leftBoundaryAngle = robotOrientation.getAngleFromP1ToPoint(boundaries.front().getP1().x, boundaries.front().getP1().y);
-    double rightBoundaryAngle = robotOrientation.getAngleFromP1ToPoint(boundaries.back().getP2().x, boundaries.back().getP2().y);
-    anglesWithoutBoundaries[0] = pair<double, double>(leftBoundaryAngle, rightBoundaryAngle);
-*/
+        Surface robotOrientation = firstView.getRobotSurfaces()[0];
+        double leftBoundaryAngle = robotOrientation.getAngleFromP1ToPoint(boundaries.front().getP1().x, boundaries.front().getP1().y);
+        double rightBoundaryAngle = robotOrientation.getAngleFromP1ToPoint(boundaries.back().getP2().x, boundaries.back().getP2().y);
+        anglesWithoutBoundaries[0] = pair<double, double>(leftBoundaryAngle, rightBoundaryAngle);
+     */
     char mapName[50];
     sprintf(mapName, "%s%d%s%d%s", "../outputs/Maps/Map-", getMapID(), "-View-", firstView.getId(), "a-before.png");
     plotViewsGNU(mapName, this->getMap());
@@ -353,35 +353,35 @@ void Map::cleanMap(const vector<Surface>& cvSurfacesOnMap, const vector<Surface>
         for (unsigned int i = 0; i<this->map.size() - 1; i++) {
             tempView = this->map[i];
             tempSurf = tempView.getSurfaces();
-            
+
 
             //Check for surfaces we're seeing through
             for (unsigned int j = 0; j < tempSurf.size(); j++) {
-             /*   if (tempSurf[j].distFromP1ToPoint(cRobotSurfaces[0].getP1().x, cRobotSurfaces[0].getP1().y) < MIN_DISTANCE_VISION
-                        || tempSurf[j].distFromP2ToPoint(cRobotSurfaces[0].getP1().x, cRobotSurfaces[0].getP1().y) < MIN_DISTANCE_VISION) {
-                    // Too close to use PointInPolygon
-                    bool surfaceToBeDeleted = false;
-                    for (unsigned int k = 0; k < lastViewSurfaces.size(); k++) {
-                        if (cRobotSurfaces[0].distFromP1ToPoint(lastViewSurfaces[k].getP1().x, lastViewSurfaces[k].getP1().y) > MIN_DISTANCE_VISION
-                                && cRobotSurfaces[0].distFromP1ToPoint(lastViewSurfaces[k].getP2().x, lastViewSurfaces[k].getP2().y) > MIN_DISTANCE_VISION) {
-                            bool P1isHidden = SurfaceHidingPoint(lastViewSurfaces[k].getP1(), tempSurf[j], cRobotSurfaces);
-                            bool P2isHidden = SurfaceHidingPoint(lastViewSurfaces[k].getP2(), tempSurf[j], cRobotSurfaces);
-                            bool MiddleisHidden = SurfaceHidingPoint(lastViewSurfaces[k].midPoint(), tempSurf[j], cRobotSurfaces);
+                /*   if (tempSurf[j].distFromP1ToPoint(cRobotSurfaces[0].getP1().x, cRobotSurfaces[0].getP1().y) < MIN_DISTANCE_VISION
+                           || tempSurf[j].distFromP2ToPoint(cRobotSurfaces[0].getP1().x, cRobotSurfaces[0].getP1().y) < MIN_DISTANCE_VISION) {
+                       // Too close to use PointInPolygon
+                       bool surfaceToBeDeleted = false;
+                       for (unsigned int k = 0; k < lastViewSurfaces.size(); k++) {
+                           if (cRobotSurfaces[0].distFromP1ToPoint(lastViewSurfaces[k].getP1().x, lastViewSurfaces[k].getP1().y) > MIN_DISTANCE_VISION
+                                   && cRobotSurfaces[0].distFromP1ToPoint(lastViewSurfaces[k].getP2().x, lastViewSurfaces[k].getP2().y) > MIN_DISTANCE_VISION) {
+                               bool P1isHidden = SurfaceHidingPoint(lastViewSurfaces[k].getP1(), tempSurf[j], cRobotSurfaces);
+                               bool P2isHidden = SurfaceHidingPoint(lastViewSurfaces[k].getP2(), tempSurf[j], cRobotSurfaces);
+                               bool MiddleisHidden = SurfaceHidingPoint(lastViewSurfaces[k].midPoint(), tempSurf[j], cRobotSurfaces);
 
-                            if (P1isHidden && P2isHidden && MiddleisHidden) {
-                                surfaceToBeDeleted = true;
-                                break;
-                            }
-                        }     
-                    }
-                    if(!surfaceToBeDeleted){
-                        finalSurfaces.push_back(tempSurf[j]);    
-                    }
+                               if (P1isHidden && P2isHidden && MiddleisHidden) {
+                                   surfaceToBeDeleted = true;
+                                   break;
+                               }
+                           }     
+                       }
+                       if(!surfaceToBeDeleted){
+                           finalSurfaces.push_back(tempSurf[j]);    
+                       }
                         
-                    continue; //Surface cleaned, skip the other cleaning algorithms
-                }*/
+                       continue; //Surface cleaned, skip the other cleaning algorithms
+                   }*/
 
-                
+
                 //Point in polygon
                 bool P1inPolygon = PointInPolygon(tempSurf[j].getP1().x, tempSurf[j].getP1().y, surfacesForPointInPolygon, cRobotSurfaces);
                 bool P2inPolygon = PointInPolygon(tempSurf[j].getP2().x, tempSurf[j].getP2().y, surfacesForPointInPolygon, cRobotSurfaces);
@@ -667,22 +667,22 @@ void Map::addCv(const View& view) {
 }
 
 View Map::computeCVUsingGap(View & curView, double angleLastLocomotion) {
-    Surface mapGap=this->map[this->map.size() - 1].getGap();
-    Surface curGap=curView.getGap();
-    double angleGaps=mapGap.getAngleWithSurface(curGap);
-     cout<<"angleGaps "<<angleGaps<<" angleLoc "<<angleLastLocomotion<<endl;
-     double diff=abs(angleGaps-angleLastLocomotion);
-    if(diff>90 && diff<270){
-        curGap=Surface(curGap.getP2().x, curGap.getP2().y, curGap.getP1().x, curGap.getP1().y);
+    Surface mapGap = this->map[this->map.size() - 1].getGap();
+    Surface curGap = curView.getGap();
+    double angleGaps = mapGap.getAngleWithSurface(curGap);
+
+    double diff = abs(angleGaps - angleLastLocomotion);
+    if (diff > 90 && diff < 270) {
+        curGap = Surface(curGap.getP2().x, curGap.getP2().y, curGap.getP1().x, curGap.getP1().y);
         curView.setGap(curGap);
     }
-    
+
     ReferenceSurfaces refSurfacePair;
     refSurfacePair.setViewSurface(curGap);
     refSurfacePair.setMapSurface(mapGap);
     refSurfacePair.setRefPoint(1);
 
-     Surface cvSurfaceOnMap;
+    Surface cvSurfaceOnMap;
     vector<Surface> allCVSurfacesOnMap;
     for (unsigned int i = 0; i < curView.getSurfaces().size(); i++) {
         //trangulate this surface
@@ -709,16 +709,67 @@ View Map::computeCVUsingGap(View & curView, double angleLastLocomotion) {
     return cViewOnMap;
 }
 
-void Map::addCvUsingGap(View & curView){
-    AngleAndDistance lastLocomotion=this->getPathSegments().back();
-            vector<Surface> newRbtSurfaces=transform(this->map[this->map.size()-1].getRobotSurfaces(),-lastLocomotion.angle, -lastLocomotion.distance);
-            cout<<"New rbt Pos "<<newRbtSurfaces[0].getP1().x<<" "<<newRbtSurfaces[0].getP1().y<<endl;
-            double distGapInCurView=max(curView.getRobotSurfaces()[0].distFromP1ToPoint(curView.getGap().getP1().x,curView.getGap().getP1().y),
-                    curView.getRobotSurfaces()[0].distFromP1ToPoint(curView.getGap().getP2().x,curView.getGap().getP2().y));
-            View prevView=this->map[map.size()-1];
-            prevView.setGap(FindGapWithDistance(prevView.getSurfaces(), newRbtSurfaces, distGapInCurView));
-            this->map[map.size()-1]=prevView;
-            this->addCv(this->computeCVUsingGap(curView, -lastLocomotion.angle));
+void Map::addCvUsingGap(View & curView) {
+    //Calculate approximate robot position at the current step in last view coordinates (odometer)
+    AngleAndDistance lastLocomotion = this->getPathSegments().back();
+    vector<Surface> newRbtSurfaces = transform(this->map[this->map.size() - 1].getRobotSurfaces(), -lastLocomotion.angle, -lastLocomotion.distance);
+
+    //Distance of current gap from current robot position
+    double distGapInCurView = max(curView.getRobotSurfaces()[0].distFromP1ToPoint(curView.getGap().getP1().x, curView.getGap().getP1().y),
+            curView.getRobotSurfaces()[0].distFromP1ToPoint(curView.getGap().getP2().x, curView.getGap().getP2().y));
+
+    //Angles of current gap endpoints from current robot orientation
+    double angleP1 = curView.getRobotSurfaces()[0].getAngleFromP1ToPoint(curView.getGap().getP1().x, curView.getGap().getP1().y);
+    double angleP2 = curView.getRobotSurfaces()[0].getAngleFromP1ToPoint(curView.getGap().getP2().x, curView.getGap().getP2().y);
+
+    //Update previous view gap by searching the current gap in the previous view (using distance and angle range)
+    View prevView = this->map[map.size() - 1];
+    prevView.setGap(FindGapWithDistance(prevView.getSurfaces(), newRbtSurfaces, distGapInCurView, min(angleP1, angleP2), max(angleP1, angleP2)));
+    this->map[map.size() - 1] = prevView;
+
+    //Compute the main directions of the borders of the gap in the previous view
+    pair<vector<Surface>, vector<Surface> > exitBordersVect = prevView.computeExitBordersDirections();
+
+    //Plot previous view gap borders
+    char PVexit[50];
+    sprintf(PVexit, "%s%d%s", "../outputs/Maps/PVexit-", curView.getId(), ".png");
+    vector<Surface> tmp = exitBordersVect.first;
+    tmp.insert(tmp.end(), exitBordersVect.second.begin(), exitBordersVect.second.end());
+    plotSurfacesGNU(PVexit, tmp);
+
+    //Find the borders closer to the gap
+    Surface gap = prevView.getGap();
+    Surface exitBorder1 = exitBordersVect.first[0];
+    Surface exitBorder2 = exitBordersVect.second[0];
+    double min1 = min(exitBordersVect.first[0].distFromP1ToPoint(gap.getP1().x, gap.getP1().y), exitBordersVect.first[0].distFromP2ToPoint(gap.getP1().x, gap.getP1().y));
+    double min2 = min(exitBordersVect.second[0].distFromP1ToPoint(gap.getP1().x, gap.getP1().y), exitBordersVect.second[0].distFromP2ToPoint(gap.getP1().x, gap.getP1().y));
+    for (unsigned int i = 1; i < exitBordersVect.first.size(); i++) {
+        double dist1 = exitBordersVect.first[i].distFromP1ToPoint(gap.getP1().x, gap.getP1().y);
+        double dist2 = exitBordersVect.first[i].distFromP2ToPoint(gap.getP1().x, gap.getP1().y);
+        if (min(dist1, dist2) < min1) {
+            min1 = min(dist1, dist2);
+            exitBorder1 = exitBordersVect.first[i];
+        }
+    }
+    for (unsigned int i = 1; i < exitBordersVect.second.size(); i++) {
+        double dist1 = exitBordersVect.second[i].distFromP1ToPoint(gap.getP1().x, gap.getP1().y);
+        double dist2 = exitBordersVect.second[i].distFromP2ToPoint(gap.getP1().x, gap.getP1().y);
+        if (min(dist1, dist2) < min2) {
+            min2 = min(dist1, dist2);
+            exitBorder2 = exitBordersVect.second[i];
+        }
+    }
+
+    //Plot the selected borders
+    char exitKept[50];
+    sprintf(exitKept, "%s%d%s", "../outputs/Maps/PV-exitKept-", curView.getId(), ".png");
+    vector<Surface> exit;
+    exit.push_back(exitBorder1);
+    exit.push_back(exitBorder2);
+    plotSurfacesGNU(exitKept, exit);
+
+    //Find current view position using previous view PCA borders and add current view to map
+    this->addCv(computeViewPositionWithExitBorders(curView, pair<Surface, Surface>(exitBorder1, exitBorder2)));
 }
 
 void Map::saveInTxtFile(const char * filename, const vector<Surface> & rpSurfaces) {
@@ -1163,7 +1214,7 @@ bool PointHiddenBySurfaces(const cv::Point2f pointToCheck, const vector<Surface>
     return false;
 }
 
-bool SurfaceHidingPoint(const cv::Point2f pointToCheck, const Surface& surface, const vector<Surface>& robotSurfaces){
+bool SurfaceHidingPoint(const cv::Point2f pointToCheck, const Surface& surface, const vector<Surface>& robotSurfaces) {
     cv::Point2f robotPos = robotSurfaces[0].getP1();
     vector<Surface> vectSurfaces;
     vectSurfaces.push_back(surface);
@@ -1185,108 +1236,218 @@ bool SurfaceHidingPoint(const cv::Point2f pointToCheck, const Surface& surface, 
     return false;
 }
 
-bool compare_double(const pair<double, PointXY>& a, pair<double, PointXY>& b){
-    return a.first<b.first;
+bool compare_double(const pair<double, PointXY>& a, pair<double, PointXY>& b) {
+    return a.first < b.first;
 }
 
-Surface FindGap(const vector<Surface>& surfaces, const vector<Surface>& robotSurfaces){
-    Surface robotOrientaton=robotSurfaces[0];
+Surface FindGap(const vector<Surface>& surfaces, const vector<Surface>& robotSurfaces) {
+    //Init
+    Surface robotOrientaton = robotSurfaces[0];
     vector<Surface> gaps;
-    int indexNearestGap1=-1;
-    int indexNearestGap2=-1;
-    double distNearestGap1=-1;
-    double distNearestGap2=-1;
-    int gapsSize=0;
-    cout<<"Gaps"<<endl;
-    for(unsigned int i=0; i<surfaces.size()-1; i++){
-        if(surfaces[i].distFromP2ToPoint(surfaces[i+1].getP1().x,surfaces[i+1].getP1().y)>800){
-            Surface gap=Surface(surfaces[i].getP2().x,surfaces[i].getP2().y, surfaces[i+1].getP1().x,surfaces[i+1].getP1().y);
-            gaps.push_back(gap);
-            gap.display();
-            gapsSize++;
-            double distP1=robotOrientaton.distFromP1ToPoint(gap.getP1().x, gap.getP1().y);
-            double distP2=robotOrientaton.distFromP1ToPoint(gap.getP2().x, gap.getP2().y);
-            if(distP1 <MIN_DISTANCE_VISION || distP2<MIN_DISTANCE_VISION ){
+    int indexNearestGap1 = -1;
+    int indexNearestGap2 = -1;
+    double distNearestGap1 = -1;
+    double distNearestGap2 = -1;
+    int gapsSize = 0;
+
+    //Find gaps between adjacent surfaces
+    for (unsigned int i = 0; i < surfaces.size() - 1; i++) {
+        if (surfaces[i].distFromP2ToPoint(surfaces[i + 1].getP1().x, surfaces[i + 1].getP1().y) > 800) {
+            Surface gap = Surface(surfaces[i].getP2().x, surfaces[i].getP2().y, surfaces[i + 1].getP1().x, surfaces[i + 1].getP1().y);
+            double distP1 = robotOrientaton.distFromP1ToPoint(gap.getP1().x, gap.getP1().y);
+            double distP2 = robotOrientaton.distFromP1ToPoint(gap.getP2().x, gap.getP2().y);
+            if (distP1 < MIN_DISTANCE_VISION || distP2 < MIN_DISTANCE_VISION) {
                 //Too close to be the gap + maybe they're not seen correctly
                 continue;
             }
-            if(distNearestGap1 == -1){
-                distNearestGap1=min(distP1, distP2);
-                indexNearestGap1=gapsSize-1;
-            }else if(distNearestGap2 == -1){
-                distNearestGap2=min(distP1, distP2);
-                indexNearestGap2=gapsSize-1;
-                if(distNearestGap2<distNearestGap1){
+            gaps.push_back(gap);
+            gapsSize++;
+
+            //Determine if the gap is one of the 2 closest
+            if (distNearestGap1 == -1) {
+                distNearestGap1 = min(distP1, distP2);
+                indexNearestGap1 = gapsSize - 1;
+            } else if (distNearestGap2 == -1) {
+                distNearestGap2 = min(distP1, distP2);
+                indexNearestGap2 = gapsSize - 1;
+                if (distNearestGap2 < distNearestGap1) {
                     swap(distNearestGap1, distNearestGap2);
                     swap(indexNearestGap1, indexNearestGap2);
                 }
-            }else if(min(distP1, distP2)<distNearestGap2){
-                if(min(distP1, distP2)<distNearestGap1){
-                    distNearestGap2=distNearestGap1;
-                    indexNearestGap2=indexNearestGap1;
-                    distNearestGap1=min(distP1, distP2);
-                    indexNearestGap1=gapsSize-1;
-                }else{
-                    distNearestGap2=min(distP1, distP2);
-                    indexNearestGap2=gapsSize-1;
+            } else if (min(distP1, distP2) < distNearestGap2) {
+                if (min(distP1, distP2) < distNearestGap1) {
+                    distNearestGap2 = distNearestGap1;
+                    indexNearestGap2 = indexNearestGap1;
+                    distNearestGap1 = min(distP1, distP2);
+                    indexNearestGap1 = gapsSize - 1;
+                } else {
+                    distNearestGap2 = min(distP1, distP2);
+                    indexNearestGap2 = gapsSize - 1;
                 }
             }
-            cout<<"Nearest "<<indexNearestGap1<<" "<<distNearestGap1<<" "<<indexNearestGap2<<" "<<distNearestGap2<<endl;
         }
     }
-    
-    if(gapsSize==1){
+
+    if (gapsSize == 1) {
         return gaps[0];
     }
-    
-    cout<<"gap 1 "<<gaps[indexNearestGap1].getP1().x<<" "<<gaps[indexNearestGap1].getP1().y<<" "<<gaps[indexNearestGap1].getP2().x<<" "<<gaps[indexNearestGap1].getP2().y<<endl;
-    cout<<"gap 2 "<<gaps[indexNearestGap2].getP1().x<<" "<<gaps[indexNearestGap2].getP1().y<<" "<<gaps[indexNearestGap2].getP2().x<<" "<<gaps[indexNearestGap2].getP2().y<<endl;
+
+    //   cout << "gap 1 " << gaps[indexNearestGap1].getP1().x << " " << gaps[indexNearestGap1].getP1().y << " " << gaps[indexNearestGap1].getP2().x << " " << gaps[indexNearestGap1].getP2().y << endl;
+    //   cout << "gap 2 " << gaps[indexNearestGap2].getP1().x << " " << gaps[indexNearestGap2].getP1().y << " " << gaps[indexNearestGap2].getP2().x << " " << gaps[indexNearestGap2].getP2().y << endl;
+
+    //Calculate the closest gap as a combination of the 2 former closest gaps endpoints
     Surface closestGap;
     list<pair<double, PointXY> > tmp;
     //Distance gap 1 P1
-    tmp.push_back(pair<double, PointXY>(robotOrientaton.distFromP1ToPoint(gaps[indexNearestGap1].getP1().x, gaps[indexNearestGap1].getP1().y), PointXY(gaps[indexNearestGap1].getP1().x,gaps[indexNearestGap1].getP1().y)));
+    tmp.push_back(pair<double, PointXY>(robotOrientaton.distFromP1ToPoint(gaps[indexNearestGap1].getP1().x, gaps[indexNearestGap1].getP1().y), PointXY(gaps[indexNearestGap1].getP1().x, gaps[indexNearestGap1].getP1().y)));
     //Distance gap 1 P2
-    tmp.push_back(pair<double, PointXY>(robotOrientaton.distFromP1ToPoint(gaps[indexNearestGap1].getP2().x, gaps[indexNearestGap1].getP2().y),PointXY(gaps[indexNearestGap1].getP2().x,gaps[indexNearestGap1].getP2().y)));
+    tmp.push_back(pair<double, PointXY>(robotOrientaton.distFromP1ToPoint(gaps[indexNearestGap1].getP2().x, gaps[indexNearestGap1].getP2().y), PointXY(gaps[indexNearestGap1].getP2().x, gaps[indexNearestGap1].getP2().y)));
     //Distance gap 2 P1
-    tmp.push_back(pair<double, PointXY>(robotOrientaton.distFromP1ToPoint(gaps[indexNearestGap2].getP1().x, gaps[indexNearestGap2].getP1().y),PointXY(gaps[indexNearestGap2].getP1().x,gaps[indexNearestGap2].getP1().y)));
+    tmp.push_back(pair<double, PointXY>(robotOrientaton.distFromP1ToPoint(gaps[indexNearestGap2].getP1().x, gaps[indexNearestGap2].getP1().y), PointXY(gaps[indexNearestGap2].getP1().x, gaps[indexNearestGap2].getP1().y)));
     //Distance gap 2 P2
-    tmp.push_back(pair<double, PointXY>(robotOrientaton.distFromP1ToPoint(gaps[indexNearestGap2].getP2().x, gaps[indexNearestGap2].getP2().y),PointXY(gaps[indexNearestGap2].getP2().x,gaps[indexNearestGap2].getP2().y)));
-    //Distance first point P1
-//    tmp.push_back(pair<double, PointXY>(robotOrientaton.distFromP1ToPoint(surfaces[0].getP1().x, surfaces[0].getP1().y), PointXY(surfaces[0].getP1().x, surfaces[0].getP1().y)));
-    //Distance last point P2
-  //  tmp.push_back(pair<double, PointXY>(robotOrientaton.distFromP1ToPoint(surfaces[surfaces.size()-1].getP2().x, surfaces[surfaces.size()-1].getP2().y), PointXY(surfaces[surfaces.size()-1].getP2().x, surfaces[surfaces.size()-1].getP2().y)));
+    tmp.push_back(pair<double, PointXY>(robotOrientaton.distFromP1ToPoint(gaps[indexNearestGap2].getP2().x, gaps[indexNearestGap2].getP2().y), PointXY(gaps[indexNearestGap2].getP2().x, gaps[indexNearestGap2].getP2().y)));
     tmp.sort(compare_double);
-    pair<double,PointXY> min=tmp.front();
+    pair<double, PointXY> min = tmp.front();
     tmp.pop_front();
-    while(min.second.distFrom(tmp.front().second)<800 && tmp.size()>1){
-        min=tmp.front();
+    while (min.second.distFrom(tmp.front().second) < 800 && tmp.size() > 1) {
+        min = tmp.front();
         tmp.pop_front();
     }
-    closestGap=Surface(tmp.front().second.getX(),tmp.front().second.getY(), min.second.getX(),min.second.getY());
+    PointXY P1 = tmp.front().second;
+    PointXY P2 = min.second;
+    double P1angle = robotOrientaton.getAngleFromP1ToPoint(P1.getX(), P1.getY());
+    double P2angle = robotOrientaton.getAngleFromP1ToPoint(P2.getX(), P2.getY());
+    if (P1angle > 180) {
+        P1angle -= 360;
+    }
+    if (P2angle > 180) {
+        P2angle -= 360;
+    }
+    if (P1angle < P2angle) {
+        swap(P1, P2);
+    }
+    closestGap = Surface(P1.getX(), P1.getY(), P2.getX(), P2.getY());
+
+    cout << "Closest gap" << endl;
     closestGap.display();
-    
+
     return closestGap;
 }
 
-Surface FindGapWithDistance(const vector<Surface>& surfaces, const vector<Surface>& robotSurfaces, const double approximateDistance){
-    Surface robotOrientaton=robotSurfaces[0];
+Surface FindGapWithDistance(const vector<Surface>& surfaces, const vector<Surface>& robotSurfaces, const double approximateDistance, const double angleMin, const double angleMax) {
+    Surface robotOrientaton = robotSurfaces[0];
     vector<Surface> surfToKeep;
-    cout<<endl;
 
-    for(unsigned int i=0; i<surfaces.size(); i++){
-        double distP1=robotOrientaton.distFromP1ToPoint(surfaces[i].getP1().x,surfaces[i].getP1().y);
-        double distP2=robotOrientaton.distFromP1ToPoint(surfaces[i].getP2().x,surfaces[i].getP2().y);
-        if(abs(distP1 - approximateDistance)<0.3*approximateDistance
-                || abs(distP2 - approximateDistance)<0.3*approximateDistance){
+    double adjustedAngleMin = 0.7 * angleMin;
+    double adjustedAngleMax = 1.3 * angleMax;
+    bool zeroInBetween = abs(angleMin - angleMax) > 180;
+
+    for (unsigned int i = 0; i < surfaces.size(); i++) {
+        double distP1 = robotOrientaton.distFromP1ToPoint(surfaces[i].getP1().x, surfaces[i].getP1().y);
+        double distP2 = robotOrientaton.distFromP1ToPoint(surfaces[i].getP2().x, surfaces[i].getP2().y);
+        double angleP1 = robotOrientaton.getAngleFromP1ToPoint(surfaces[i].getP1().x, surfaces[i].getP1().y);
+        double angleP2 = robotOrientaton.getAngleFromP1ToPoint(surfaces[i].getP2().x, surfaces[i].getP2().y);
+        bool P1inAngle = (!zeroInBetween && angleP1 >= adjustedAngleMin && angleP1 <= adjustedAngleMax)
+                || (zeroInBetween && (angleP1 >= adjustedAngleMin || angleP1 <= adjustedAngleMax));
+        bool P2inAngle = (!zeroInBetween && angleP2 >= adjustedAngleMin && angleP2 <= adjustedAngleMax)
+                || (zeroInBetween && (angleP2 >= adjustedAngleMin || angleP2 <= adjustedAngleMax));
+        if ((abs(distP1 - approximateDistance) < 0.3 * approximateDistance && P1inAngle)
+                || (abs(distP2 - approximateDistance) < 0.3 * approximateDistance && P2inAngle)) {
             surfToKeep.push_back(surfaces[i]);
         }
     }
-    if(surfToKeep.size()<2){
-        surfToKeep=surfaces;
-        cout<<"Can't find enough surfaces in the approximate distance"<<endl;
-    }
+
     char name [50];
     sprintf(name, "%s%f%s", "../outputs/Maps/surfToKeep", robotOrientaton.getP1().y, ".png");
-    plotSurfacesGNU(name,surfToKeep);
-    return FindGap(surfToKeep,robotSurfaces);
+    plotSurfacesGNU(name, surfToKeep);
+
+    if (surfToKeep.size() < 2) {
+        surfToKeep = surfaces;
+        cout << "Can't find enough surfaces in the approximate distance" << endl;
+    }
+
+    return FindGap(surfToKeep, robotSurfaces);
+}
+
+View computeViewPositionWithExitBorders(View& view, pair<Surface, Surface> pcaExitBordersPV) {
+
+    pair<vector<Surface>, vector<Surface> > exitBordersCV = view.computeExitBordersDirections();
+    vector<Surface> pcaSurfacesBorder1 = exitBordersCV.first;
+    vector<Surface> pcaSurfacesBorder2 = exitBordersCV.second;
+
+    //Plot current view gap borders
+    char CVexit[50];
+    sprintf(CVexit, "%s%d%s", "../outputs/Maps/CVexit-", view.getId(), ".png");
+    vector<Surface> tmp = pcaSurfacesBorder1;
+    tmp.insert(tmp.end(), pcaSurfacesBorder2.begin(), pcaSurfacesBorder2.end());
+    plotSurfacesGNU(CVexit, tmp);
+
+    //Find the PCA surface which orientation is closer to the previous view border PCA surface orientation (for each side)
+    double minDiffAngle = abs(pcaExitBordersPV.first.getAngleWithSurface(pcaSurfacesBorder1[0]));
+    int indexMinAngle = 0;
+    for (unsigned int i = 0; i < pcaSurfacesBorder1.size(); i++) {
+        double angleTmp = abs(pcaExitBordersPV.first.getAngleWithSurface(pcaSurfacesBorder1[i]));
+        if (angleTmp < minDiffAngle) {
+            minDiffAngle = angleTmp;
+            indexMinAngle = i;
+        }
+    }
+
+    double minDiffAngle2 = abs(pcaExitBordersPV.second.getAngleWithSurface(pcaSurfacesBorder2[0]));
+    int indexMinAngle2 = 0;
+    for (unsigned int i = 0; i < pcaSurfacesBorder2.size(); i++) {
+        double angleTmp = abs(pcaExitBordersPV.second.getAngleWithSurface(pcaSurfacesBorder2[i]));
+        if (angleTmp < minDiffAngle2) {
+            minDiffAngle2 = angleTmp;
+            indexMinAngle2 = i;
+        }
+    }
+
+    //Plot the selected borders
+    char exitKept[50];
+    sprintf(exitKept, "%s%d%s", "../outputs/Maps/CV-exitKept-", view.getId(), ".png");
+    vector<Surface> exit;
+    exit.push_back(pcaSurfacesBorder1[indexMinAngle]);
+    exit.push_back(pcaSurfacesBorder2[indexMinAngle2]);
+    plotSurfacesGNU(exitKept, exit);
+
+    //Take as reference the side where the orientation matching is better
+    Surface viewRef = pcaSurfacesBorder1[indexMinAngle];
+    Surface mapRef = pcaExitBordersPV.first;
+
+    if (minDiffAngle2 < minDiffAngle) {
+        viewRef = pcaSurfacesBorder2[indexMinAngle2];
+        mapRef = pcaExitBordersPV.second;
+    }
+
+    ReferenceSurfaces refSurfacePair;
+    refSurfacePair.setViewSurface(viewRef);
+    refSurfacePair.setMapSurface(mapRef);
+    refSurfacePair.setRefPoint(1);
+
+    //Calculate the view surfaces in map's coordinates
+    Surface cvSurfaceOnMap;
+    vector<Surface> allCVSurfacesOnMap;
+    for (unsigned int i = 0; i < view.getSurfaces().size(); i++) {
+        cvSurfaceOnMap = trangulateSurface(refSurfacePair.getMapSurface(), refSurfacePair.getViewSurface(),
+                view.getSurfaces()[i], refSurfacePair.getRefPoint());
+        allCVSurfacesOnMap.push_back(cvSurfaceOnMap);
+    }
+
+    //Calculate the robot surfaces in map's coordinates
+    Surface cRobotSurfaceOnMap;
+    vector<Surface> cRobotSurfacesOnMap;
+
+    for (unsigned int i = 0; i < view.getRobotSurfaces().size(); i++) {
+        cRobotSurfaceOnMap = trangulateSurface(refSurfacePair.getMapSurface(), refSurfacePair.getViewSurface(),
+                view.getRobotSurfaces()[i], refSurfacePair.getRefPoint());
+        cRobotSurfacesOnMap.push_back(cRobotSurfaceOnMap);
+    }
+
+    View cViewOnMap;
+    cViewOnMap.setSurfaces(allCVSurfacesOnMap);
+    cViewOnMap.setRobotSurfaces(cRobotSurfacesOnMap);
+    cViewOnMap.setId(view.getId());
+
+    return cViewOnMap;
 }

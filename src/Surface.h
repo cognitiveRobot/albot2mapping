@@ -98,6 +98,8 @@ public:
     Color getAverageColor();
     
     SurfaceT ToSurfaceT() const;
+    
+    void orderEndpoints(Surface robotOrientation);
 };
 
 //

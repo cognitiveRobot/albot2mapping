@@ -13,48 +13,49 @@ int Surface::idCounter = 0;
 Surface::Surface() {
     this->id = Surface::getUniqueId();
 }
- Surface::Surface(float X1, float Y1, float X2, float Y2) {
-     P1.x = X1;
+
+Surface::Surface(float X1, float Y1, float X2, float Y2) {
+    P1.x = X1;
     P1.y = Y1;
     P2.x = X2;
     P2.y = Y2;
     this->id = Surface::getUniqueId();
- }
+}
 
 Surface::~Surface() {
 
 }
 
-bool Surface::operator==(Surface const& b){
-    if(this->getP1().x==b.getP1().x
-            && this->getP1().y==b.getP1().y
-            && this->getP2().x==b.getP2().x
-            && this->getP2().y==b.getP2().y){
+bool Surface::operator==(Surface const& b) {
+    if (this->getP1().x == b.getP1().x
+            && this->getP1().y == b.getP1().y
+            && this->getP2().x == b.getP2().x
+            && this->getP2().y == b.getP2().y) {
         return true;
     }
     return false;
 }
 
-void Surface::display() const{
-    cout<<"X1: "<<P1.x<<" Y1: "<<P1.y<<" X2: "<<P2.x<<" Y2: "<<P2.y<<endl;
-    cout<<"L: "<<this->length()<<endl;
+void Surface::display() const {
+    cout << "X1: " << P1.x << " Y1: " << P1.y << " X2: " << P2.x << " Y2: " << P2.y << endl;
+    cout << "L: " << this->length() << endl;
 }
 
-double Surface::length() const{
-    return sqrt((P2.x-P1.x)*(P2.x-P1.x)+(P2.y-P1.y)*(P2.y-P1.y));
+double Surface::length() const {
+    return sqrt((P2.x - P1.x)*(P2.x - P1.x)+(P2.y - P1.y)*(P2.y - P1.y));
 }
 
-cv::Point2f Surface::midPoint() const{
+cv::Point2f Surface::midPoint() const {
     cv::Point2f mp;
-  //  cout<<"p2.x "<<P2.x<<" p1.y "<<P1.x<<endl;
+    //  cout<<"p2.x "<<P2.x<<" p1.y "<<P1.x<<endl;
     mp.x = (P2.x + P1.x) / 2.0;
     mp.y = (P2.y + P1.y) / 2.0;
-    
-  //  cout<<"mp.x "<<mp.x<<" mp.y "<<mp.y<<endl;
+
+    //  cout<<"mp.x "<<mp.x<<" mp.y "<<mp.y<<endl;
     return mp;
 }
 
-int Surface::getId() const{
+int Surface::getId() const {
     return this->id;
 }
 
@@ -128,6 +129,7 @@ void Surface::rotate(cv::Point3f Center) {
 }
 
 //rotates P2 according to the angle.
+
 void Surface::rotateAroundP1(double angle) {
     float r;
     float teta;
@@ -164,7 +166,7 @@ void Surface::rotateAroundP1(double angle) {
 //whose center and angle with respect to old coordinate frame are given.
 
 Surface Surface::transFrom(double newX, double newY, double angle) const {
-    
+
     float x1, y1, x2, y2; //float gives 7digit precision. which is enough for us.
     double a = P1.x - newX; //x-x0
     double b = P1.y - newY; //y-y0
@@ -177,15 +179,14 @@ Surface Surface::transFrom(double newX, double newY, double angle) const {
 
     x2 = c * cos(angle) + d * sin(angle);
     y2 = d * cos(angle) - c * sin(angle);
-    
-    Surface transformed(x1,y1,x2,y2);
-    
+
+    Surface transformed(x1, y1, x2, y2);
+
     return transformed;
 }
 
-
 Surface Surface::transformB(double newX, double newY, double angle) const {
-    
+
     float x1, y1, x2, y2; //float gives 7digit precision. which is enough for us.
 
     //rotation
@@ -201,13 +202,13 @@ Surface Surface::transformB(double newX, double newY, double angle) const {
     //translation
     x2 += newX;
     y2 += newY;
-    
-    Surface transformed(x1,y1,x2,y2);
-    
+
+    Surface transformed(x1, y1, x2, y2);
+
     return transformed;
 }
 
-std::vector<cv::Point2f> Surface::getPoints() const{
+std::vector<cv::Point2f> Surface::getPoints() const {
     return points;
 }
 
@@ -216,24 +217,24 @@ void Surface::reset() {
     this->id = Surface::getUniqueId();
 }
 
-std::vector<cv::Point2f> Surface::getAllPoints(){
+std::vector<cv::Point2f> Surface::getAllPoints() {
     std::vector<cv::Point2f> allPoints;
     allPoints.push_back(P1);
-    if(P2.x != P1.x){
-        double slope=(P2.y-P1.y)/(P2.x-P1.x);
-        double b=P1.y-(slope*P1.x);
-        for(int i=P1.x; i<P2.x; i+=10){
-            allPoints.push_back(cv::Point2f(i, slope*i+b));
+    if (P2.x != P1.x) {
+        double slope = (P2.y - P1.y) / (P2.x - P1.x);
+        double b = P1.y - (slope * P1.x);
+        for (int i = P1.x; i < P2.x; i += 10) {
+            allPoints.push_back(cv::Point2f(i, slope * i + b));
         }
-    } 
+    }
     allPoints.push_back(P2);
     return allPoints;
 }
 
 void Surface::set(float X1, float Y1, float X2, float Y2) {
-     P1.x = X1;
+    P1.x = X1;
     P1.y = Y1;
-     P2.x = X2;
+    P2.x = X2;
     P2.y = Y2;
 }
 
@@ -247,25 +248,26 @@ void Surface::setP2(float X, float Y) {
     P2.y = Y;
 }
 
-cv::Point2f Surface::getP1() const{
+cv::Point2f Surface::getP1() const {
     return P1;
 }
 
-cv::Point2f Surface::getP2() const{
+cv::Point2f Surface::getP2() const {
     return P2;
 }
 
 void Surface::setSurfaceSimple() {
 
     /* Set the ends of the surface */
-    if(points.size() > 1) {
-    setP1(points[0].x, points[0].y);
-    setP2(points[points.size()-1].x,points[points.size()-1].y);
+    if (points.size() > 1) {
+        setP1(points[0].x, points[0].y);
+        setP2(points[points.size() - 1].x, points[points.size() - 1].y);
     }
 
 }
 
 //it uses OpenCV line fitting algorithm to set a surfaces from a vector of points
+
 void Surface::setSurface() {
 
     cv::Vec4f vecLine; // Orientation vector
@@ -311,31 +313,31 @@ std::vector<Color> Surface::getColors() {
     return colors;
 }
 
-double Surface::distFromP1ToPoint(const float & a, const float & b) const{
-    return sqrt((P1.x-a)*(P1.x-a)+(P1.y-b)*(P1.y-b));
+double Surface::distFromP1ToPoint(const float & a, const float & b) const {
+    return sqrt((P1.x - a)*(P1.x - a)+(P1.y - b)*(P1.y - b));
 }
 
-double Surface::distFromP2ToPoint(const float & a, const float & b) const{
-    return sqrt((P2.x-a)*(P2.x-a)+(P2.y-b)*(P2.y-b));
+double Surface::distFromP2ToPoint(const float & a, const float & b) const {
+    return sqrt((P2.x - a)*(P2.x - a)+(P2.y - b)*(P2.y - b));
 }
 
-double Surface::distFromMiddlePointToPoint(const float & a, const float & b) const{
-    return sqrt((this->midPoint().x-a)*(this->midPoint().x-a)+(this->midPoint().y-b)*(this->midPoint().y-b));
+double Surface::distFromMiddlePointToPoint(const float & a, const float & b) const {
+    return sqrt((this->midPoint().x - a)*(this->midPoint().x - a)+(this->midPoint().y - b)*(this->midPoint().y - b));
 }
 
-double Surface::getAngleWithXaxis() const{
+double Surface::getAngleWithXaxis() const {
     double x21 = P2.x - P1.x;
     double y21 = P2.y - P1.y;
-    
+
     //cout<<"x21 "<<x21<<" y21 "<<y21<<endl;
-    
-    if(y21 == 0) {
+
+    if (y21 == 0) {
         return 0;
     }
 
     double angle1 = acos(x21 / length());
-   //cout<<angle1<<endl;
-    
+    //cout<<angle1<<endl;
+
     if (y21 < 0)
         angle1 = 2 * M_PI - angle1;
 
@@ -343,80 +345,82 @@ double Surface::getAngleWithXaxis() const{
     return ((180 / M_PI) * angle1);
 }
 
-double Surface::getAngleWithSurface(Surface s) const{
+double Surface::getAngleWithSurface(Surface s) const {
 
 
     return s.getAngleWithXaxis() - this->getAngleWithXaxis();
 }
 
 //it finds angle between this surface (direction p1 to p2) and p1 and given point. 
+
 double Surface::getAngleFromP1ToPoint(const double & a, const double & b) const {
-    double x21=P2.x-P1.x;
-	double y21=P2.y-P1.y;
-	double x31=a-P1.x;
-	double y31=b-P1.y;
-	
-	double la=length();
-	double lb=this->distFromP1ToPoint(a, b);
+    double x21 = P2.x - P1.x;
+    double y21 = P2.y - P1.y;
+    double x31 = a - P1.x;
+    double y31 = b - P1.y;
 
-	double r1=x21/la;
-	double angle1=acos(r1);
+    double la = length();
+    double lb = this->distFromP1ToPoint(a, b);
 
-	double r2=x31/lb;
-	double angle2=acos(r2);
-	
-	if(lb==0)
-	return 0;
+    double r1 = x21 / la;
+    double angle1 = acos(r1);
 
-	if(y21 < 0)
-	angle1 = 2*M_PI - angle1;	
-	angle1=((180/M_PI)*angle1);
-	
-	if(y31<0)
-	angle2=2*M_PI-angle2;
-	angle2=((180/M_PI)*angle2);
-	
-	double diff=angle2-angle1;
+    double r2 = x31 / lb;
+    double angle2 = acos(r2);
 
-	if(diff>0)
-	return diff;
-	else 
-	return 360+diff;
+    if (lb == 0)
+        return 0;
+
+    if (y21 < 0)
+        angle1 = 2 * M_PI - angle1;
+    angle1 = ((180 / M_PI) * angle1);
+
+    if (y31 < 0)
+        angle2 = 2 * M_PI - angle2;
+    angle2 = ((180 / M_PI) * angle2);
+
+    double diff = angle2 - angle1;
+
+    if (diff > 0)
+        return diff;
+    else
+        return 360 + diff;
 }
 
 //it finds angle between this surface (direction p2 to p1) and p2 and given point. 
+
 double Surface::getAngleFromP2ToPoint(const double & a, const double & b) const {
-    double x21=P1.x-P2.x;
-	double y21=P1.y-P2.y;
-	double x31=a-P2.x;
-	double y31=b-P2.y;
-	
-	double la=length();
-	double lb=this->distFromP2ToPoint(a, b);
+    double x21 = P1.x - P2.x;
+    double y21 = P1.y - P2.y;
+    double x31 = a - P2.x;
+    double y31 = b - P2.y;
 
-	double r1=x21/la;
-	double angle1=acos(r1);
+    double la = length();
+    double lb = this->distFromP2ToPoint(a, b);
 
-	double r2=x31/lb;
-	double angle2=acos(r2);
-	
-	if(lb==0)
-	return 0;
+    double r1 = x21 / la;
+    double angle1 = acos(r1);
 
-	if(y21 < 0)
-	angle1 = 2*M_PI - angle1;	
-	angle1=((180/M_PI)*angle1);
-	
-	if(y31<0)
-	angle2=2*M_PI-angle2;
-	angle2=((180/M_PI)*angle2);
-	
-	double diff=angle2-angle1;
+    double r2 = x31 / lb;
+    double angle2 = acos(r2);
 
-	if(diff>0)
-	return diff;
-	else 
-	return 360+diff;
+    if (lb == 0)
+        return 0;
+
+    if (y21 < 0)
+        angle1 = 2 * M_PI - angle1;
+    angle1 = ((180 / M_PI) * angle1);
+
+    if (y31 < 0)
+        angle2 = 2 * M_PI - angle2;
+    angle2 = ((180 / M_PI) * angle2);
+
+    double diff = angle2 - angle1;
+
+    if (diff > 0)
+        return diff;
+    else
+        return 360 + diff;
 }
 
 //given that angle, distance, and reference direction, find the x and y co-ordinate with respect to this surface.
@@ -440,14 +444,15 @@ double Surface::getAngleFromP2ToPoint(const double & a, const double & b) const 
 //        }
 //        plotSurfacesGNU("../outputs/Maps/cvLocated.png",cvLocated);
 //        waitHere();
+
 void Surface::locatePointAt(double & x, double & y, const double & ang, const double & distance, const int & refDirection) {
     double angle = ang * CONVERT_TO_RADIAN;
-    if(refDirection == 1) {
+    if (refDirection == 1) {
         x = ((this->getP2().x - this->getP1().x) / this->length()) * cos(angle)-((this->getP2().y - this->getP1().y) / this->length()) * sin(angle);
         y = ((this->getP2().x - this->getP1().x) / this->length()) * sin(angle)+((this->getP2().y - this->getP1().y) / this->length()) * cos(angle);
 
         x = x * distance + this->getP1().x;
-        y = y * distance + this->getP1().y; 
+        y = y * distance + this->getP1().y;
     } else {
         x = ((this->getP1().x - this->getP2().x) / this->length()) * cos(angle)-((this->getP1().y - this->getP2().y) / this->length()) * sin(angle);
         y = ((this->getP1().x - this->getP2().x) / this->length()) * sin(angle)+((this->getP1().y - this->getP2().y) / this->length()) * cos(angle);
@@ -458,94 +463,109 @@ void Surface::locatePointAt(double & x, double & y, const double & ang, const do
 }
 
 //given that angle, distance of two points, and reference direction, find the surface with respect to this surface.
+
 Surface Surface::makeASurfaceAt(const double & ang1, const double & dist1, const double & ang2, const double & dist2, const int & refDirection) {
-    double x1,y1,x2,y2;
+    double x1, y1, x2, y2;
     //point1
-    locatePointAt(x1,y1,ang1,dist1,refDirection);
+    locatePointAt(x1, y1, ang1, dist1, refDirection);
     //point2
-    locatePointAt(x2,y2,ang2,dist2,refDirection);
-    
-    return Surface(x1,y1,x2,y2);
+    locatePointAt(x2, y2, ang2, dist2, refDirection);
+
+    return Surface(x1, y1, x2, y2);
 }
 
 void Surface::shiftOneEnd(const double & ang, const double & distance, const int & refDirection) {
     double x, y;
     //locate the shifting point;
-    locatePointAt(x,y, ang,distance,refDirection);
-    
-    if(refDirection == 1)
-        this->setP2(x,y);
+    locatePointAt(x, y, ang, distance, refDirection);
+
+    if (refDirection == 1)
+        this->setP2(x, y);
     else
-        this->setP1(x,y);
+        this->setP1(x, y);
 }
 
-
-
-SurfaceT Surface::ToSurfaceT() const{
-    return SurfaceT(PointXY(P1.x,P1.y),PointXY(P2.x,P2.y));
+SurfaceT Surface::ToSurfaceT() const {
+    return SurfaceT(PointXY(P1.x, P1.y), PointXY(P2.x, P2.y));
 }
 
+void Surface::orderEndpoints(Surface robotOrientation) {
+    double angleP1 = robotOrientation.getAngleFromP1ToPoint(P1.x, P1.y);
+    double angleP2 = robotOrientation.getAngleFromP1ToPoint(P2.x, P2.y);
+    if (angleP1 > 180) angleP1 -= 360;
+    if (angleP2 > 180) angleP2 -= 360;
+    if (angleP2 > angleP1) {
+        swap(P1, P2);
+    }
+}
 
 
 // Reference Surfaces
+
 ReferenceSurfaces::ReferenceSurfaces() {
     refPoint = 0;
- }
+}
 
- ReferenceSurfaces::ReferenceSurfaces(const Surface & surf1, const Surface & surf2) {
-     mapSurface = surf1;
-     viewSurface = surf2;
- }
-    ReferenceSurfaces::~ReferenceSurfaces() {
-        
-    }
+ReferenceSurfaces::ReferenceSurfaces(const Surface & surf1, const Surface & surf2) {
+    mapSurface = surf1;
+    viewSurface = surf2;
+}
 
-    Surface ReferenceSurfaces::getMapSurface() {
-        return mapSurface;
-    }
-    void ReferenceSurfaces::setMapSurface(const Surface & surf1) {
-        mapSurface = surf1;
-    }
-    
-    Surface ReferenceSurfaces::getViewSurface() {
-        return viewSurface;
-    }
-    void ReferenceSurfaces::setViewSurface(const Surface & surf1) {
-        viewSurface = surf1;
-    }
-    
-    int ReferenceSurfaces::getRefPoint() {
-        return refPoint;
-    }
-    void ReferenceSurfaces::setRefPoint(const int & i) {
-        refPoint = i;
-    }
-    
-    void ReferenceSurfaces::display() {
-        cout<<"MapId: "<<mapSurface.getId()<<" CVId: "<<viewSurface.getId()<<" RefPoint: "<<refPoint<<endl;
-    }
+ReferenceSurfaces::~ReferenceSurfaces() {
+
+}
+
+Surface ReferenceSurfaces::getMapSurface() {
+    return mapSurface;
+}
+
+void ReferenceSurfaces::setMapSurface(const Surface & surf1) {
+    mapSurface = surf1;
+}
+
+Surface ReferenceSurfaces::getViewSurface() {
+    return viewSurface;
+}
+
+void ReferenceSurfaces::setViewSurface(const Surface & surf1) {
+    viewSurface = surf1;
+}
+
+int ReferenceSurfaces::getRefPoint() {
+    return refPoint;
+}
+
+void ReferenceSurfaces::setRefPoint(const int & i) {
+    refPoint = i;
+}
+
+void ReferenceSurfaces::display() {
+    cout << "MapId: " << mapSurface.getId() << " CVId: " << viewSurface.getId() << " RefPoint: " << refPoint << endl;
+}
 
 
 ///////// Some functions //////////
+
 bool SortBasedOnLength(Surface surf1, Surface surf2) {
     return surf1.length() < surf2.length();
 }
 
 void displaySurfaces(const std::vector<Surface> & surfaces) {
-    for(unsigned int i=0; i<surfaces.size(); i++) {
+    for (unsigned int i = 0; i < surfaces.size(); i++) {
         surfaces[i].display();
     }
 }
 
 vector<Surface> convertSurfaceT2Surface(const vector<SurfaceT> & surfs) {
     vector<Surface> surfaces;
-    for(unsigned int i=0;i<surfs.size();i++) {
-        surfaces.push_back(Surface(surfs[i].getX1(),surfs[i].getY1(),surfs[i].getX2(),surfs[i].getY2()));
+    for (unsigned int i = 0; i < surfs.size(); i++) {
+        surfaces.push_back(Surface(surfs[i].getX1(), surfs[i].getY1(), surfs[i].getX2(), surfs[i].getY2()));
     }
     return surfaces;
 }
 
 //it transforms pv to cv
+
 vector<Surface> transform(const vector<Surface> & pvSurfaces, const double & angle, const double & distance) {
     cout << "Angle " << angle << " dist " << distance << endl;
 
@@ -562,24 +582,25 @@ vector<Surface> transform(const vector<Surface> & pvSurfaces, const double & ang
     for (unsigned int i = 0; i < pvSurfaces.size(); i++) {
         pvSurfacesOnCV.push_back(pvSurfaces[i].transFrom(newX, newY, ang));
     }
-    
+
     return pvSurfacesOnCV;
 }
 
 //it transforms cv to pv
+
 vector<Surface> transformB(const vector<Surface> & cvSurfaces, const double & angle, const double & distance) {
-        double ang = angle * CONVERT_TO_RADIAN; // degree to randian.
-        //find cv center in the pv coordinate frame.
-        //need to convert robot position from mm to cm.
-        double newX = (distance / 1.0) * sin(-ang); //x= d*cos(th) = d*cos(90-angle) = d*sin(angle) //as aris give - value for right turn
-        double newY = (distance / 1.0) * cos(-ang); //y=d*sin(th)=d*sin(90-angle)=d*cos(angle)
-        
-        //transform cvLandmarks to pv coordinate frame.
+    double ang = angle * CONVERT_TO_RADIAN; // degree to randian.
+    //find cv center in the pv coordinate frame.
+    //need to convert robot position from mm to cm.
+    double newX = (distance / 1.0) * sin(-ang); //x= d*cos(th) = d*cos(90-angle) = d*sin(angle) //as aris give - value for right turn
+    double newY = (distance / 1.0) * cos(-ang); //y=d*sin(th)=d*sin(90-angle)=d*cos(angle)
+
+    //transform cvLandmarks to pv coordinate frame.
     std::vector<Surface> cvSurfacesOnPV;
     for (unsigned int i = 0; i < cvSurfaces.size(); i++) {
         cvSurfacesOnPV.push_back(cvSurfaces[i].transformB(newX, newY, ang));
     }
-    
+
     return cvSurfacesOnPV;
-        
+
 }

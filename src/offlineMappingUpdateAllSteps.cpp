@@ -109,7 +109,7 @@ int main(int argc, char** argv) {
         plotViewGNU(viewName, curView);
 
         curView.setGap(FindGap(curView.getSurfaces(), curView.getRobotSurfaces()));
-        
+
         if (curView.getId() == 1) {
             curMap->initializeMap(curView);
             /*  } else {
@@ -140,17 +140,6 @@ int main(int argc, char** argv) {
             curMap->setMapID(mapId + 1);
             curMap->initializeMap(curView);
         }
-
-        /*    Surface robotOrientation=curView.getRobotSurfaces()[0];
-            vector<Surface> surfacesConsidered;
-            for(unsigned int i=0; i<curView.getSurfaces().size(); i++){
-                if(robotOrientation.distFromP1ToPoint(curView.getSurfaces()[i].midPoint().x,curView.getSurfaces()[i].midPoint().y)<6000){
-                    surfacesConsidered.push_back(curView.getSurfaces()[i]);
-                }
-            }*/
-        //  Surface gap=FindGap(curView.getSurfaces(), curView.getRobotSurfaces());
-
-
 
         //read odometer info
         sprintf(viewName, "%s%s%s%d", "../inputs/", argv[1], "/surfaces/coordTrans-", curView.getId());

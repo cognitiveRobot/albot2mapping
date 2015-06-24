@@ -516,6 +516,7 @@ vector<vector<PointXY> > DBSCAN_points(vector<PointXY> *points, float eps, int m
                 //expand cluster
                 // add P to cluster c
                 clusters[c].push_back(points->at(i));
+                clustered[i]=true;
                 //for each point P' in neighborPts
                 for (int j = 0; j < neighborPts.size(); j++) {
                     //if P' is not visited
@@ -531,6 +532,7 @@ vector<vector<PointXY> > DBSCAN_points(vector<PointXY> *points, float eps, int m
                     // add P' to cluster c
                     if (!clustered[neighborPts[j]])
                         clusters[c].push_back(points->at(neighborPts[j]));
+                    clustered[neighborPts[j]]=true;
                 }
             }
 

@@ -128,6 +128,8 @@ public:
     Surface getGap() const;
 
     void setGap(Surface gap);
+    
+    pair<vector<Surface>, vector<Surface> > computeExitBordersDirections();
 
 
 };

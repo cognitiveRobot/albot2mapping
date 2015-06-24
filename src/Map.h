@@ -159,7 +159,9 @@ bool SurfaceHidingPoint(const cv::Point2f pointToCheck, const Surface& surface, 
 
 Surface FindGap(const vector<Surface>& surfaces, const vector<Surface>& robotSurfaces);
 
-Surface FindGapWithDistance(const vector<Surface>& surfaces, const vector<Surface>& robotSurfaces, const double approximateDistance);
+Surface FindGapWithDistance(const vector<Surface>& surfaces, const vector<Surface>& robotSurfaces, const double approximateDistance, const double angleMin, const double angleMax);
+
+View computeViewPositionWithExitBorders(View& view, pair<Surface, Surface> pcaExitBordersPV);
 
 #endif	/* MAPPER_H */
 
