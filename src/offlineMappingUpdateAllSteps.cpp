@@ -107,9 +107,15 @@ int main(int argc, char** argv) {
         cout << "View no. " << curView.getId() << ":" << endl;
         sprintf(viewName, "%s%d", "../outputs/Maps/view-", curView.getId());
         plotViewGNU(viewName, curView);
-
-        curView.setGap(FindGap(curView.getSurfaces(), curView.getRobotSurfaces()));
-
+        
+        try{
+            curView.setGap(FindGap(curView.getSurfaces(), curView.getRobotSurfaces()));
+            curView.setHasGap(true);
+        }catch(bool e){
+            cout<<"Cannot find exit for view "<<curView.getId()<<endl;
+            curView.setHasGap(false);
+        }
+        
         if (curView.getId() == 1) {
             curMap->initializeMap(curView);
             /*  } else {
@@ -128,17 +134,27 @@ int main(int argc, char** argv) {
                       curMap->addCv(viewOnMap);   
                   } 
               }*/
-        } else if (curView.getId() % 2 == 0) {
-            curMap->addCvUsingGap(curView);
+        } else if (curView.getHasGap() && curMap->getMap()[curMap->getMap().size()-1].getHasGap()) {
+            try{
+                curMap->addCvUsingGap(curView);
+            }catch(bool e){
+                cout<<"Cannot link views using exits, need to use odometer"<<endl;
+                View viewOnMap=curMap->computeCVUsingMultipleRef(curView);
+                curMap->addCv(viewOnMap);  
+            }
+            
         } else {
-            globalMap.addMap(*curMap);
+            cout<<"Cannot find exits for both views, need to use odometer"<<endl;
+            View viewOnMap=curMap->computeCVUsingMultipleRef(curView);
+            curMap->addCv(viewOnMap);  
+         /*   globalMap.addMap(*curMap);
 
             int mapId = curMap->getMapID();
             delete curMap;
 
             curMap = new Map(1500, 1500);
             curMap->setMapID(mapId + 1);
-            curMap->initializeMap(curView);
+            curMap->initializeMap(curView);*/
         }
 
         //read odometer info

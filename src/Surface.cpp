@@ -567,15 +567,12 @@ vector<Surface> convertSurfaceT2Surface(const vector<SurfaceT> & surfs) {
 //it transforms pv to cv
 
 vector<Surface> transform(const vector<Surface> & pvSurfaces, const double & angle, const double & distance) {
-    cout << "Angle " << angle << " dist " << distance << endl;
 
     double ang = angle * CONVERT_TO_RADIAN; // degree to randian.
     //find cv center in the pv coordinate frame.
     //need to convert robot position from mm to cm.
     double newX = (distance / 1.0) * sin(-ang); //x= d*cos(th) = d*cos(90-angle) = d*sin(angle) //as aris give - value for right turn
     double newY = (distance / 1.0) * cos(-ang); //y=d*sin(th)=d*sin(90-angle)=d*cos(angle)
-
-    cout << "x " << newX << " y " << newY << endl;
 
     //transform pvLandmarks to cv coordinate frame.
     std::vector<Surface> pvSurfacesOnCV;

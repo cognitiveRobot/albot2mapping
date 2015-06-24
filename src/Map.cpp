@@ -646,6 +646,7 @@ View Map::computeCVUsingMultipleRef(const View& curView) {
     cViewOnMap.setSurfaces(allCVSurfacesOnMap);
     cViewOnMap.setRobotSurfaces(cRobotSurfacesOnMap);
     cViewOnMap.setId(curView.getId());
+    cViewOnMap.setHasGap(curView.getHasGap());
 
     return cViewOnMap;
 }
@@ -724,11 +725,16 @@ void Map::addCvUsingGap(View & curView) {
 
     //Update previous view gap by searching the current gap in the previous view (using distance and angle range)
     View prevView = this->map[map.size() - 1];
-    prevView.setGap(FindGapWithDistance(prevView.getSurfaces(), newRbtSurfaces, distGapInCurView, min(angleP1, angleP2), max(angleP1, angleP2)));
-    this->map[map.size() - 1] = prevView;
-
-    //Compute the main directions of the borders of the gap in the previous view
-    pair<vector<Surface>, vector<Surface> > exitBordersVect = prevView.computeExitBordersDirections();
+    pair<vector<Surface>, vector<Surface> > exitBordersVect;
+    try {
+        prevView.setGap(FindGapWithDistance(prevView.getSurfaces(), newRbtSurfaces, distGapInCurView, min(angleP1, angleP2), max(angleP1, angleP2)));
+        this->map[map.size() - 1] = prevView;
+        
+        //Compute the main directions of the borders of the gap in the previous view
+        exitBordersVect = prevView.computeExitBordersDirections();
+    } catch (bool e) {
+        throw false;
+    }
 
     //Plot previous view gap borders
     char PVexit[50];
@@ -736,7 +742,18 @@ void Map::addCvUsingGap(View & curView) {
     vector<Surface> tmp = exitBordersVect.first;
     tmp.insert(tmp.end(), exitBordersVect.second.begin(), exitBordersVect.second.end());
     plotSurfacesGNU(PVexit, tmp);
-
+    
+    //Plot gaps
+    char gapsplot[50];
+    sprintf(gapsplot, "%s%d%s", "../outputs/Maps/gapsPlot-", curView.getId(), ".png");
+    vector<Surface> tmpGapsPlot = curView.getSurfaces();
+    tmpGapsPlot.push_back(curView.getGap());
+    plotSurfacesGNU(gapsplot, tmpGapsPlot);
+    sprintf(gapsplot, "%s%d%s", "../outputs/Maps/gapsPlot-prev-", curView.getId(), ".png");
+    vector<Surface> tmpGapsPlot2 = prevView.getSurfaces();
+    tmpGapsPlot2.push_back(prevView.getGap());
+    plotSurfacesGNU(gapsplot, tmpGapsPlot2);
+    
     //Find the borders closer to the gap
     Surface gap = prevView.getGap();
     Surface exitBorder1 = exitBordersVect.first[0];
@@ -759,7 +776,6 @@ void Map::addCvUsingGap(View & curView) {
             exitBorder2 = exitBordersVect.second[i];
         }
     }
-
     //Plot the selected borders
     char exitKept[50];
     sprintf(exitKept, "%s%d%s", "../outputs/Maps/PV-exitKept-", curView.getId(), ".png");
@@ -1288,9 +1304,8 @@ Surface FindGap(const vector<Surface>& surfaces, const vector<Surface>& robotSur
         }
     }
 
-    if (gapsSize == 1) {
-        return gaps[0];
-    }
+    if (gapsSize == 0) throw false;
+    if (gapsSize == 1) return gaps[0];
 
     //   cout << "gap 1 " << gaps[indexNearestGap1].getP1().x << " " << gaps[indexNearestGap1].getP1().y << " " << gaps[indexNearestGap1].getP2().x << " " << gaps[indexNearestGap1].getP2().y << endl;
     //   cout << "gap 2 " << gaps[indexNearestGap2].getP1().x << " " << gaps[indexNearestGap2].getP1().y << " " << gaps[indexNearestGap2].getP2().x << " " << gaps[indexNearestGap2].getP2().y << endl;
@@ -1328,9 +1343,6 @@ Surface FindGap(const vector<Surface>& surfaces, const vector<Surface>& robotSur
     }
     closestGap = Surface(P1.getX(), P1.getY(), P2.getX(), P2.getY());
 
-    cout << "Closest gap" << endl;
-    closestGap.display();
-
     return closestGap;
 }
 
@@ -1357,14 +1369,15 @@ Surface FindGapWithDistance(const vector<Surface>& surfaces, const vector<Surfac
         }
     }
 
-    char name [50];
-    sprintf(name, "%s%f%s", "../outputs/Maps/surfToKeep", robotOrientaton.getP1().y, ".png");
-    plotSurfacesGNU(name, surfToKeep);
-
     if (surfToKeep.size() < 2) {
         surfToKeep = surfaces;
         cout << "Can't find enough surfaces in the approximate distance" << endl;
+        throw false;
     }
+
+    /*  char name [50];
+      sprintf(name, "%s%f%s", "../outputs/Maps/surfToKeep", robotOrientaton.getP1().y, ".png");
+      plotSurfacesGNU(name, surfToKeep);*/
 
     return FindGap(surfToKeep, robotSurfaces);
 }
@@ -1448,6 +1461,7 @@ View computeViewPositionWithExitBorders(View& view, pair<Surface, Surface> pcaEx
     cViewOnMap.setSurfaces(allCVSurfacesOnMap);
     cViewOnMap.setRobotSurfaces(cRobotSurfacesOnMap);
     cViewOnMap.setId(view.getId());
+    cViewOnMap.setHasGap(view.getHasGap());
 
     return cViewOnMap;
 }

@@ -57,6 +57,7 @@ private:
     Surface rPositionInPV;
     
     Surface gap;
+    bool hasGap;
 
     //contains color info of all pixels of ROI image
     Color colors[COLOR_IMAGE_WIDTH][COLOR_IMAGE_HEIGHT];
@@ -128,6 +129,10 @@ public:
     Surface getGap() const;
 
     void setGap(Surface gap);
+    
+    bool getHasGap() const;
+
+    void setHasGap(bool hasGap);
     
     pair<vector<Surface>, vector<Surface> > computeExitBordersDirections();
 

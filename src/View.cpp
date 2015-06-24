@@ -704,6 +704,14 @@ void View::setGap(Surface gap) {
     this->gap = gap;
 }
 
+bool View::getHasGap() const {
+    return hasGap;
+}
+
+void View::setHasGap(bool hasGap) {
+    this->hasGap = hasGap;
+}
+
 pair<vector<Surface>, vector<Surface> > View::computeExitBordersDirections() {
 
     //Find surfaces near each endpoint of the gap
@@ -728,10 +736,12 @@ pair<vector<Surface>, vector<Surface> > View::computeExitBordersDirections() {
                             surfacesNearP1.push_back(surfaces[i - 1]);
                         } else {
                             for (unsigned int j = i - 2; j > 0; j--) {
+                                pointsNearP1.push_back(PointXY(surfaces[i - 1].getP1().x, surfaces[i - 1].getP1().y));
+                                pointsNearP1.push_back(PointXY(surfaces[i - 1].getP2().x, surfaces[i - 1].getP2().y));
                                 double distJ = surfaces[i - 1].distFromP1ToPoint(surfaces[j].getP2().x, surfaces[j].getP2().y);
                                 if (distJ < 400) {
-                                    pointsNearP1.push_back(PointXY(surfaces[i - 1].getP1().x, surfaces[i - 1].getP1().y));
-                                    pointsNearP1.push_back(PointXY(surfaces[i - 1].getP2().x, surfaces[i - 1].getP2().y));
+                                    pointsNearP1.push_back(PointXY(surfaces[j].getP1().x, surfaces[j].getP1().y));
+                                    pointsNearP1.push_back(PointXY(surfaces[j].getP2().x, surfaces[j].getP2().y));
                                 } else {
                                     break;
                                 }
@@ -770,9 +780,12 @@ pair<vector<Surface>, vector<Surface> > View::computeExitBordersDirections() {
         }
     }
 
+    if ((pointsNearP1.size() == 0 && surfacesNearP1.size() == 0) || (pointsNearP2.size() == 0 && surfacesNearP2.size() == 0)) {
+        //A gap without borders ? Seems to be a problem in the way gap is found.
+        throw false;
+    }
 
     Surface robotOrientation = robotSurfaces[0];
-
     //Cluster the points of each side
     vector<vector<PointXY> > clusters1 = DBSCAN_points(&pointsNearP1, 400, 2);
     vector<vector<PointXY> > clusters2 = DBSCAN_points(&pointsNearP2, 400, 2);
