@@ -717,6 +717,11 @@ pair<vector<Surface>, vector<Surface> > View::computeExitBordersDirections() {
     //Find surfaces near each endpoint of the gap
     //If the surfaces are short we keep their points that we'll cluster afterwards
     //If they are long we keep them whole
+    const int MAX_DIST_FROM_EXIT = 500;
+    const int MIN_LENGTH_LONG_SURF = 400;
+    const int MAX_DIST_BORDER_SURF = 1000;
+
+
     vector<PointXY> pointsNearP1;
     vector<PointXY> pointsNearP2;
     vector<Surface> surfacesNearP1;
@@ -726,20 +731,22 @@ pair<vector<Surface>, vector<Surface> > View::computeExitBordersDirections() {
     for (unsigned int i = 0; i < surfaces.size(); i++) {
         double dist1 = min(surfaces[i].distFromP1ToPoint(gap.getP1().x, gap.getP1().y), surfaces[i].distFromP2ToPoint(gap.getP1().x, gap.getP1().y));
         double dist2 = min(surfaces[i].distFromP1ToPoint(gap.getP2().x, gap.getP2().y), surfaces[i].distFromP2ToPoint(gap.getP2().x, gap.getP2().y));
-        if (dist1 < 500 && dist1 == min(dist1, dist2)) {
+        if (dist1 < MAX_DIST_FROM_EXIT && dist1 == min(dist1, dist2)) {
             if (!firstNearP1) {
-                firstNearP1 = true; //We keep the surface before the closer surfaces on left
+                //We keep the surface before the closer surfaces on left
+                firstNearP1 = true;
                 if (i != 0) {
                     double dist = min(surfaces[i - 1].distFromP1ToPoint(gap.getP1().x, gap.getP1().y), surfaces[i - 1].distFromP2ToPoint(gap.getP1().x, gap.getP1().y));
-                    if (dist < 1000) {
-                        if (surfaces[i - 1].length() > 400) {
+                    if (dist < MAX_DIST_BORDER_SURF) {
+                        if (surfaces[i - 1].length() > MIN_LENGTH_LONG_SURF) {
                             surfacesNearP1.push_back(surfaces[i - 1]);
                         } else {
+                            //If the surface is short we keep all the small adjacent surfaces
+                            pointsNearP1.push_back(PointXY(surfaces[i - 1].getP1().x, surfaces[i - 1].getP1().y));
+                            pointsNearP1.push_back(PointXY(surfaces[i - 1].getP2().x, surfaces[i - 1].getP2().y));
                             for (unsigned int j = i - 2; j > 0; j--) {
-                                pointsNearP1.push_back(PointXY(surfaces[i - 1].getP1().x, surfaces[i - 1].getP1().y));
-                                pointsNearP1.push_back(PointXY(surfaces[i - 1].getP2().x, surfaces[i - 1].getP2().y));
                                 double distJ = surfaces[i - 1].distFromP1ToPoint(surfaces[j].getP2().x, surfaces[j].getP2().y);
-                                if (distJ < 400) {
+                                if (distJ < MIN_LENGTH_LONG_SURF) {
                                     pointsNearP1.push_back(PointXY(surfaces[j].getP1().x, surfaces[j].getP1().y));
                                     pointsNearP1.push_back(PointXY(surfaces[j].getP2().x, surfaces[j].getP2().y));
                                 } else {
@@ -751,24 +758,24 @@ pair<vector<Surface>, vector<Surface> > View::computeExitBordersDirections() {
                     }
                 }
             }
-            if (surfaces[i].length() > 400) {
+            if (surfaces[i].length() > MIN_LENGTH_LONG_SURF) {
                 surfacesNearP1.push_back(surfaces[i]);
             } else {
                 pointsNearP1.push_back(PointXY(surfaces[i].getP1().x, surfaces[i].getP1().y));
                 pointsNearP1.push_back(PointXY(surfaces[i].getP2().x, surfaces[i].getP2().y));
             }
             prevNearP2 = false;
-        } else if (dist2 < 500) {
-            if (surfaces[i].length() > 400) {
+        } else if (dist2 < MAX_DIST_FROM_EXIT) {
+            if (surfaces[i].length() > MIN_LENGTH_LONG_SURF) {
                 surfacesNearP2.push_back(surfaces[i]);
             } else {
                 pointsNearP2.push_back(PointXY(surfaces[i].getP1().x, surfaces[i].getP1().y));
                 pointsNearP2.push_back(PointXY(surfaces[i].getP2().x, surfaces[i].getP2().y));
             }
             prevNearP2 = true;
-        } else if (prevNearP2 && dist2 < 1000) {
+        } else if (prevNearP2 && dist2 < MAX_DIST_BORDER_SURF) {
             //We keep the surface after the closer surfaces on the right
-            if (surfaces[i].length() > 400) {
+            if (surfaces[i].length() > MIN_LENGTH_LONG_SURF) {
                 surfacesNearP2.push_back(surfaces[i]);
             } else {
                 pointsNearP2.push_back(PointXY(surfaces[i].getP1().x, surfaces[i].getP1().y));
@@ -780,19 +787,21 @@ pair<vector<Surface>, vector<Surface> > View::computeExitBordersDirections() {
         }
     }
 
-    if ((pointsNearP1.size() == 0 && surfacesNearP1.size() == 0) || (pointsNearP2.size() == 0 && surfacesNearP2.size() == 0)) {
-        //A gap without borders ? Seems to be a problem in the way gap is found.
-        throw false;
-    }
-
     Surface robotOrientation = robotSurfaces[0];
+
     //Cluster the points of each side
-    vector<vector<PointXY> > clusters1 = DBSCAN_points(&pointsNearP1, 400, 2);
-    vector<vector<PointXY> > clusters2 = DBSCAN_points(&pointsNearP2, 400, 2);
+    vector<vector<PointXY> > clusters1 = DBSCAN_points(&pointsNearP1, 800, 2);
+    vector<vector<PointXY> > clusters2 = DBSCAN_points(&pointsNearP2, 800, 2);
 
     // First element always empty (why ?)
     clusters1.erase(clusters1.begin());
     clusters2.erase(clusters2.begin());
+
+    if ((surfacesNearP1.size() == 0 && clusters1.size() == 0) || (surfacesNearP2.size() == 0 && clusters2.size() == 0)) {
+        //A gap without borders ? Seems to be a problem in the way gap is found.
+        cout << "Cannot find enough surfaces on exit sides" << endl;
+        throw false;
+    }
 
     //Calculate main direction of each cluster using PCA
     vector<Surface> pcaSurfacesBorder1 = surfacesNearP1;

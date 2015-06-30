@@ -15,8 +15,8 @@
 using namespace std;
 //using namespace cv;
 
-const int MIN_DISTANCE_VISION=800; 
-const int MAX_DISTANCE_VISION=3000; 
+const int MIN_DISTANCE_VISION = 800;
+const int MAX_DISTANCE_VISION = 3000;
 
 class Map {
 private:
@@ -25,7 +25,7 @@ private:
     int sizeY;
     int M;
     int ID;
-    
+
     vector<int> lostSteps; //it contains view number of lost situations.
 
     View currentView;
@@ -34,14 +34,14 @@ private:
     vector<cv::Point3f> rbtPos;
     cv::Mat drawing;
     list<Surface> boundaries;
-   // double leftBoundaryAngle;
-  //  double rightBoundaryAngle;
-    vector< pair<double,double> > anglesWithoutBoundaries;
-    
+    // double leftBoundaryAngle;
+    //  double rightBoundaryAngle;
+    vector< pair<double, double> > anglesWithoutBoundaries;
+
     vector<View> map;
-    
+
     vector<AngleAndDistance> pathSegments;
-    
+
     vector<Surface> tempSurfaces;
     vector<Surface> landmarkSurfaces;
 
@@ -53,61 +53,61 @@ public:
 
     Map(int _sizeX, int _sizeY);
     ~Map();
-    
+
     void initializeMap(const View & firstView);
-    
+
     void setMapID(const int & a);
     int getMapID();
-    
+
     void setPreviousView(const View & pView);
     View getPreviousView();
-    
+
     list<Surface> getBoundaries();
     void addBoundary(Surface newBoundary);
-    
-    vector< pair<double,double> >  getAnglesWithoutBoundaries();
-    bool setAnglesWithoutBoundaries(unsigned int index, pair<double,double> value);
-    void addAnglesWithoutBoundaries(pair<double,double> value);
-    
+
+    vector< pair<double, double> > getAnglesWithoutBoundaries();
+    bool setAnglesWithoutBoundaries(unsigned int index, pair<double, double> value);
+    void addAnglesWithoutBoundaries(pair<double, double> value);
+
     void setTempSurfaces(const vector<Surface> & surfs);
     vector<Surface> getTempSurfaces() const;
-    
+
     void setLandmarkSurfaces(const vector<Surface> & surfs);
     vector<Surface> getLandmarkSurfaces() const;
-    
+
     void setRefForPreviousLS(const Surface & surf);
     Surface getRefForPreviousLS();
-    
+
     void setRefForNextLS(const Surface & surf);
     Surface getRefForNextLS();
-    
+
     vector<int> getLostStepsNumber() const;
-   
+
     void addPathSegment(const AngleAndDistance & lastPathSegment);
     vector<AngleAndDistance> getPathSegments() const;
-    
-    vector<Surface> transformToGlobalMap(const vector<Surface>& rpSurfaces, 
-    const vector<AngleAndDistance>& allPathSegments);
-    
+
+    vector<Surface> transformToGlobalMap(const vector<Surface>& rpSurfaces,
+            const vector<AngleAndDistance>& allPathSegments);
+
     void cleanMap(const vector<Surface>& cvSurfacesOnMap, const vector<Surface>& cRobotSurfaces);
-    
+
     //for aloCentric
     void addCVUsingOdo(const View & curView, const AngleAndDistance & homeInfo);
     void cleanMapUsingOdo(const View & curView, const AngleAndDistance & homeInfo);
-    
+
     //for egoCentric
     void addPVUsingOdo(const View & curView, const AngleAndDistance & homeInfo);
-    
+
     //updating
     void addCVUsingMultipleRef(const View & curView); //Deprecated
-    
+
     //addCVUsingMultipleRef split in 2 parts
     View computeCVUsingMultipleRef(const View & curView);
     void addCv(const View & view);
-    
+
     View computeCVUsingGap(View & curView, double angleLastLocomotion);
     void addCvUsingGap(View & curView);
-    
+
     //void update(View newView); // Update the map according to the newView
     //bool isBehind(Surface Old, Surface New, cv::Point3f rbtPos); /* NOT SURE IF DONE CORRECTLY */ // Check if Old and New surfaces are concealing each other
     void coordTransf(cv::Point3f *target, cv::Point3f newCenter, double hX,
@@ -115,21 +115,21 @@ public:
     void rotate(cv::Point2f* target, cv::Point2f Center, float angle); // Rotate *target point of angle around Center
     void display(); // Display map in output file
     View getView();
-    
+
     vector<View> getMap() const;
-    
+
     Map getItself() const;
-    
+
     void saveInTxtFile(const char * filename, const vector<Surface> & rpSurfaces);
-    
+
     //mapping
     void findReferenceSurface(const View & curView, Surface & tempSurf);
-    
+
     void expandMap(const View & curView);
-    
+
     //delete surfaces less than MIN_DISTANCE_VISION away
     //returns the surfaces of the last view with the robot position in place of the deleted surfaces (for PointInPolygon)
-   vector<Surface> ClearCloseSurfaces(const vector<Surface>& robotSurfaces);    
+    vector<Surface> ClearCloseSurfaces(const vector<Surface>& robotSurfaces);
 };
 
 //
@@ -147,7 +147,7 @@ vector<Surface> trangulateSurfaces(const Surface & refInMap, const Surface & ref
 
 
 //point in polygon.
-bool PointInPolygon(const double & pointX, const double & pointY, const vector<Surface>& surfaces, 
+bool PointInPolygon(const double & pointX, const double & pointY, const vector<Surface>& surfaces,
         const vector<Surface>& robotSurfaces);
 
 /**
@@ -157,11 +157,11 @@ bool PointHiddenBySurfaces(const cv::Point2f pointToCheck, const vector<Surface>
 
 bool SurfaceHidingPoint(const cv::Point2f pointToCheck, const Surface& surface, const vector<Surface>& robotSurfaces);
 
-Surface FindGap(const vector<Surface>& surfaces, const vector<Surface>& robotSurfaces);
+Surface FindGap(const vector<Surface>& surfaces, const vector<Surface>& robotSurfaces, const double gapLength = 0, const bool takeBorderPoints = false);
 
-Surface FindGapWithDistance(const vector<Surface>& surfaces, const vector<Surface>& robotSurfaces, const double approximateDistance, const double angleMin, const double angleMax);
+Surface FindGapWithDistance(const vector<Surface>& surfaces, const vector<Surface>& robotSurfaces, const double approximateDistance, const double angleMin, const double angleMax, const double gapLength);
 
-View computeViewPositionWithExitBorders(View& view, pair<Surface, Surface> pcaExitBordersPV);
+View computeViewPositionWithExitBorders(View& view, pair<Surface, Surface> pcaExitBordersPV, double angleLastLocomotion, Surface rbtOrientationPV);
 
 #endif	/* MAPPER_H */
 

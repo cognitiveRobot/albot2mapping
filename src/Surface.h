@@ -100,8 +100,11 @@ public:
     SurfaceT ToSurfaceT() const;
     
     void orderEndpoints(Surface robotOrientation);
+    
+    bool intersects(Surface other);
 };
-
+bool onSegment(cv::Point2f p, cv::Point2f q, cv::Point2f r);
+int orientation(cv::Point2f p, cv::Point2f q, cv::Point2f r);
 //
 bool SortBasedOnLength(Surface surf1, Surface surf2);
 void displaySurfaces(const std::vector<Surface> & surfaces);

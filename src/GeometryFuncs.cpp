@@ -540,7 +540,7 @@ vector<vector<PointXY> > DBSCAN_points(vector<PointXY> *points, float eps, int m
     }
     return clusters;
 }
-
+//For DBSCAN
 vector<int> regionQuery(vector<PointXY> *points, PointXY *keypoint, float eps) {
     float dist;
     vector<int> retKeys;
@@ -552,3 +552,6 @@ vector<int> regionQuery(vector<PointXY> *points, PointXY *keypoint, float eps) {
     }
     return retKeys;
 }
+
+
+

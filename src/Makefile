@@ -86,7 +86,8 @@ PROGSRCS= \
 	offlineMappingUpdateAllSteps.cpp \
 	GuidedXnMapping.cpp \
 	offlineGuidedXnMapping.cpp \
-	onlineMapping.cpp
+	onlineMapping.cpp \
+	minhMapping.cpp
 #	offlineMappingFromLS.cpp \
 #	testStereoMatching.cpp \
 #	renameFiles.cpp \
