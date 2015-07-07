@@ -130,6 +130,10 @@ public:
     //delete surfaces less than MIN_DISTANCE_VISION away
     //returns the surfaces of the last view with the robot position in place of the deleted surfaces (for PointInPolygon)
     vector<Surface> ClearCloseSurfaces(const vector<Surface>& robotSurfaces);
+    
+    void addViewUsingLongSurf(View& curView, Surface gapInCV, Surface gapInPV, Surface longSurfInCV, Surface longSurfInPV);
+    
+    Surface findLongSurfaceInCV(View& curView, View& prevView);
 };
 
 //
@@ -157,11 +161,14 @@ bool PointHiddenBySurfaces(const cv::Point2f pointToCheck, const vector<Surface>
 
 bool SurfaceHidingPoint(const cv::Point2f pointToCheck, const Surface& surface, const vector<Surface>& robotSurfaces);
 
-Surface FindGap(const vector<Surface>& surfaces, const vector<Surface>& robotSurfaces, const double gapLength = 0, const bool takeBorderPoints = false);
+Surface FindGap(const vector<Surface>& surfaces, const vector<Surface>& robotSurfaces, const bool takeBorderPoints = false);
 
-Surface FindGapWithDistance(const vector<Surface>& surfaces, const vector<Surface>& robotSurfaces, const double approximateDistance, const double angleMin, const double angleMax, const double gapLength);
+Surface FindGapWithDistance(const vector<Surface>& surfaces, const vector<Surface>& robotSurfaces, const double approximateDistance, const double angleMin, const double angleMax);
 
 View computeViewPositionWithExitBorders(View& view, pair<Surface, Surface> pcaExitBordersPV, double angleLastLocomotion, Surface rbtOrientationPV);
+
+Surface findLongSurfaceInPV(vector<Surface> surfaces, cv::Point2f rbtPosNextStep, const double distToLongSurfP1inCV, const double distToLongSurfP2inCV);
+
 
 #endif	/* MAPPER_H */
 

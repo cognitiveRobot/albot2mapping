@@ -102,6 +102,10 @@ public:
     void orderEndpoints(Surface robotOrientation);
     
     bool intersects(Surface other);
+    
+    PointXY projectPointOnSurface(double x, double y);
+    
+    double distFromPoint(double x, double y);
 };
 bool onSegment(cv::Point2f p, cv::Point2f q, cv::Point2f r);
 int orientation(cv::Point2f p, cv::Point2f q, cv::Point2f r);

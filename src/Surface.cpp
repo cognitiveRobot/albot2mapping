@@ -501,47 +501,64 @@ void Surface::orderEndpoints(Surface robotOrientation) {
 }
 
 //http://www.geeksforgeeks.org/check-if-two-given-line-segments-intersect/
-bool Surface::intersects(Surface other){
-    cv::Point2f p1=P1;
-    cv::Point2f q1=P2;
-    cv::Point2f p2=other.getP1();
-    cv::Point2f q2=other.getP2();
-    
-    if(min(p2.x,q2.x)>max(p1.x,q1.x) || min(p2.y,q2.y)>max(p1.y,q1.y)
-            || min(p1.x,q1.x)>max(p2.x,q2.x) || min(p1.y,q1.y)>max(p2.y,q2.y)){
+
+bool Surface::intersects(Surface other) {
+    cv::Point2f p1 = P1;
+    cv::Point2f q1 = P2;
+    cv::Point2f p2 = other.getP1();
+    cv::Point2f q2 = other.getP2();
+
+    if (min(p2.x, q2.x) > max(p1.x, q1.x) || min(p2.y, q2.y) > max(p1.y, q1.y)
+            || min(p1.x, q1.x) > max(p2.x, q2.x) || min(p1.y, q1.y) > max(p2.y, q2.y)) {
         //Surfaces are not in the same x and y ranges
         return false;
     }
-    
-     // Find the four orientations needed for general and
+
+    // Find the four orientations needed for general and
     // special cases
     int o1 = orientation(p1, q1, p2);
     int o2 = orientation(p1, q1, q2);
     int o3 = orientation(p2, q2, p1);
     int o4 = orientation(p2, q2, q1);
- 
+
     // General case
     if (o1 != o2 && o3 != o4)
         return true;
- 
+
     // Special Cases
     // p1, q1 and p2 are colinear and p2 lies on segment p1q1
     if (o1 == 0 && onSegment(p1, p2, q1)) return true;
- 
+
     // p1, q1 and p2 are colinear and q2 lies on segment p1q1
     if (o2 == 0 && onSegment(p1, q2, q1)) return true;
- 
+
     // p2, q2 and p1 are colinear and p1 lies on segment p2q2
     if (o3 == 0 && onSegment(p2, p1, q2)) return true;
- 
-     // p2, q2 and q1 are colinear and q1 lies on segment p2q2
+
+    // p2, q2 and q1 are colinear and q1 lies on segment p2q2
     if (o4 == 0 && onSegment(p2, q1, q2)) return true;
- 
+
     return false; // Doesn't fall in any of the above cases
 }
 
+PointXY Surface::projectPointOnSurface(double x, double y) {
+    /*  double coordOnSurface=cos(getAngleFromP1ToPoint(x,y));
+      double newX=(P2.x-P1.x)*coordOnSurface;
+      double newY=(P2.y-P1.y)*coordOnSurface;
+     */
 
- 
+    double m = (P2.y - P1.y) / (P2.x - P1.x);
+    double b = P1.y - (m * P1.x);
+
+    double newX = (m * y + x - m * b) / (m * m + 1);
+    double newY = (m * m * y + m * x + b) / (m * m + 1);
+
+    return PointXY(newX, newY);
+}
+
+double Surface::distFromPoint(double x, double y){
+    return abs((P2.y-P1.y)*x-(P2.x-P1.x)*y+P2.x*P1.y-P2.y*P1.x) / sqrt((P2.y-P1.y)*(P2.y-P1.y)+(P2.x-P1.x)*(P2.x-P1.x));
+}
 
 // Reference Surfaces
 
@@ -647,28 +664,28 @@ vector<Surface> transformB(const vector<Surface> & cvSurfaces, const double & an
 
 // Given three colinear points p, q, r, the function checks if
 // point q lies on line segment 'pr'
-bool onSegment(cv::Point2f p, cv::Point2f q, cv::Point2f r)
-{
+
+bool onSegment(cv::Point2f p, cv::Point2f q, cv::Point2f r) {
     if (q.x <= max(p.x, r.x) && q.x >= min(p.x, r.x) &&
-        q.y <= max(p.y, r.y) && q.y >= min(p.y, r.y))
-       return true;
- 
+            q.y <= max(p.y, r.y) && q.y >= min(p.y, r.y))
+        return true;
+
     return false;
 }
- 
+
 // To find orientation of ordered triplet (p, q, r).
 // The function returns following values
 // 0 --> p, q and r are colinear
 // 1 --> Clockwise
 // 2 --> Counterclockwise
-int orientation(cv::Point2f p, cv::Point2f q, cv::Point2f r)
-{
+
+int orientation(cv::Point2f p, cv::Point2f q, cv::Point2f r) {
     // See 10th slides from following link for derivation of the formula
     // http://www.dcs.gla.ac.uk/~pat/52233/slides/Geometry1x1.pdf
     int val = (q.y - p.y) * (r.x - q.x) -
-              (q.x - p.x) * (r.y - q.y);
- 
-    if (val == 0) return 0;  // colinear
- 
-    return (val > 0)? 1: 2; // clock or counterclock wise
+            (q.x - p.x) * (r.y - q.y);
+
+    if (val == 0) return 0; // colinear
+
+    return (val > 0) ? 1 : 2; // clock or counterclock wise
 }
