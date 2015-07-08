@@ -110,7 +110,7 @@ int main(int argc, char** argv) {
 
         try {
             cout << "Searching gap in current view" << endl;
-            curView.setGap(FindGap(curView.getSurfaces(), curView.getRobotSurfaces()));
+            curView.setGap(findExit(curView.getSurfaces(), curView.getRobotSurfaces()));
             curView.setHasGap(true);
         } catch (bool e) {
             cout << "Cannot find exit for view " << curView.getId() << endl;

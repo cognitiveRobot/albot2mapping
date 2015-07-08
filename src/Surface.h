@@ -101,7 +101,7 @@ public:
     
     void orderEndpoints(Surface robotOrientation);
     
-    bool intersects(Surface other);
+    bool intersects(Surface other) const;
     
     PointXY projectPointOnSurface(double x, double y);
     

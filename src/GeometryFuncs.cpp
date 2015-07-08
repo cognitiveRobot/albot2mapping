@@ -352,6 +352,15 @@ bool pointInPolygon(const double & pointX, const double & pointY, const vector<P
     return c;
 }
 
+bool surfaceIntersectsPolygon(const Surface& surface, const vector<PointXY>& polygon){
+    for(unsigned int i=0; i<polygon.size()-1; i++){
+        if(surface.intersects(Surface(polygon[i].getX(), polygon[i].getY(), polygon[i+1].getX(), polygon[i+1].getY()))){
+            return true;
+        }
+    }
+    return false;
+}
+
 
 
 

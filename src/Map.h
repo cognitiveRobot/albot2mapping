@@ -169,6 +169,9 @@ View computeViewPositionWithExitBorders(View& view, pair<Surface, Surface> pcaEx
 
 Surface findLongSurfaceInPV(vector<Surface> surfaces, cv::Point2f rbtPosNextStep, const double distToLongSurfP1inCV, const double distToLongSurfP2inCV);
 
+Surface findExit(const vector<Surface>& surfaces, const vector<Surface>& robotSurfaces, const bool takeBorderPoints = false);
+
+bool isExit(const Surface& exit, const PointXY& rbtPos, const vector<Surface>& surfaces);
 
 #endif	/* MAPPER_H */
 

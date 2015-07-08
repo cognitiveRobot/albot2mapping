@@ -502,7 +502,7 @@ void Surface::orderEndpoints(Surface robotOrientation) {
 
 //http://www.geeksforgeeks.org/check-if-two-given-line-segments-intersect/
 
-bool Surface::intersects(Surface other) {
+bool Surface::intersects(Surface other) const {
     cv::Point2f p1 = P1;
     cv::Point2f q1 = P2;
     cv::Point2f p2 = other.getP1();

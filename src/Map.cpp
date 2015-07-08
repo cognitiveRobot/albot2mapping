@@ -906,14 +906,14 @@ void Map::addViewUsingLongSurf(View& curView, Surface gapInCV, Surface gapInPV, 
     int refPoint = refPointCV;
     if (refPointCV != refPointPV) {
         longSurfInPV = Surface(longSurfInPV.getP2().x, longSurfInPV.getP2().y, longSurfInPV.getP1().x, longSurfInPV.getP1().y);
-           
-   /*     double sy = (longSurfInPV.getP2().y - longSurfInPV.getP1().y) /longSurfInPV.length();
-        double sx=  (longSurfInPV.getP2().x - longSurfInPV.getP1().x) / longSurfInPV.length();
-        if (refPointPV == 1) {
-            longSurfInPV.setP1(longSurfInPV.getP1().x - sx * longSurfInPV.length(), longSurfInPV.getP1().y - sy * longSurfInPV.length());
-        } else {
-            longSurfInPV.setP2(longSurfInPV.getP1().x + sx * longSurfInPV.length(), longSurfInPV.getP1().y + sy * longSurfInPV.length());
-        }*/
+
+        /*     double sy = (longSurfInPV.getP2().y - longSurfInPV.getP1().y) /longSurfInPV.length();
+             double sx=  (longSurfInPV.getP2().x - longSurfInPV.getP1().x) / longSurfInPV.length();
+             if (refPointPV == 1) {
+                 longSurfInPV.setP1(longSurfInPV.getP1().x - sx * longSurfInPV.length(), longSurfInPV.getP1().y - sy * longSurfInPV.length());
+             } else {
+                 longSurfInPV.setP2(longSurfInPV.getP1().x + sx * longSurfInPV.length(), longSurfInPV.getP1().y + sy * longSurfInPV.length());
+             }*/
 
     }
 
@@ -1230,6 +1230,205 @@ bool SurfaceHidingPoint(const cv::Point2f pointToCheck, const Surface& surface, 
 
 bool compare_double(const pair<double, PointXY>& a, pair<double, PointXY>& b) {
     return a.first < b.first;
+}
+
+Surface findExit(const vector<Surface>& surfaces, const vector<Surface>& robotSurfaces, const bool takeBorderPoints) {
+    cv::Point2f rbtPos = robotSurfaces[0].getP1();
+    list<pair<double, PointXY> > possibleLeftEndpts;
+    list<pair<double, PointXY> > possibleRightEndpts;
+    for (unsigned int i = 1; i < surfaces.size() - 1; i++) {
+        // Is it a possible left endpoint ?
+        double distP1next = surfaces[i + 1].distFromP1ToPoint(rbtPos.x, rbtPos.y);
+        double distP2cur = surfaces[i].distFromP2ToPoint(rbtPos.x, rbtPos.y);
+        bool nextSurfFurtherAway = distP1next > distP2cur || (surfaces[i + 1].distFromP1ToPoint(surfaces[i].getP2().x, surfaces[i].getP2().y) < 100 && surfaces[i + 1].distFromP2ToPoint(rbtPos.x, rbtPos.y) > distP2cur);
+
+        if (nextSurfFurtherAway) {
+            possibleLeftEndpts.push_back(make_pair(surfaces[i].distFromP2ToPoint(rbtPos.x, rbtPos.y), PointXY(surfaces[i].getP2().x, surfaces[i].getP2().y)));
+        }
+
+        //Is it a possible right endpoint ?
+        double distP2prev = surfaces[i - 1].distFromP2ToPoint(rbtPos.x, rbtPos.y);
+        double distP1cur = surfaces[i].distFromP1ToPoint(rbtPos.x, rbtPos.y);
+        bool prevSurfFurtherAway = distP2prev > distP1cur || (surfaces[i - 1].distFromP2ToPoint(surfaces[i].getP1().x, surfaces[i].getP1().y) < 100 && surfaces[i - 1].distFromP1ToPoint(rbtPos.x, rbtPos.y) > distP1cur);
+
+        if (prevSurfFurtherAway) {
+            possibleRightEndpts.push_back(make_pair(surfaces[i].distFromP1ToPoint(rbtPos.x, rbtPos.y), PointXY(surfaces[i].getP1().x, surfaces[i].getP1().y)));
+        }
+    }
+    if (takeBorderPoints) {
+        //First surface
+        double distP11 = surfaces[1].distFromP1ToPoint(rbtPos.x, rbtPos.y);
+        double distP20 = surfaces[0].distFromP2ToPoint(rbtPos.x, rbtPos.y);
+        bool secondSurfFurtherAway = distP11 > distP20 || (surfaces[1].distFromP1ToPoint(surfaces[0].getP2().x, surfaces[0].getP2().y) < 100 && surfaces[1].distFromP2ToPoint(rbtPos.x, rbtPos.y) > distP20);
+        if (secondSurfFurtherAway) {
+            possibleLeftEndpts.push_back(make_pair(surfaces[0].distFromP2ToPoint(rbtPos.x, rbtPos.y), PointXY(surfaces[0].getP2().x, surfaces[0].getP2().y)));
+        }
+
+        //Last surface
+        double distP2Before = surfaces[surfaces.size() - 2].distFromP2ToPoint(rbtPos.x, rbtPos.y);
+        double distP1Last = surfaces[surfaces.size() - 1].distFromP1ToPoint(rbtPos.x, rbtPos.y);
+        bool surfBeforeFurtherAway = distP2Before > distP1Last || (surfaces[surfaces.size() - 2].distFromP2ToPoint(surfaces[surfaces.size() - 1].getP1().x, surfaces[surfaces.size() - 1].getP1().y) < 100 && surfaces[surfaces.size() - 2].distFromP1ToPoint(rbtPos.x, rbtPos.y) > distP1Last);
+        if (surfBeforeFurtherAway) {
+            possibleRightEndpts.push_back(make_pair(surfaces[surfaces.size() - 1].distFromP1ToPoint(rbtPos.x, rbtPos.y), PointXY(surfaces[surfaces.size() - 1].getP1().x, surfaces[surfaces.size() - 2].getP1().y)));
+        }
+    }
+
+    if (possibleLeftEndpts.size() == 0 || possibleRightEndpts.size() == 0) {
+        throw false;
+    }
+
+    possibleLeftEndpts.sort(compare_double);
+    possibleRightEndpts.sort(compare_double);
+
+    char possibleEndptsPlot [80];
+    cout << "file " << surfaces[0].getP1().y << endl;
+    sprintf(possibleEndptsPlot, "%s%f%s", "../outputs/Maps/possibleEndpts-", surfaces[0].getP1().y, "-left.png");
+    vector<PointXY> tmp;
+    for (list<pair<double, PointXY> >::iterator it = possibleLeftEndpts.begin(); it != possibleLeftEndpts.end(); it++) {
+        tmp.push_back(it->second);
+    }
+
+    plotPointsAndSurfacesGNU(possibleEndptsPlot, tmp, surfaces);
+    sprintf(possibleEndptsPlot, "%s%f%s", "../outputs/Maps/possibleEndpts-", surfaces[0].getP1().y, "-right.png");
+
+    vector<PointXY> tmp2;
+    for (list<pair<double, PointXY> >::iterator it = possibleRightEndpts.begin(); it != possibleRightEndpts.end(); it++) {
+        tmp2.push_back(it->second);
+    }
+
+    plotPointsAndSurfacesGNU(possibleEndptsPlot, tmp2, surfaces);
+
+    list<pair<double, PointXY> > rightEndptsConsulted;
+    list<pair<double, PointXY> > leftEndptsConsulted;
+    //    vector<Surface> exits;
+    while (possibleLeftEndpts.size() > 0) {
+        pair<double, PointXY> minLeft = possibleLeftEndpts.front();
+        possibleLeftEndpts.pop_front();
+        pair<double, PointXY> nextLeft;
+        bool isLastLeftEndpt = true;
+        if (possibleLeftEndpts.size() > 0) {
+            nextLeft = possibleLeftEndpts.front();
+            isLastLeftEndpt = false;
+        }
+
+        list<pair<double, PointXY> >::iterator rightEndptsConsultedIt = rightEndptsConsulted.begin();
+        while (rightEndptsConsultedIt != rightEndptsConsulted.end()) {
+            Surface exit(minLeft.second.getX(), minLeft.second.getY(), rightEndptsConsultedIt->second.getX(), rightEndptsConsultedIt->second.getY());
+            if (isExit(exit, PointXY(rbtPos.x, rbtPos.y), surfaces)) {
+                vector<Surface> tmpGapsPlot = surfaces;
+                tmpGapsPlot.push_back(exit);
+                plotSurfacesGNU("../outputs/Maps/gapsPlotTmp.png", tmpGapsPlot);
+                //  plotPointsAndSurfacesGNU("../outputs/Maps/gapsPlotTmp.png", rectangle, tmpGapsPlot);
+                char answer = 'y';
+                cout << "We found the following gap. Do you want another one ? y/n" << endl;
+                exit.display();
+                cin >> answer;
+                if (answer == 'n') {
+                    return exit;
+                }
+
+
+            }
+            rightEndptsConsultedIt++;
+        }
+
+        leftEndptsConsulted.push_back(minLeft);
+
+        list<pair<double, PointXY> >::iterator rightEndptsIt = possibleRightEndpts.begin();
+        while ((isLastLeftEndpt || rightEndptsIt->first < nextLeft.first) && rightEndptsIt != possibleRightEndpts.end()) {
+            list<pair<double, PointXY> >::iterator leftEndptsConsultedIt = leftEndptsConsulted.begin();
+            while (leftEndptsConsultedIt != leftEndptsConsulted.end()) {
+                Surface exit(leftEndptsConsultedIt->second.getX(), leftEndptsConsultedIt->second.getY(), rightEndptsIt->second.getX(), rightEndptsIt->second.getY());
+                if (isExit(exit, PointXY(rbtPos.x, rbtPos.y), surfaces)) {
+                    vector<Surface> tmpGapsPlot = surfaces;
+                    tmpGapsPlot.push_back(exit);
+                    plotSurfacesGNU("../outputs/Maps/gapsPlotTmp.png", tmpGapsPlot);
+                    char answer = 'y';
+                    cout << "We found the following gap. Do you want another one ? y/n" << endl;
+                    exit.display();
+                    cin >> answer;
+                    if (answer == 'n') {
+                        return exit;
+                    }
+                }
+                leftEndptsConsultedIt++;
+            }
+
+            rightEndptsConsulted.push_back(*rightEndptsIt);
+            rightEndptsIt++;
+        }
+    }
+    throw false;
+}
+
+bool isExit(const Surface& exit, const PointXY& rbtPos, const vector<Surface>& surfaces) {
+    bool exitFound = false;
+    double length = exit.length();
+    if (length > 500) {
+        PointXY exitVect(exit.getP2().x - exit.getP1().x, exit.getP2().y - exit.getP1().y);
+        exitVect = exitVect / sqrt(exitVect.getX() * exitVect.getX() + exitVect.getY() * exitVect.getY());
+        PointXY orthoVect(-exitVect.getY(), exitVect.getX());
+        orthoVect = orthoVect / sqrt(orthoVect.getX() * orthoVect.getX() + orthoVect.getY() * orthoVect.getY());
+
+        vector<PointXY> rectangle;
+        double rectHalfWidth = 250;
+        double rectHalfLength = 500;
+        rectangle.push_back(PointXY(exit.midPoint().x - rectHalfLength * orthoVect.getX() - rectHalfWidth * exitVect.getX(), exit.midPoint().y - rectHalfLength * orthoVect.getY() - rectHalfWidth * exitVect.getY()));
+        rectangle.push_back(PointXY(exit.midPoint().x + rectHalfLength * orthoVect.getX() - rectHalfWidth * exitVect.getX(), exit.midPoint().y + rectHalfLength * orthoVect.getY() - rectHalfWidth * exitVect.getY()));
+        rectangle.push_back(PointXY(exit.midPoint().x + rectHalfLength * orthoVect.getX() + rectHalfWidth * exitVect.getX(), exit.midPoint().y + rectHalfLength * orthoVect.getY() + rectHalfWidth * exitVect.getY()));
+        rectangle.push_back(PointXY(exit.midPoint().x - rectHalfLength * orthoVect.getX() + rectHalfWidth * exitVect.getX(), exit.midPoint().y - rectHalfLength * orthoVect.getY() + rectHalfWidth * exitVect.getY()));
+
+        PointXY gapUpMiddle(exit.midPoint().x + rectHalfLength * orthoVect.getX(), exit.midPoint().y + rectHalfLength * orthoVect.getY());
+        PointXY gapDownMiddle(exit.midPoint().x - rectHalfLength * orthoVect.getX(), exit.midPoint().y - rectHalfLength * orthoVect.getY());
+
+        vector<PointXY> leftAccess;
+        leftAccess.push_back(rbtPos);
+        leftAccess.push_back(rectangle[0]);
+        leftAccess.push_back(rectangle[1]);
+        leftAccess.push_back(gapUpMiddle);
+        leftAccess.push_back(gapDownMiddle);
+
+        vector<PointXY> rightAccess;
+        rightAccess.push_back(rbtPos);
+        rightAccess.push_back(gapDownMiddle);
+        rightAccess.push_back(gapUpMiddle);
+        rightAccess.push_back(rectangle[2]);
+        rightAccess.push_back(rectangle[3]);
+
+        bool surfInside = false;
+        bool isIntersecting = false;
+        bool isAccessible = true;
+        for (unsigned int k = 0; k < surfaces.size(); k++) {
+            if (surfaceIntersectsPolygon(surfaces[k], rectangle)
+                    || pointInPolygon(surfaces[k].getP1().x, surfaces[k].getP1().y, rectangle)
+                    || pointInPolygon(surfaces[k].getP2().x, surfaces[k].getP2().y, rectangle)) {
+                surfInside = true;
+                break;
+            }
+            if (exit.intersects(surfaces[k])
+                    && surfaces[k].getP1() != exit.getP1() && surfaces[k].getP2() != exit.getP2()
+                    && surfaces[k].getP1() != exit.getP2() && surfaces[k].getP2() != exit.getP1()) {
+                isIntersecting = true;
+                break;
+            }
+            bool pointInLeftAccess = surfaceIntersectsPolygon(surfaces[k], leftAccess)
+                    || pointInPolygon(surfaces[k].getP1().x, surfaces[k].getP1().y, leftAccess)
+                    || pointInPolygon(surfaces[k].getP2().x, surfaces[k].getP2().y, leftAccess);
+
+            bool pointInRightAccess = surfaceIntersectsPolygon(surfaces[k], rightAccess)
+                    || pointInPolygon(surfaces[k].getP1().x, surfaces[k].getP1().y, rightAccess)
+                    || pointInPolygon(surfaces[k].getP2().x, surfaces[k].getP2().y, rightAccess);
+            if (pointInLeftAccess && pointInRightAccess) {
+                isAccessible = false;
+                break;
+            }
+
+        }
+        if (!surfInside && !isIntersecting && isAccessible) {
+            return true;
+        }
+    }
+    return false;
 }
 
 Surface FindGap(const vector<Surface>& surfaces, const vector<Surface>& robotSurfaces, const bool takeBorderPoints) {

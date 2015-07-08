@@ -63,6 +63,8 @@ bool isBehindLine(const PointXY & pointToCheck, const SurfaceT & line, const Poi
 
 bool pointInPolygon(const double & pointX, const double & pointY, const vector<PointXY>& points);
 
+bool surfaceIntersectsPolygon(const Surface& surface, const vector<PointXY>& polygon);
+
 double deg2rad(double degAngle);
 
 double rad2deg(double radAngle);
