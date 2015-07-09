@@ -1315,7 +1315,7 @@ Surface findExit(const vector<Surface>& surfaces, const vector<Surface>& robotSu
         while (rightEndptsConsultedIt != rightEndptsConsulted.end()) {
             Surface exit(minLeft.second.getX(), minLeft.second.getY(), rightEndptsConsultedIt->second.getX(), rightEndptsConsultedIt->second.getY());
             if (isExit(exit, PointXY(rbtPos.x, rbtPos.y), surfaces)) {
-                vector<Surface> tmpGapsPlot = surfaces;
+           /*     vector<Surface> tmpGapsPlot = surfaces;
                 tmpGapsPlot.push_back(exit);
                 plotSurfacesGNU("../outputs/Maps/gapsPlotTmp.png", tmpGapsPlot);
                 //  plotPointsAndSurfacesGNU("../outputs/Maps/gapsPlotTmp.png", rectangle, tmpGapsPlot);
@@ -1323,9 +1323,9 @@ Surface findExit(const vector<Surface>& surfaces, const vector<Surface>& robotSu
                 cout << "We found the following gap. Do you want another one ? y/n" << endl;
                 exit.display();
                 cin >> answer;
-                if (answer == 'n') {
+                if (answer == 'n') {*/
                     return exit;
-                }
+            //    }
 
 
             }
@@ -1340,16 +1340,16 @@ Surface findExit(const vector<Surface>& surfaces, const vector<Surface>& robotSu
             while (leftEndptsConsultedIt != leftEndptsConsulted.end()) {
                 Surface exit(leftEndptsConsultedIt->second.getX(), leftEndptsConsultedIt->second.getY(), rightEndptsIt->second.getX(), rightEndptsIt->second.getY());
                 if (isExit(exit, PointXY(rbtPos.x, rbtPos.y), surfaces)) {
-                    vector<Surface> tmpGapsPlot = surfaces;
+                  /*  vector<Surface> tmpGapsPlot = surfaces;
                     tmpGapsPlot.push_back(exit);
                     plotSurfacesGNU("../outputs/Maps/gapsPlotTmp.png", tmpGapsPlot);
                     char answer = 'y';
                     cout << "We found the following gap. Do you want another one ? y/n" << endl;
                     exit.display();
                     cin >> answer;
-                    if (answer == 'n') {
+                    if (answer == 'n') {*/
                         return exit;
-                    }
+                  //  }
                 }
                 leftEndptsConsultedIt++;
             }
@@ -1540,7 +1540,7 @@ Surface FindGapWithDistance(const vector<Surface>& surfaces, const vector<Surfac
         sprintf(name, "%s%f%s", "../outputs/Maps/surfToKeep", robotOrientaton.getP1().y, ".png");
         plotSurfacesGNU(name, test);*/
 
-    return FindGap(surfToKeep, robotSurfaces, true);
+    return findExit(surfToKeep, robotSurfaces, true);
 }
 
 View computeViewPositionWithExitBorders(View& view, pair<Surface, Surface> pcaExitBordersPV, double angleLastLocomotion, Surface rbtOrientationPV) {
