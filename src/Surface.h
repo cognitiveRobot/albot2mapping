@@ -99,15 +99,40 @@ public:
     
     SurfaceT ToSurfaceT() const;
     
+    /**
+     * Order P1 and P2 so as P1 is more on the left of the robot than P2
+     * @param robotOrientation
+     */
     void orderEndpoints(Surface robotOrientation);
     
+    /**
+     * Returns true if the surface other intersects this surface
+     */
     bool intersects(Surface other) const;
     
+    /**
+     * Returns the projection of (x,y) on the surface
+     */
     PointXY projectPointOnSurface(double x, double y);
     
+    /**
+     * Returns orthogonal distance from point (x,y) to the surface
+     */
     double distFromPoint(double x, double y);
 };
+
+/**
+ * Given 3 colinear point p q r, returns true if point q lies on segment pr
+ */
 bool onSegment(cv::Point2f p, cv::Point2f q, cv::Point2f r);
+
+/**
+ * To find orientation of ordered triplet (p, q, r).
+ * The function returns following values
+ * 0 --> p, q and r are colinear
+ * 1 --> Clockwise
+ * 2 --> Counterclockwise
+ */
 int orientation(cv::Point2f p, cv::Point2f q, cv::Point2f r);
 //
 bool SortBasedOnLength(Surface surf1, Surface surf2);

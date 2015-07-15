@@ -132,6 +132,11 @@ public:
 
     void setHasGap(bool hasGap);
 
+    /**
+     * Select the surfaces close to the gap, cluster them and 
+     * compute the main direction of each cluster using PCA (for each side)
+     * @return one vector of main directions for each side
+     */
     pair<vector<Surface>, vector<Surface> > computeExitBordersDirections();
 
 

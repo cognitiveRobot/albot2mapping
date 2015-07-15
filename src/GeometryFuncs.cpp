@@ -6,6 +6,7 @@
 
 #include "GeometryFuncs.h"
 #include "ImageProcessing.h"
+#include "Printer.h"
 #include <cstdlib>
 
 using namespace std;
@@ -352,9 +353,9 @@ bool pointInPolygon(const double & pointX, const double & pointY, const vector<P
     return c;
 }
 
-bool surfaceIntersectsPolygon(const Surface& surface, const vector<PointXY>& polygon){
-    for(unsigned int i=0; i<polygon.size()-1; i++){
-        if(surface.intersects(Surface(polygon[i].getX(), polygon[i].getY(), polygon[i+1].getX(), polygon[i+1].getY()))){
+bool surfaceIntersectsPolygon(const Surface& surface, const vector<PointXY>& polygon) {
+    for (unsigned int i = 0; i < polygon.size() - 1; i++) {
+        if (surface.intersects(Surface(polygon[i].getX(), polygon[i].getY(), polygon[i + 1].getX(), polygon[i + 1].getY()))) {
             return true;
         }
     }
@@ -427,35 +428,35 @@ Surface principalComponentAnalysis(vector<PointXY> pointsToAnalyze) {
     int numPoints = pointsToAnalyze.size();
 
     // Substract the mean
- /*   double xMean = 0;
-    double yMean = 0;
-    for (unsigned int i = 0; i < numPoints; i++) {
-        xMean += pointsToAnalyze[i].getX();
-        yMean += pointsToAnalyze[i].getY();
-    }
-    xMean = xMean / numPoints;
-    yMean = yMean / numPoints;
+    /*   double xMean = 0;
+       double yMean = 0;
+       for (unsigned int i = 0; i < numPoints; i++) {
+           xMean += pointsToAnalyze[i].getX();
+           yMean += pointsToAnalyze[i].getY();
+       }
+       xMean = xMean / numPoints;
+       yMean = yMean / numPoints;
 
-    PointXY points [numPoints];
+       PointXY points [numPoints];
 
-    for (unsigned int i = 0; i < numPoints; i++) {
-        points[i] = PointXY(pointsToAnalyze[i].getX() - xMean, pointsToAnalyze[i].getY() - yMean);
-    }
+       for (unsigned int i = 0; i < numPoints; i++) {
+           points[i] = PointXY(pointsToAnalyze[i].getX() - xMean, pointsToAnalyze[i].getY() - yMean);
+       }
 
-    // Calculate covariance matrix
-    double covarianceMatrix [2][2] = {
-        {0, 0},
-        {0, 0}};
-    for (unsigned int i = 0; i < numPoints; i++) {
-        covarianceMatrix[0][0] += (points[i].getX() - xMean) * (points[i].getX() - xMean);
-        covarianceMatrix[0][1] += (points[i].getX() - xMean) * (points[i].getY() - yMean);
-        covarianceMatrix[1][1] += (points[i].getY() - yMean) * (points[i].getY() - yMean);
-    }
-    covarianceMatrix[0][0] = covarianceMatrix[0][0] / (numPoints - 1);
-    covarianceMatrix[0][1] = covarianceMatrix[0][1] / (numPoints - 1);
-    covarianceMatrix[1][1] = covarianceMatrix[1][1] / (numPoints - 1);
-    covarianceMatrix[1][0] = covarianceMatrix[0][1]; //cov(x,y)=cov(y,x)
-*/
+       // Calculate covariance matrix
+       double covarianceMatrix [2][2] = {
+           {0, 0},
+           {0, 0}};
+       for (unsigned int i = 0; i < numPoints; i++) {
+           covarianceMatrix[0][0] += (points[i].getX() - xMean) * (points[i].getX() - xMean);
+           covarianceMatrix[0][1] += (points[i].getX() - xMean) * (points[i].getY() - yMean);
+           covarianceMatrix[1][1] += (points[i].getY() - yMean) * (points[i].getY() - yMean);
+       }
+       covarianceMatrix[0][0] = covarianceMatrix[0][0] / (numPoints - 1);
+       covarianceMatrix[0][1] = covarianceMatrix[0][1] / (numPoints - 1);
+       covarianceMatrix[1][1] = covarianceMatrix[1][1] / (numPoints - 1);
+       covarianceMatrix[1][0] = covarianceMatrix[0][1]; //cov(x,y)=cov(y,x)
+     */
     cv::Mat data_pts(numPoints, 2, CV_64FC1);
     for (unsigned int i = 0; i < data_pts.rows; ++i) {
         data_pts.at<double>(i, 0) = pointsToAnalyze[i].getX();
@@ -525,7 +526,7 @@ vector<vector<PointXY> > DBSCAN_points(vector<PointXY> *points, float eps, int m
                 //expand cluster
                 // add P to cluster c
                 clusters[c].push_back(points->at(i));
-                clustered[i]=true;
+                clustered[i] = true;
                 //for each point P' in neighborPts
                 for (int j = 0; j < neighborPts.size(); j++) {
                     //if P' is not visited
@@ -541,7 +542,7 @@ vector<vector<PointXY> > DBSCAN_points(vector<PointXY> *points, float eps, int m
                     // add P' to cluster c
                     if (!clustered[neighborPts[j]])
                         clusters[c].push_back(points->at(neighborPts[j]));
-                    clustered[neighborPts[j]]=true;
+                    clustered[neighborPts[j]] = true;
                 }
             }
 
@@ -550,6 +551,7 @@ vector<vector<PointXY> > DBSCAN_points(vector<PointXY> *points, float eps, int m
     return clusters;
 }
 //For DBSCAN
+
 vector<int> regionQuery(vector<PointXY> *points, PointXY *keypoint, float eps) {
     float dist;
     vector<int> retKeys;
@@ -562,5 +564,69 @@ vector<int> regionQuery(vector<PointXY> *points, PointXY *keypoint, float eps) {
     return retKeys;
 }
 
+bool pointsOnSameSideOfSurface(cv::Point2f p1, cv::Point2f p2, Surface surf) {
+    int orientP1 = orientation(p1, surf.getP1(), surf.getP2());
+    int orientP2 = orientation(p2, surf.getP1(), surf.getP2());
+    return orientP1 == orientP2;
+}
 
+vector<Surface> findTangents(cv::Point2f circleCentre, cv::Point2f point, double radius) {
+    vector<Surface> tangents;
+    
+    if (radius == 0) {
+        cout << "radius = 0" << endl;
+        return tangents;
+    }
 
+    //shift and scale
+    double nx = (point.x - circleCentre.x) / radius;
+    double ny = (point.y - circleCentre.y) / radius;
+    double xy = nx * nx + ny*ny;
+
+    if (xy == 1) {
+        //Point lies at circumference, one tangent
+        cout << "1 tangent" << endl;
+        PointXY radiusVect (point.x-circleCentre.x, point.y-circleCentre.y);
+        PointXY tangentVect(-radiusVect.getY(), radiusVect.getX());
+        tangents.push_back(Surface(point.x, point.y, point.x+tangentVect.getX(), point.y+tangentVect.getY()));
+        return tangents;
+    }
+
+    if (xy < 1) {
+        //Point lies inside the circle, no tangent
+        cout << "no tangent r= " <<radius<<" p= "<<circleCentre.x<<" "<< circleCentre.y<< endl;
+        return tangents;
+    }
+
+    //Two tangents
+    double d = ny * sqrt(xy - 1);
+    double tx0 = (nx - d) / xy;
+    double tx1 = (nx + d) / xy;
+    double yt0;
+    double yt1;
+    if (ny != 0) {
+        yt0 = circleCentre.y + radius * (1 - tx0 * nx) / ny;
+        yt1 = circleCentre.y + radius * (1 - tx1 * nx) / ny;
+    } else {
+        //point at the center horizontal, y=0
+        d = radius * sqrt(1 - tx0 * tx0);
+        yt0 = circleCentre.y + d;
+        yt1 = circleCentre.y - d;
+    }
+    //restore scale and position
+    double xt0 = circleCentre.x + radius*tx0; 
+    double xt1 = circleCentre.x + radius*tx1;
+
+    vector<PointXY> points;
+    points.push_back(PointXY(point.x, point.y));
+    points.push_back(PointXY(circleCentre.x, circleCentre.y));
+    vector<Surface> surf;
+    surf.push_back(Surface(point.x, point.y, xt0, yt0));
+    surf.push_back(Surface(point.x, point.y, xt1, yt1));
+    plotPointsAndSurfacesGNU("../outputs/Maps/tangent.png", points, surf);
+    
+    tangents.push_back(Surface(point.x, point.y, xt0, yt0));
+    tangents.push_back(Surface(point.x, point.y, xt1, yt1));
+    
+    return tangents;
+}

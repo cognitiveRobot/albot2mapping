@@ -84,7 +84,7 @@ int main(int argc, char** argv) {
 
     //curView.printView();
     char viewName[50], mapName[50], pointFile[50];
-    int localSpaceCounter = 0;
+ //   int localSpaceCounter = 0;
 
     /* -------- Loop ------- */
     char tkStep = 'y';
@@ -108,9 +108,31 @@ int main(int argc, char** argv) {
         sprintf(viewName, "%s%d", "../outputs/Maps/view-", curView.getId());
         plotViewGNU(viewName, curView);
 
+
+        //Using odometer and borders to change local spaces 
+        /*       if (curView.getId() == 1) {
+                   curMap->initializeMap(curView);
+               } else {
+                   View viewOnMap = curMap->computeCVUsingMultipleRef(curView);
+                   if (localSpaceChanged(*curMap, viewOnMap)) {
+                       cout << "Create new local space" << endl;
+                       globalMap.addMap(*curMap);
+
+                       int mapId = curMap->getMapID();
+                       delete curMap;
+
+                       curMap = new Map(1500, 1500);
+                       curMap->setMapID(mapId + 1);
+                       curMap->initializeMap(curView);
+                   } else {
+                       curMap->addCv(viewOnMap);
+                   }
+               }*/
+
+        //Using gaps
         try {
             cout << "Searching gap in current view" << endl;
-            curView.setGap(findExit(curView.getSurfaces(), curView.getRobotSurfaces()));
+            curView.setGap(findExit(curView.getSurfaces(), curView.getRobotSurfaces()[0].getP1()));
             curView.setHasGap(true);
         } catch (bool e) {
             cout << "Cannot find exit for view " << curView.getId() << endl;
@@ -119,22 +141,6 @@ int main(int argc, char** argv) {
 
         if (curView.getId() == 1) {
             curMap->initializeMap(curView);
-            /*  } else {
-                  View viewOnMap=curMap->computeCVUsingMultipleRef(curView);
-                  if(localSpaceChanged(*curMap, viewOnMap)){
-                      cout<<"Create new local space"<<endl;
-                      globalMap.addMap(*curMap);
-                
-                      int mapId=curMap->getMapID();
-                      delete curMap;
-                
-                      curMap=new Map(1500, 1500);
-                      curMap->setMapID(mapId+1);
-                      curMap->initializeMap(curView);
-                  }else{
-                      curMap->addCv(viewOnMap);   
-                  } 
-              }*/
         } else if (curView.getHasGap() && curMap->getMap()[curMap->getMap().size() - 1].getHasGap()) {
             try {
                 curMap->addCvUsingGap(curView);
@@ -148,14 +154,6 @@ int main(int argc, char** argv) {
             cout << "Cannot find exits for both views, need to use odometer" << endl;
             View viewOnMap = curMap->computeCVUsingMultipleRef(curView);
             curMap->addCv(viewOnMap);
-            /*   globalMap.addMap(*curMap);
-
-               int mapId = curMap->getMapID();
-               delete curMap;
-
-               curMap = new Map(1500, 1500);
-               curMap->setMapID(mapId + 1);
-               curMap->initializeMap(curView);*/
         }
 
         //read odometer info
@@ -165,17 +163,13 @@ int main(int argc, char** argv) {
         curMap->setLandmarkSurfaces(curView.getSurfaces());
 
         cout << endl << endl << "Take another step? (y/n) "; // Ask user if continue
-        //cin >> tkStep;
+        cin >> tkStep;
 
     }
 
     globalMap.addMap(*curMap);
     delete curMap;
 
-    /*    cout << "Lost cases: "<<curMap.getLostStepsNumber().size()<<endl;
-        for(unsigned int i=0; i<curMap.getLostStepsNumber().size(); i++) {
-            cout<<curMap.getLostStepsNumber()[i]<<" ";
-        }*/
     cout << endl;
     cout << "Number of local spaces : " << globalMap.getMaps().size() << endl;
 

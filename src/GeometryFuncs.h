@@ -63,6 +63,11 @@ bool isBehindLine(const PointXY & pointToCheck, const SurfaceT & line, const Poi
 
 bool pointInPolygon(const double & pointX, const double & pointY, const vector<PointXY>& points);
 
+/**
+ * Returns true if the surface is intersecting the polygon
+ * @param surface
+ * @param polygon Ordered points of the polygon (clockwise or counterclockwise)
+ */
 bool surfaceIntersectsPolygon(const Surface& surface, const vector<PointXY>& polygon);
 
 double deg2rad(double degAngle);
@@ -77,11 +82,39 @@ double normAngleDiff(double degAngle);
  */
 cv::Point3f getNewPosFromDistanceAngle(cv::Point3f lastPos,const AngleAndDistance & distanceAngle);
 
+/**
+ * Applies PCA algorithm to find the main direction of points
+ * @param points
+ * @return a surface corresponding to the main direction computed
+ */
 Surface principalComponentAnalysis(vector<PointXY> points);
 
+/**
+ * Applies DBSCAN algorithm to cluster points by density
+ * @param points
+ * @param eps maximum distance between two points
+ * @param minPts minimum of points in a cluster
+ * @return a vector of clusters
+ */
 vector<vector<PointXY> > DBSCAN_points(vector<PointXY> *points, float eps, int minPts);
 
+//For DBSCAN
 vector<int> regionQuery(vector<PointXY> *points, PointXY *point, float eps);
+
+/**
+ * Returns true if p1 and p2 are on the same side of surf
+ * Uses orientation of points (both clockwise or counterclockwise)
+ */
+bool pointsOnSameSideOfSurface (cv::Point2f p1, cv::Point2f p2, Surface surf);
+
+/**
+ * Find the tangents of a circle passing by a point
+ * @param circleCentre
+ * @param point
+ * @param radius
+ * @return vector containing zero, one or two tangents depending on the configuration
+ */
+vector<Surface> findTangents(cv::Point2f circleCentre, cv::Point2f point, double radius);
 
 #endif
 

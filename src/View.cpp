@@ -524,7 +524,7 @@ void View::constructView(const char* filename) {
 
     char viewName[50];
     sprintf(viewName, "%s%d%s", "../outputs/Maps/points2D-", this->getId(), ".png");
-    plotPointsAndSurfacesGNU(viewName, points2D, this->getRobotSurfaces());
+  //  plotPointsAndSurfacesGNU(viewName, points2D, this->getRobotSurfaces());
 
     vector<SurfaceT> initialSurfaces = Laser2Surface(points2D, 500, 200, 100);
     vector<Surface> viewSurfaces = convertSurfaceT2Surface(initialSurfaces);
@@ -721,7 +721,6 @@ pair<vector<Surface>, vector<Surface> > View::computeExitBordersDirections() {
     const int MIN_LENGTH_LONG_SURF = 400;
     const int MAX_DIST_BORDER_SURF = 1000;
 
-
     vector<PointXY> pointsNearP1;
     vector<PointXY> pointsNearP2;
     vector<Surface> surfacesNearP1;
@@ -803,7 +802,7 @@ pair<vector<Surface>, vector<Surface> > View::computeExitBordersDirections() {
         throw false;
     }
 
-    //Calculate main direction of each cluster using PCA
+    //Compute main direction of each cluster using PCA
     vector<Surface> pcaSurfacesBorder1 = surfacesNearP1;
     vector<Surface> pcaSurfacesBorder2 = surfacesNearP2;
     for (unsigned int i = 0; i < clusters1.size(); i++) {
