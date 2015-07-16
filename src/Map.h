@@ -48,6 +48,9 @@ private:
 
     Surface refForPreviousLS;
     Surface refForNextLS;
+    
+    Surface exit;
+    Surface entrance;
 
 
 public:
@@ -75,6 +78,11 @@ public:
     void setRefForNextLS(const Surface & surf);
     Surface getRefForNextLS();
 
+    
+     Surface getEntrance() const; 
+
+    Surface getExit() const;
+    
     vector<int> getLostStepsNumber() const;
 
     void addPathSegment(const AngleAndDistance & lastPathSegment);
@@ -107,6 +115,11 @@ public:
     void findReferenceSurface(const View & curView, Surface & tempSurf);
 
     void expandMap(const View & curView);
+    
+    /**
+     * Just adds the view to the map, no modification
+     */
+    void addView (View& view);
 
     //for aloCentric
     void addCVUsingOdo(const View & curView, const AngleAndDistance & homeInfo);
@@ -117,7 +130,11 @@ public:
 
     //updating
     void addCVUsingMultipleRef(const View & curView); //Deprecated
-    View computeCVUsingMultipleRef(const View & curView); //Deprecated
+    View computeCVUsingOdometer(const View & curView); 
+    
+    void computeEntrance(const Map& prevMap);
+    
+    void computeExit();
 
     /**
      * Transform curView in map's coordinate using gaps as reference
@@ -165,7 +182,7 @@ public:
      * Doesn't change the view coordinates.
      * @param view
      */
-    void addCv(const View & view);
+    void addCvAndClean(const View & view);
     
         /**
      * Add curView to the map using gaps and long surfaces (uses addViewUsingCorridorWidth)
@@ -202,6 +219,8 @@ public:
      * @param prevView
      */
     Surface FindGapWithDistance(const Surface& robotOrientation, const View& curView, const View& prevView);
+    
+    void BuildMap(char* dataset, int firstView, int numSteps);
 };
 
 //

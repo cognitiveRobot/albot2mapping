@@ -146,14 +146,14 @@ int main(int argc, char** argv) {
                 curMap->addCvUsingGap(curView);
             } catch (bool e) {
                 cout << "Cannot link views using exits, need to use odometer" << endl;
-                View viewOnMap = curMap->computeCVUsingMultipleRef(curView);
-                curMap->addCv(viewOnMap);
+                View viewOnMap = curMap->computeCVUsingOdometer(curView);
+                curMap->addCvAndClean(viewOnMap);
             }
 
         } else {
             cout << "Cannot find exits for both views, need to use odometer" << endl;
-            View viewOnMap = curMap->computeCVUsingMultipleRef(curView);
-            curMap->addCv(viewOnMap);
+            View viewOnMap = curMap->computeCVUsingOdometer(curView);
+            curMap->addCvAndClean(viewOnMap);
         }
 
         //read odometer info

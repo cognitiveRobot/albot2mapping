@@ -39,6 +39,9 @@ void Map::initializeMap(const View & firstView) {
     double rightBoundaryAngle = robotOrientation.getAngleFromP1ToPoint(boundaries.back().getP2().x, boundaries.back().getP2().y);
     anglesWithoutBoundaries[0] = pair<double, double>(leftBoundaryAngle, rightBoundaryAngle);
      */
+    entrance = firstView.getRobotSurfaces()[0];
+    entrance.rotateAroundP1(-90);
+    entrance.setP1(entrance.getP1().x - (entrance.getP2().x - entrance.getP1().x), entrance.getP1().y - (entrance.getP2().y - entrance.getP1().y));
     char mapName[50];
     sprintf(mapName, "%s%d%s%d%s", "../outputs/Maps/Map-", getMapID(), "-View-", firstView.getId(), "a-before.png");
     plotViewsGNU(mapName, this->getMap());
@@ -144,6 +147,14 @@ vector<int> Map::getLostStepsNumber() const {
 
 Map Map::getItself() const {
     return *this;
+}
+
+Surface Map::getEntrance() const {
+    return entrance;
+}
+
+Surface Map::getExit() const {
+    return exit;
 }
 
 void Map::coordTransf(cv::Point3f *target, cv::Point3f newCenter, double hX,
@@ -498,7 +509,7 @@ void Map::addCVUsingMultipleRef(const View & curView) {
     // waitHere();
 }
 
-View Map::computeCVUsingMultipleRef(const View& curView) {
+View Map::computeCVUsingOdometer(const View& curView) {
     ReferenceSurfaces refSurfacePair;
     //using odometer.
     refSurfacePair.setMapSurface(makeSurfaceWith(this->getMap().back().getRobotSurfaces()[0],
@@ -512,7 +523,6 @@ View Map::computeCVUsingMultipleRef(const View& curView) {
     vector<Surface> allCVSurfacesOnMap;
     for (unsigned int i = 0; i < curView.getSurfaces().size(); i++) {
         //trangulate this surface.
-        // cout << curView.getSurfaces()[i].getId() << " refID: " << refSurfacePair.getViewSurface().getId() << endl;
         cvSurfaceOnMap = trangulateSurface(refSurfacePair.getMapSurface(), refSurfacePair.getViewSurface(),
                 curView.getSurfaces()[i], refSurfacePair.getRefPoint());
         allCVSurfacesOnMap.push_back(cvSurfaceOnMap);
@@ -533,7 +543,33 @@ View Map::computeCVUsingMultipleRef(const View& curView) {
     return cViewOnMap;
 }
 
-void Map::addCv(const View& view) {
+void Map::computeEntrance(const Map& prevMap) {
+
+    ReferenceSurfaces refSurfacePair;
+    refSurfacePair.setMapSurface(this->map.front().getRobotSurfaces()[0]);
+    refSurfacePair.setViewSurface(makeSurfaceWith(prevMap.getMap().back().getRobotSurfaces()[0],
+            prevMap.getPathSegments().back().angle, prevMap.getPathSegments().back().distance, 400.0));
+    refSurfacePair.setRefPoint(1);
+
+    this->entrance = trangulateSurface(refSurfacePair.getMapSurface(), refSurfacePair.getViewSurface(),
+            prevMap.getExit(), refSurfacePair.getRefPoint());
+}
+
+void Map::computeExit() {
+
+    Surface midPosition = makeSurfaceWith(this->map.back().getRobotSurfaces()[0], this->getPathSegments().back().angle, this->getPathSegments().back().distance / 2, 400.0);
+    midPosition.rotateAroundP1(-90);
+
+    //Double the surface's length by extending it on P1 side
+    midPosition.setP1(midPosition.getP1().x - (midPosition.getP2().x - midPosition.getP1().x), midPosition.getP1().y - (midPosition.getP2().y - midPosition.getP1().y));
+    this->exit = midPosition;
+}
+
+void Map::addView(View& view) {
+    this->map.push_back(view);
+}
+
+void Map::addCvAndClean(const View& view) {
     this->map.push_back(view);
     char mapName[50];
     sprintf(mapName, "%s%d%s%d%s", "../outputs/Maps/Map-", getMapID(), "-View-", view.getId(), "a-before.png");
@@ -890,12 +926,12 @@ void Map::addViewProjectingGapOnLongSurf(View& curView, Surface gapInCV, Surface
     cViewOnMap.setId(curView.getId());
     cViewOnMap.setHasGap(curView.getHasGap());
 
-    this->addCv(cViewOnMap);
+    this->addCvAndClean(cViewOnMap);
 }
 
 Surface Map::findLongSurfaceInCV(View& curView, View& prevView) {
     //Find the distance after which surfaces of current view can't be seen in previous view
-    View odoView = this->computeCVUsingMultipleRef(curView);
+    View odoView = this->computeCVUsingOdometer(curView);
     cv::Point2f expectedRbtPos = odoView.getRobotSurfaces()[0].getP1();
     double maxDistance = 0;
     for (unsigned int i = 0; i < prevView.getSurfaces().size(); i++) {
@@ -933,6 +969,46 @@ Surface Map::findLongSurfaceInCV(View& curView, View& prevView) {
     }
 
     return principalComponentAnalysis(surfacePts);
+}
+
+void Map::BuildMap(char* dataset, int firstView, int numSteps) {
+
+    Robot Albot;
+    View curView;
+    curView.setRobotSurfaces(Albot.getRectRobot());
+
+    char viewName[50], pointFile[50];
+
+    for (unsigned int i = 0; i < numSteps; i++) {
+
+        //construct view from points.
+        curView.setId(firstView + i);
+        sprintf(pointFile, "%s%s%s%d", "../inputs/", dataset, "/pointCloud/points2D-", curView.getId());
+        curView.constructView(pointFile);
+
+        cout << "View is formed :)" << endl;
+        cout << endl << "==================================================" << endl << endl;
+        cout << "View no. " << curView.getId() << ":" << endl;
+        sprintf(viewName, "%s%d", "../outputs/Maps/view-", curView.getId());
+        plotViewGNU(viewName, curView);
+
+
+        //Using odometer and borders to change local spaces 
+        if (i == 0) {
+            this->initializeMap(curView);
+        } else {
+            //Add view to map
+            View viewOnMap = this->computeCVUsingOdometer(curView);
+            this->addCvAndClean(viewOnMap);
+        }
+
+        //read odometer info
+        sprintf(viewName, "%s%s%s%d", "../inputs/", dataset, "/surfaces/coordTrans-", curView.getId());
+        readOdometry(Albot, viewName);
+        this->addPathSegment(Albot.getLastLocomotion());
+        this->setLandmarkSurfaces(curView.getSurfaces());
+    }
+    cout << endl;
 }
 
 vector<double> findBoundariesOfCV(const vector<Surface> & cvSurfaces, double extension) {
@@ -1032,6 +1108,8 @@ ReferenceSurfaces findTheClosestReference(Surface & cvSurface, vector<ReferenceS
 // plotSurfacesGNU("../outputs/Maps/test.png",temp);
 // waitHere();
 // }
+
+
 //it computes a surface of lenght(given) at distance (given) from p1 of refInMap in the direction of angle (given)
 
 Surface makeSurfaceWith(const Surface & refInMap, double angle, double distance, double length) {
@@ -1583,7 +1661,7 @@ void Map::addViewUsingCorridorWidth(View& curView, Surface longSurfCV, Surface g
     cViewOnMap.setId(curView.getId());
     cViewOnMap.setHasGap(curView.getHasGap());
 
-    this->addCv(cViewOnMap);
+    this->addCvAndClean(cViewOnMap);
 }
 
 View computeViewPositionWithExitBorders(View& view, pair<Surface, Surface> pcaExitBordersPV, double angleLastLocomotion, Surface rbtOrientationPV) {

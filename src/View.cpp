@@ -522,9 +522,9 @@ void View::constructView(const char* filename) {
 
 
 
-    char viewName[50];
+  /*  char viewName[50];
     sprintf(viewName, "%s%d%s", "../outputs/Maps/points2D-", this->getId(), ".png");
-  //  plotPointsAndSurfacesGNU(viewName, points2D, this->getRobotSurfaces());
+    plotPointsAndSurfacesGNU(viewName, points2D, this->getRobotSurfaces());*/
 
     vector<SurfaceT> initialSurfaces = Laser2Surface(points2D, 500, 200, 100);
     vector<Surface> viewSurfaces = convertSurfaceT2Surface(initialSurfaces);
@@ -532,8 +532,8 @@ void View::constructView(const char* filename) {
     //saving surfaces in this view.
     this->setSurfaces(viewSurfaces);
 
-    sprintf(viewName, "%s%d%s", "../outputs/Maps/pointsAndSurfaces-", this->getId(), ".png");
-    //  plotPointsAndSurfacesGNU(viewName,points2D,viewSurfaces);
+ /*   sprintf(viewName, "%s%d%s", "../outputs/Maps/pointsAndSurfaces-", this->getId(), ".png");
+      plotPointsAndSurfacesGNU(viewName,points2D,viewSurfaces);*/
     //waitHere();
 
     //vizualize point cloud.

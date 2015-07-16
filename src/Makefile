@@ -79,7 +79,7 @@ LIBSRCS = \
 	Printer.cpp \
 	PathFinder.cpp \
 	ImageProcessing.cpp \
-	GlobalMap.cpp
+	GlobalMap.cpp 
 
 #main programs	
 PROGSRCS= \
@@ -87,7 +87,8 @@ PROGSRCS= \
 	GuidedXnMapping.cpp \
 	offlineGuidedXnMapping.cpp \
 	onlineMapping.cpp \
-	minhMapping.cpp
+	minhMapping.cpp \
+	findWayHome.cpp
 #	offlineMappingFromLS.cpp \
 #	testStereoMatching.cpp \
 #	renameFiles.cpp \
