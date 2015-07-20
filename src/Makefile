@@ -79,7 +79,8 @@ LIBSRCS = \
 	Printer.cpp \
 	PathFinder.cpp \
 	ImageProcessing.cpp \
-	GlobalMap.cpp 
+	GlobalMap.cpp \
+	Node.cpp
 
 #main programs	
 PROGSRCS= \

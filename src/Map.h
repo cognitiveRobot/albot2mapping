@@ -220,7 +220,18 @@ public:
      */
     Surface FindGapWithDistance(const Surface& robotOrientation, const View& curView, const View& prevView);
     
-    void BuildMap(char* dataset, int firstView, int numSteps);
+    /**
+     * Build a map from the input data and compute its entrance and exit
+     * @param dataset name of the folder containing the data
+     * @param firstView number of the first view to compute
+     * @param numSteps number of steps to compute
+     * @param lastMap previous map computed
+     */
+    void BuildMap(char* dataset, int firstView, int numSteps, Map *lastMap=0);
+    
+ //   vector<AngleAndDistance> FindWayHome();
+    
+    void addSurfacesAfterEntrance(Map& lastMap);
 };
 
 //

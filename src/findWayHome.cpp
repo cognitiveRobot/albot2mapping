@@ -76,15 +76,13 @@ int main(int argc, char** argv) {
         cout << "How many steps? ";
         cin >> numSteps;
 
-        curMap.BuildMap(argv[1], numView, numSteps);
-        numView = curMap.getMap().back().getId() + 1;
-
-        curMap.computeExit();
-
         if (globalMap.getMaps().size() > 0) {
-            curMap.computeEntrance(globalMap.getMaps().back());
+            curMap.BuildMap(argv[1], numView, numSteps, &(globalMap.getMaps().back()));
+        } else {
+            curMap.BuildMap(argv[1], numView, numSteps);
         }
 
+        numView = curMap.getMap().back().getId() + 1;
         globalMap.addMap(curMap);
 
         char mapName[50];

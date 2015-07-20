@@ -294,33 +294,32 @@ void Map::cleanMap(const vector<Surface>& cvSurfacesOnMap, const vector<Surface>
     //Deleting the last view surfaces closer than MIN_DISTANCE_VISION
     vector<Surface> surfacesForPointInPolygon = ClearCloseSurfaces(cRobotSurfaces);
     vector<Surface> lastViewSurfaces = this->map[this->map.size() - 1].getSurfaces();
+    vector<Surface> robotPath;
+    for(unsigned int i=1; i<this->map.size(); i++){
+        cv::Point2f rbtPos1=this->map[i-1].getRobotSurfaces()[0].getP1();
+        cv::Point2f rbtPos2=this->map[i].getRobotSurfaces()[0].getP1();
+        robotPath.push_back(Surface(rbtPos1.x, rbtPos1.y, rbtPos2.x, rbtPos2.y));
+    }
     if (lastViewSurfaces.size() > 0) {
         for (unsigned int i = 0; i<this->map.size() - 1; i++) {
             tempView = this->map[i];
             tempSurf = tempView.getSurfaces();
+            
             //Check for surfaces we're seeing through
             for (unsigned int j = 0; j < tempSurf.size(); j++) {
-                /* if (tempSurf[j].distFromP1ToPoint(cRobotSurfaces[0].getP1().x, cRobotSurfaces[0].getP1().y) < MIN_DISTANCE_VISION
-                || tempSurf[j].distFromP2ToPoint(cRobotSurfaces[0].getP1().x, cRobotSurfaces[0].getP1().y) < MIN_DISTANCE_VISION) {
-                // Too close to use PointInPolygon
-                bool surfaceToBeDeleted = false;
-                for (unsigned int k = 0; k < lastViewSurfaces.size(); k++) {
-                if (cRobotSurfaces[0].distFromP1ToPoint(lastViewSurfaces[k].getP1().x, lastViewSurfaces[k].getP1().y) > MIN_DISTANCE_VISION
-                && cRobotSurfaces[0].distFromP1ToPoint(lastViewSurfaces[k].getP2().x, lastViewSurfaces[k].getP2().y) > MIN_DISTANCE_VISION) {
-                bool P1isHidden = SurfaceHidingPoint(lastViewSurfaces[k].getP1(), tempSurf[j], cRobotSurfaces);
-                bool P2isHidden = SurfaceHidingPoint(lastViewSurfaces[k].getP2(), tempSurf[j], cRobotSurfaces);
-                bool MiddleisHidden = SurfaceHidingPoint(lastViewSurfaces[k].midPoint(), tempSurf[j], cRobotSurfaces);
-                if (P1isHidden && P2isHidden && MiddleisHidden) {
-                surfaceToBeDeleted = true;
-                break;
+                
+                bool intersectingRbtPath=false;
+                for(unsigned int k=0; k<robotPath.size(); k++){
+                    if(tempSurf[j].intersects(robotPath[k])){
+                        intersectingRbtPath=true;
+                        break;
+                    }
                 }
+                if(intersectingRbtPath){
+                    //We don't keep the surface because the robot has passed through it
+                    continue;
                 }
-                }
-                if(!surfaceToBeDeleted){
-                finalSurfaces.push_back(tempSurf[j]);
-                }
-                continue; //Surface cleaned, skip the other cleaning algorithms
-                }*/
+                
                 //Point in polygon
                 bool P1inPolygon = PointInPolygon(tempSurf[j].getP1().x, tempSurf[j].getP1().y, surfacesForPointInPolygon, cRobotSurfaces);
                 bool P2inPolygon = PointInPolygon(tempSurf[j].getP2().x, tempSurf[j].getP2().y, surfacesForPointInPolygon, cRobotSurfaces);
@@ -557,12 +556,17 @@ void Map::computeEntrance(const Map& prevMap) {
 
 void Map::computeExit() {
 
-    Surface midPosition = makeSurfaceWith(this->map.back().getRobotSurfaces()[0], this->getPathSegments().back().angle, this->getPathSegments().back().distance / 2, 400.0);
-    midPosition.rotateAroundP1(-90);
+    double distance=this->getPathSegments().back().distance;
+    if(distance >100){
+        //We position the exit a little before the next robot position if the robot has moved enough
+        distance-=100;
+    }
+    Surface beforeFirstPosition = makeSurfaceWith(this->map.back().getRobotSurfaces()[0], this->getPathSegments().back().angle, distance, 400.0);
+    beforeFirstPosition.rotateAroundP1(-90);
 
     //Double the surface's length by extending it on P1 side
-    midPosition.setP1(midPosition.getP1().x - (midPosition.getP2().x - midPosition.getP1().x), midPosition.getP1().y - (midPosition.getP2().y - midPosition.getP1().y));
-    this->exit = midPosition;
+    beforeFirstPosition.setP1(beforeFirstPosition.getP1().x - (beforeFirstPosition.getP2().x - beforeFirstPosition.getP1().x), beforeFirstPosition.getP1().y - (beforeFirstPosition.getP2().y - beforeFirstPosition.getP1().y));
+    this->exit = beforeFirstPosition;
 }
 
 void Map::addView(View& view) {
@@ -971,7 +975,7 @@ Surface Map::findLongSurfaceInCV(View& curView, View& prevView) {
     return principalComponentAnalysis(surfacePts);
 }
 
-void Map::BuildMap(char* dataset, int firstView, int numSteps) {
+void Map::BuildMap(char* dataset, int firstView, int numSteps, Map *lastMap) {
 
     Robot Albot;
     View curView;
@@ -1007,8 +1011,15 @@ void Map::BuildMap(char* dataset, int firstView, int numSteps) {
         readOdometry(Albot, viewName);
         this->addPathSegment(Albot.getLastLocomotion());
         this->setLandmarkSurfaces(curView.getSurfaces());
+
+        if (i == 0 && lastMap != 0) {
+            this->computeEntrance(*lastMap);
+            this->addSurfacesAfterEntrance(*lastMap);
+        }
     }
     cout << endl;
+
+    this->computeExit();
 }
 
 vector<double> findBoundariesOfCV(const vector<Surface> & cvSurfaces, double extension) {
@@ -1663,6 +1674,66 @@ void Map::addViewUsingCorridorWidth(View& curView, Surface longSurfCV, Surface g
 
     this->addCvAndClean(cViewOnMap);
 }
+/*
+vector<AngleAndDistance> Map::FindWayHome() {
+    vector<AngleAndDistance> wayHome;
+    Surface rotEntrance = entrance;
+    rotEntrance.rotateAroundP1(45); // rotEntrance middle point is 400mm from the entrance because the entrance width is 800mm
+    PointXY beforeEntrance(rotEntrance.midPoint().x, rotEntrance.midPoint().y);
+
+    Surface directWay(exit.midPoint().x, exit.midPoint().y, beforeEntrance.getX(), beforeEntrance.getY());
+    bool directWayPossible = true;
+    for (unsigned int i = 0; i < map.size(); i++) {
+        vector<Surface> surfaces = map[i].getSurfaces();
+        for (unsigned int j = 0; j < surfaces.size(); j++) {
+            if (directWay.intersects(surfaces[j])) {
+                directWayPossible = false;
+                break;
+            }
+        }
+        if (!directWayPossible) {
+            break;
+        }
+    }
+    if (directWayPossible) {
+        AngleAndDistance path;
+        path.distance = PointXY(directWay.getP1().x, directWay.getP1().y).distFrom(beforeEntrance);
+        Surface tmp = exit;
+        tmp.setP1(exit.midPoint().x, exit.midPoint().y);
+        tmp.rotateAroundP1(-90);
+        path.angle = tmp.getAngleFromP1ToPoint(beforeEntrance.getX(), beforeEntrance.getY());
+        wayHome.push_back(path);
+        return wayHome;
+    }
+
+    //No direct way : A* algorithm
+
+    return wayHome;
+}
+*/
+void Map::addSurfacesAfterEntrance(Map& lastMap) {
+
+    vector<Surface> afterExit;
+    cv::Point2f robotPosition = lastMap.getMap().back().getRobotSurfaces()[0].getP1();
+    for (unsigned int i = 0; i < lastMap.getMap().size(); i++) {
+        vector<Surface> surfs=lastMap.getMap()[i].getSurfaces();
+        for (unsigned int j = 0; j < surfs.size(); j++) {
+            if (!pointsOnSameSideOfSurface(robotPosition, surfs[j].getP1(), lastMap.getExit())
+                    || !pointsOnSameSideOfSurface(robotPosition, surfs[j].getP2(), lastMap.getExit())) {
+                afterExit.push_back(surfs[j]);
+            }
+        }
+    }
+
+    View v = this->map.front();
+    vector<Surface> surfaceInViewCoordinates;
+    for (unsigned int i = 0; i < afterExit.size(); i++) {
+        surfaceInViewCoordinates.push_back(trangulateSurface(entrance, lastMap.getExit(), afterExit[i], 1));
+    }
+
+    v.addSurfaces(surfaceInViewCoordinates);
+    this->map[0] = v;
+}
 
 View computeViewPositionWithExitBorders(View& view, pair<Surface, Surface> pcaExitBordersPV, double angleLastLocomotion, Surface rbtOrientationPV) {
 
@@ -1760,8 +1831,6 @@ View computeViewPositionWithExitBorders(View& view, pair<Surface, Surface> pcaEx
 }
 
 Surface findLongSurfaceInPV(View& prevView, View& curView, cv::Point2f rbtPosNextStep, Surface& longSurfCV) {
-
-
 
     //Find long surface orientation from the gap in current view (CV))
     Surface gapCV = curView.getGap();

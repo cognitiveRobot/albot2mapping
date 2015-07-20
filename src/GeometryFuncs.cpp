@@ -7,6 +7,7 @@
 #include "GeometryFuncs.h"
 #include "ImageProcessing.h"
 #include "Printer.h"
+#include "Node.h"
 #include <cstdlib>
 
 using namespace std;
@@ -572,7 +573,7 @@ bool pointsOnSameSideOfSurface(cv::Point2f p1, cv::Point2f p2, Surface surf) {
 
 vector<Surface> findTangents(cv::Point2f circleCentre, cv::Point2f point, double radius) {
     vector<Surface> tangents;
-    
+
     if (radius == 0) {
         cout << "radius = 0" << endl;
         return tangents;
@@ -586,15 +587,15 @@ vector<Surface> findTangents(cv::Point2f circleCentre, cv::Point2f point, double
     if (xy == 1) {
         //Point lies at circumference, one tangent
         cout << "1 tangent" << endl;
-        PointXY radiusVect (point.x-circleCentre.x, point.y-circleCentre.y);
+        PointXY radiusVect(point.x - circleCentre.x, point.y - circleCentre.y);
         PointXY tangentVect(-radiusVect.getY(), radiusVect.getX());
-        tangents.push_back(Surface(point.x, point.y, point.x+tangentVect.getX(), point.y+tangentVect.getY()));
+        tangents.push_back(Surface(point.x, point.y, point.x + tangentVect.getX(), point.y + tangentVect.getY()));
         return tangents;
     }
 
     if (xy < 1) {
         //Point lies inside the circle, no tangent
-        cout << "no tangent r= " <<radius<<" p= "<<circleCentre.x<<" "<< circleCentre.y<< endl;
+        cout << "no tangent r= " << radius << " p= " << circleCentre.x << " " << circleCentre.y << endl;
         return tangents;
     }
 
@@ -614,7 +615,7 @@ vector<Surface> findTangents(cv::Point2f circleCentre, cv::Point2f point, double
         yt1 = circleCentre.y - d;
     }
     //restore scale and position
-    double xt0 = circleCentre.x + radius*tx0; 
+    double xt0 = circleCentre.x + radius*tx0;
     double xt1 = circleCentre.x + radius*tx1;
 
     vector<PointXY> points;
@@ -624,9 +625,58 @@ vector<Surface> findTangents(cv::Point2f circleCentre, cv::Point2f point, double
     surf.push_back(Surface(point.x, point.y, xt0, yt0));
     surf.push_back(Surface(point.x, point.y, xt1, yt1));
     plotPointsAndSurfacesGNU("../outputs/Maps/tangent.png", points, surf);
-    
+
     tangents.push_back(Surface(point.x, point.y, xt0, yt0));
     tangents.push_back(Surface(point.x, point.y, xt1, yt1));
-    
+
     return tangents;
 }
+/*
+vector<Node*> findPathAStar(Node *start, Node *goal, vector<Surface> surfaces){
+    vector<Node*> closedSet;
+    vector<Node*> openSet;
+    openSet.push_back(start);
+    vector<Node*> path;
+    Node* currentNode=start;
+    
+    
+    return path;
+}
+    closedset := the empty set    // The set of nodes already evaluated.
+    openset := {start}    // The set of tentative nodes to be evaluated, initially containing the start node
+    came_from := the empty map    // The map of navigated nodes.
+ 
+    g_score := map with default value of Infinity
+    g_score[start] := 0    // Cost from start along best known path.
+    // Estimated total cost from start to goal through y.
+    f_score = map with default value of Infinity
+    f_score[start] := g_score[start] + heuristic_cost_estimate(start, goal)
+     
+    while openset is not empty
+        current := the node in openset having the lowest f_score[] value
+        if current = goal
+            return reconstruct_path(came_from, goal)
+         
+        remove current from openset
+        add current to closedset
+        for each neighbor in neighbor_nodes(current)
+            if neighbor in closedset
+                continue
+            tentative_g_score := g_score[current] + dist_between(current,neighbor)
+ 
+            if neighbor not in openset or tentative_g_score < g_score[neighbor] 
+                came_from[neighbor] := current
+                g_score[neighbor] := tentative_g_score
+                f_score[neighbor] := g_score[neighbor] + heuristic_cost_estimate(neighbor, goal)
+                if neighbor not in openset
+                    add neighbor to openset
+ 
+    return failure
+
+function reconstruct_path(came_from,current)
+    total_path := [current]
+    while current in came_from:
+        current := came_from[current]
+        total_path.append(current)
+    return total_path
+ * */
