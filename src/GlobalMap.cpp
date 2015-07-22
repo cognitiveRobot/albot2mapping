@@ -23,6 +23,43 @@ vector<Map> GlobalMap::getMaps() {
     return maps;
 }
 
+void GlobalMap::printWaysHome() {
+    for (unsigned int i = 0; i < maps.size(); i++) {
+        Surface position = maps[i].getExit();
+        position.setP1(position.midPoint().x, position.midPoint().y);
+        position.rotateAroundP1(-90);
+        vector<AngleAndDistance> wayHome = maps[i].FindWayHome();
+        vector<Surface> pathHome;
+        pathHome.push_back(maps[i].getExit());
+        pathHome.push_back(maps[i].getEntrance());
+
+        cout << "WAY HOME : " << endl;
+        for (unsigned int j = 0; j < wayHome.size(); j++) {
+            cout << j << " - distance : " << wayHome[j].distance << " angle : " << wayHome[j].angle << endl;
+            Surface newPosition = makeSurfaceWith(position, wayHome[j].angle, wayHome[j].distance, 400);
+            pathHome.push_back(Surface(position.getP1().x, position.getP1().y, newPosition.getP1().x, newPosition.getP1().y));
+            position = newPosition;
+        }
+
+        char mapName2[50];
+        for (unsigned int j = 0; j < maps[i].getMap().size(); j++) {
+            vector<Surface> tmp = maps[i].getMap()[j].getSurfaces();
+            pathHome.insert(pathHome.end(), tmp.begin(), tmp.end());
+        }
+        sprintf(mapName2, "%s%d%s", "../outputs/Maps/Map-", maps[i].getMapID(), "-pathHome.png");
+        plotSurfacesGNU(mapName2, pathHome);
+
+        if (i != maps.size() - 1) {
+            char ans = 'y';
+            cout << "Do you want to continue ? y/n " << endl;
+            cin>>ans;
+            if (ans == 'n') {
+                break;
+            }
+        }
+    }
+}
+
 bool localSpaceChanged(Map& map, const View& newView) {
     Surface robotOrientation = map.getMap()[0].getRobotSurfaces()[0];
     list<Surface> boundaries = map.getBoundaries();

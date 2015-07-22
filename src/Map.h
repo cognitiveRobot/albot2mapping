@@ -229,7 +229,7 @@ public:
      */
     void BuildMap(char* dataset, int firstView, int numSteps, Map *lastMap=0);
     
- //   vector<AngleAndDistance> FindWayHome();
+    vector<AngleAndDistance> FindWayHome();
     
     void addSurfacesAfterEntrance(Map& lastMap);
 };

@@ -13,6 +13,7 @@
 #include "PointAndSurface.h"
 #include "Robot.h"
 
+
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
 #endif
@@ -115,6 +116,8 @@ bool pointsOnSameSideOfSurface (cv::Point2f p1, cv::Point2f p2, Surface surf);
  * @return vector containing zero, one or two tangents depending on the configuration
  */
 vector<Surface> findTangents(cv::Point2f circleCentre, cv::Point2f point, double radius);
+
+list<PointXY> findPathAStar(const PointXY& startPt, const PointXY& goalPt, vector<Surface> surfaces);
 
 #endif
 

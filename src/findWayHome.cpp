@@ -75,7 +75,7 @@ int main(int argc, char** argv) {
         int numSteps;
         cout << "How many steps? ";
         cin >> numSteps;
-
+        
         if (globalMap.getMaps().size() > 0) {
             curMap.BuildMap(argv[1], numView, numSteps, &(globalMap.getMaps().back()));
         } else {
@@ -84,9 +84,9 @@ int main(int argc, char** argv) {
 
         numView = curMap.getMap().back().getId() + 1;
         globalMap.addMap(curMap);
-
+ 
         char mapName[50];
-        vector<Surface> toPlot; //=curMap.getMap()[0].getSurfaces();
+        vector<Surface> toPlot; 
         for (unsigned int j = 0; j < curMap.getMap().size(); j++) {
             vector<Surface> tmp = curMap.getMap()[j].getSurfaces();
             toPlot.insert(toPlot.end(), tmp.begin(), tmp.end());
@@ -95,13 +95,14 @@ int main(int argc, char** argv) {
         toPlot.push_back(curMap.getEntrance());
         sprintf(mapName, "%s%d%s", "../outputs/Maps/Map-", mapId, "-withExitEntrance.png");
         plotSurfacesGNU(mapName, toPlot);
-
+        
         cout << "Do you want to create another local space ? y/n ";
         cin >> answer;
 
         mapId++;
     }
 
+    globalMap.printWaysHome();
 
     return 0;
 }

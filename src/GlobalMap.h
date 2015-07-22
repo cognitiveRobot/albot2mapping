@@ -13,15 +13,19 @@
 using namespace std;
 
 class GlobalMap {
+private:
+    vector<Map> maps;
+
 public:
     GlobalMap();
     virtual ~GlobalMap();
-    
+
     void addMap(const Map map);
-    
+
     vector<Map> getMaps();
-private:
-    vector<Map> maps;
+
+
+    void printWaysHome();
 };
 
 /**
@@ -50,9 +54,11 @@ void updateBoundaries(Map& map, const View& view);
  * @param maxAngle angle from robot origin orientation until which boundaries 
  * can be added
  */
-vector< pair<double,double> > findAndAddBoundaries(Map& map, const vector<Surface> & viewSurfaces, double minAngle, double maxAngle );
+vector< pair<double, double> > findAndAddBoundaries(Map& map, const vector<Surface> & viewSurfaces, double minAngle, double maxAngle);
 
 
 vector<Surface> findTrustedSurfaces(const View& view);
+
+
 #endif	/* GLOBALMAP_H */
 

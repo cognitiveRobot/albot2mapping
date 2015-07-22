@@ -291,35 +291,35 @@ void Map::cleanMap(const vector<Surface>& cvSurfacesOnMap, const vector<Surface>
     vector<Surface> surfacesOutsideCV, finalSurfaces;
     vector<Surface> tempSurf;
     View tempView;
+    
     //Deleting the last view surfaces closer than MIN_DISTANCE_VISION
     vector<Surface> surfacesForPointInPolygon = ClearCloseSurfaces(cRobotSurfaces);
     vector<Surface> lastViewSurfaces = this->map[this->map.size() - 1].getSurfaces();
     vector<Surface> robotPath;
-    for(unsigned int i=1; i<this->map.size(); i++){
-        cv::Point2f rbtPos1=this->map[i-1].getRobotSurfaces()[0].getP1();
-        cv::Point2f rbtPos2=this->map[i].getRobotSurfaces()[0].getP1();
+    for (unsigned int i = 1; i<this->map.size(); i++) {
+        cv::Point2f rbtPos1 = this->map[i - 1].getRobotSurfaces()[0].getP1();
+        cv::Point2f rbtPos2 = this->map[i].getRobotSurfaces()[0].getP1();
         robotPath.push_back(Surface(rbtPos1.x, rbtPos1.y, rbtPos2.x, rbtPos2.y));
     }
     if (lastViewSurfaces.size() > 0) {
         for (unsigned int i = 0; i<this->map.size() - 1; i++) {
             tempView = this->map[i];
             tempSurf = tempView.getSurfaces();
-            
+
             //Check for surfaces we're seeing through
             for (unsigned int j = 0; j < tempSurf.size(); j++) {
-                
-                bool intersectingRbtPath=false;
-                for(unsigned int k=0; k<robotPath.size(); k++){
-                    if(tempSurf[j].intersects(robotPath[k])){
-                        intersectingRbtPath=true;
+                bool intersectingRbtPath = false;
+                for (unsigned int k = 0; k < robotPath.size(); k++) {
+                    if (tempSurf[j].intersects(robotPath[k])) {
+                        intersectingRbtPath = true;
                         break;
                     }
                 }
-                if(intersectingRbtPath){
+                if (intersectingRbtPath) {
                     //We don't keep the surface because the robot has passed through it
                     continue;
                 }
-                
+
                 //Point in polygon
                 bool P1inPolygon = PointInPolygon(tempSurf[j].getP1().x, tempSurf[j].getP1().y, surfacesForPointInPolygon, cRobotSurfaces);
                 bool P2inPolygon = PointInPolygon(tempSurf[j].getP2().x, tempSurf[j].getP2().y, surfacesForPointInPolygon, cRobotSurfaces);
@@ -556,10 +556,10 @@ void Map::computeEntrance(const Map& prevMap) {
 
 void Map::computeExit() {
 
-    double distance=this->getPathSegments().back().distance;
-    if(distance >100){
+    double distance = this->getPathSegments().back().distance;
+    if (distance > 100) {
         //We position the exit a little before the next robot position if the robot has moved enough
-        distance-=100;
+        distance -= 100;
     }
     Surface beforeFirstPosition = makeSurfaceWith(this->map.back().getRobotSurfaces()[0], this->getPathSegments().back().angle, distance, 400.0);
     beforeFirstPosition.rotateAroundP1(-90);
@@ -997,15 +997,16 @@ void Map::BuildMap(char* dataset, int firstView, int numSteps, Map *lastMap) {
         plotViewGNU(viewName, curView);
 
 
-        //Using odometer and borders to change local spaces 
+        //Using odometer
         if (i == 0) {
             this->initializeMap(curView);
         } else {
+           
             //Add view to map
             View viewOnMap = this->computeCVUsingOdometer(curView);
             this->addCvAndClean(viewOnMap);
         }
-
+       
         //read odometer info
         sprintf(viewName, "%s%s%s%d", "../inputs/", dataset, "/surfaces/coordTrans-", curView.getId());
         readOdometry(Albot, viewName);
@@ -1674,18 +1675,21 @@ void Map::addViewUsingCorridorWidth(View& curView, Surface longSurfCV, Surface g
 
     this->addCvAndClean(cViewOnMap);
 }
-/*
+
 vector<AngleAndDistance> Map::FindWayHome() {
     vector<AngleAndDistance> wayHome;
+    vector<Surface> allSurfaces;
     Surface rotEntrance = entrance;
     rotEntrance.rotateAroundP1(45); // rotEntrance middle point is 400mm from the entrance because the entrance width is 800mm
     PointXY beforeEntrance(rotEntrance.midPoint().x, rotEntrance.midPoint().y);
 
+    //Look for a direct way from the exit to the entrance
     Surface directWay(exit.midPoint().x, exit.midPoint().y, beforeEntrance.getX(), beforeEntrance.getY());
     bool directWayPossible = true;
     for (unsigned int i = 0; i < map.size(); i++) {
         vector<Surface> surfaces = map[i].getSurfaces();
         for (unsigned int j = 0; j < surfaces.size(); j++) {
+            allSurfaces.push_back(surfaces[j]);
             if (directWay.intersects(surfaces[j])) {
                 directWayPossible = false;
                 break;
@@ -1707,16 +1711,28 @@ vector<AngleAndDistance> Map::FindWayHome() {
     }
 
     //No direct way : A* algorithm
+    cout << "Finding a way to avoid obstacles" << endl;
+    Surface orientation = exit;
+    orientation.rotate(cv::Point3f(orientation.midPoint().x, orientation.midPoint().y, -90));
+    list<PointXY> path = findPathAStar(PointXY(exit.midPoint().x, exit.midPoint().y), beforeEntrance, allSurfaces);
+    vector<PointXY> pathVect(path.begin(), path.end());
+    for (unsigned int i = 1; i < pathVect.size(); i++) {
+        AngleAndDistance ad;
+        ad.distance = pathVect[i].distFrom(pathVect[i - 1]);
+        ad.angle = orientation.getAngleWithSurface(Surface(pathVect[i - 1].getX(), pathVect[i - 1].getY(), pathVect[i].getX(), pathVect[i].getY()));
+        orientation = makeSurfaceWith(orientation, ad.angle, 0, orientation.length());
+        wayHome.push_back(ad);
+    }
 
     return wayHome;
 }
-*/
+
 void Map::addSurfacesAfterEntrance(Map& lastMap) {
 
     vector<Surface> afterExit;
     cv::Point2f robotPosition = lastMap.getMap().back().getRobotSurfaces()[0].getP1();
     for (unsigned int i = 0; i < lastMap.getMap().size(); i++) {
-        vector<Surface> surfs=lastMap.getMap()[i].getSurfaces();
+        vector<Surface> surfs = lastMap.getMap()[i].getSurfaces();
         for (unsigned int j = 0; j < surfs.size(); j++) {
             if (!pointsOnSameSideOfSurface(robotPosition, surfs[j].getP1(), lastMap.getExit())
                     || !pointsOnSameSideOfSurface(robotPosition, surfs[j].getP2(), lastMap.getExit())) {
