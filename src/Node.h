@@ -9,8 +9,6 @@ const int ROBOT_WIDTH=700;
 class Node {
 private:
     double f;
-    double h;
-    double g;
 
     Node *parent;
 

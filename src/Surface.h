@@ -33,6 +33,9 @@ private:
     cv::Point2f P1, P2; // Ends of the surface's surface
     std::vector<Color> colors; // Color areas with a width of View::step
     Color averageColor;
+    
+    bool p1Occluding;
+    bool p2Occluding;
 
 public:
     Surface();
@@ -73,7 +76,12 @@ public:
     void setP2(float X, float Y);
     cv::Point2f getP1() const;
     cv::Point2f getP2() const;
-
+    
+    void setP1Occluding(bool occluding);
+    bool getP1Occluding();
+    void setP2Occluding(bool occluding);
+    bool getP2Occluding();
+    
     void setSurfaceSimple(); //It forms a surface from first and last point
     void setSurface(); // Surface : average line of points. It is given by it's 2 ends P1 & P2
     

@@ -5,6 +5,7 @@
 #include "Node.h"
 #include "PointAndSurface.h"
 #include "GeometryFuncs.h"
+#include "ImageProcessing.h"
 
 Node::Node() {
     point = PointXY();
@@ -28,6 +29,12 @@ Node::Node(vector<Surface>& surfaces, float x, float y, Node *parent) {
             accessible = false;
             break;
         }
+        if (surfaces[i].getP1().x > (x - ROBOT_WIDTH / 2) && surfaces[i].getP1().x < (x + ROBOT_WIDTH / 2)
+                && surfaces[i].getP1().y > (y - ROBOT_WIDTH / 2) && surfaces[i].getP1().y < (y + ROBOT_WIDTH / 2)) {
+            accessible = false;
+            break;
+        }
+
     }
 }
 
@@ -48,9 +55,9 @@ void Node::setParent(Node *parent) {
 }
 
 double Node::computeF(Node *goal) {
-    g = this->point.distFrom(parent->point);
+    double g = this->point.distFrom(parent->point);
     PointXY intermerdiate(goal->point.getX(), this->point.getY());
-    h = this->point.distFrom(intermerdiate) + intermerdiate.distFrom(goal->point);
+    double h = this->point.distFrom(intermerdiate) + intermerdiate.distFrom(goal->point);
     f = g + h;
     return f;
 }

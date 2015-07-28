@@ -79,11 +79,6 @@ double rad2deg(double radAngle);
 double normAngleDiff(double degAngle);
 
 /**
- * Return the new position after moving the distance and angle of distanceAngle from lastPos
- */
-cv::Point3f getNewPosFromDistanceAngle(cv::Point3f lastPos,const AngleAndDistance & distanceAngle);
-
-/**
  * Applies PCA algorithm to find the main direction of points
  * @param points
  * @return a surface corresponding to the main direction computed

@@ -657,15 +657,14 @@ list<PointXY> findPathAStar(const PointXY& startPt, const PointXY& goalPt, vecto
                 double f = neighbours[i]->computeF(goal);
                 Node *nodeInOpenSet = neighbours[i]->inOpenSet(openSet);
                 if (nodeInOpenSet != 0) {
-                    if (nodeInOpenSet->getF() < f) {
-                        f = nodeInOpenSet->getF();
+                    double fOpenSet = nodeInOpenSet->getF();
+                    if (fOpenSet < f) {
+                        f = fOpenSet;
                         neighbours[i]->setF(f);
-                        delete nodeInOpenSet;
-                        nodeInOpenSet = neighbours[i];
-                    } else {
-                        delete neighbours[i];
-                        neighbours[i] = nodeInOpenSet;
                     }
+                    openSet.remove(nodeInOpenSet);
+                    delete nodeInOpenSet;
+                    openSet.push_back(neighbours[i]);
                 } else {
                     openSet.push_back(neighbours[i]);
                     openSet.sort();
@@ -687,7 +686,7 @@ list<PointXY> findPathAStar(const PointXY& startPt, const PointXY& goalPt, vecto
             currentNodeChanged = true;
         }
 
-        if ((goal->point.getX() - currentNode->point.getX()) < ROBOT_WIDTH / 2 && (goal->point.getY() - currentNode->point.getY()) < ROBOT_WIDTH / 2) {
+        if (abs(goal->point.getX() - currentNode->point.getX()) < ROBOT_WIDTH / 2 && abs(goal->point.getY() - currentNode->point.getY()) < ROBOT_WIDTH / 2) {
             //That's not exactly the goal but the next node would be further away
             closedSet.push_back(currentNode);
             closedSet.sort();
@@ -709,6 +708,7 @@ list<PointXY> findPathAStar(const PointXY& startPt, const PointXY& goalPt, vecto
         return list<PointXY>();
     }
 
+    cout << "Building path" << endl;
     //Build path
     list<PointXY> reversePath;
     reversePath.push_back(goal->point);
@@ -718,11 +718,10 @@ list<PointXY> findPathAStar(const PointXY& startPt, const PointXY& goalPt, vecto
         currentNode = parentNode;
     }
     reversePath.reverse();
-    
-    for (list<Node*>::iterator it = openSet.begin(); it != openSet.end(); it++) {
+    for (list<Node*>::iterator it = closedSet.begin(); it != closedSet.end(); it++) {
         delete *it;
     }
-    for (list<Node*>::iterator it = closedSet.begin(); it != closedSet.end(); it++) {
+    for (list<Node*>::iterator it = openSet.begin(); it != openSet.end(); it++) {
         delete *it;
     }
 

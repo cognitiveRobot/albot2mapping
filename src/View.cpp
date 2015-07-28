@@ -522,9 +522,9 @@ void View::constructView(const char* filename) {
 
 
 
-  /*  char viewName[50];
-    sprintf(viewName, "%s%d%s", "../outputs/Maps/points2D-", this->getId(), ".png");
-    plotPointsAndSurfacesGNU(viewName, points2D, this->getRobotSurfaces());*/
+    /*  char viewName[50];
+      sprintf(viewName, "%s%d%s", "../outputs/Maps/points2D-", this->getId(), ".png");
+      plotPointsAndSurfacesGNU(viewName, points2D, this->getRobotSurfaces());*/
 
     vector<SurfaceT> initialSurfaces = Laser2Surface(points2D, 500, 200, 100);
     vector<Surface> viewSurfaces = convertSurfaceT2Surface(initialSurfaces);
@@ -532,8 +532,8 @@ void View::constructView(const char* filename) {
     //saving surfaces in this view.
     this->setSurfaces(viewSurfaces);
 
- /*   sprintf(viewName, "%s%d%s", "../outputs/Maps/pointsAndSurfaces-", this->getId(), ".png");
-      plotPointsAndSurfacesGNU(viewName,points2D,viewSurfaces);*/
+    /*   sprintf(viewName, "%s%d%s", "../outputs/Maps/pointsAndSurfaces-", this->getId(), ".png");
+         plotPointsAndSurfacesGNU(viewName,points2D,viewSurfaces);*/
     //waitHere();
 
     //vizualize point cloud.
@@ -817,4 +817,107 @@ pair<vector<Surface>, vector<Surface> > View::computeExitBordersDirections() {
     }
 
     return pair<vector<Surface>, vector<Surface> >(pcaSurfacesBorder1, pcaSurfacesBorder2);
+}
+
+struct OcclundingPoint {
+    double distance;
+    PointXY point;
+    PointXY occludedPoint;
+    int position;
+};
+
+vector<Surface> View::findBoundaries() {
+    vector<Surface> boundaries;
+
+    PointXY rbtPos = PointXY(robotSurfaces[0].getP1().x, robotSurfaces[0].getP1().y);
+    list<Surface> exitsFound;
+    vector<OcclundingPoint > possibleLeftEndpts;
+    vector<OcclundingPoint > possibleRightEndpts;
+    vector<pair<int, int> > intervalsToDelete; //Indexes of surfaces outside boundaries
+
+    //Find exit possible endpoints (occluding points))
+    for (unsigned int i = 1; i < surfaces.size() - 1; i++) {
+        // Left endpoint ? Yes if the next surface is further away
+        double distP1next = surfaces[i + 1].distFromP1ToPoint(rbtPos.getX(), rbtPos.getY());
+        double distP2cur = surfaces[i].distFromP2ToPoint(rbtPos.getX(), rbtPos.getY());
+        bool nextSurfFurtherAway = distP1next > distP2cur || (surfaces[i + 1].distFromP1ToPoint(surfaces[i].getP2().x, surfaces[i].getP2().y) < 100 && surfaces[i + 1].distFromP2ToPoint(rbtPos.getX(), rbtPos.getY()) > distP2cur);
+
+        if (nextSurfFurtherAway) {
+            OcclundingPoint op;
+            op.distance = surfaces[i].distFromP2ToPoint(rbtPos.getX(), rbtPos.getY());
+            op.point = PointXY(surfaces[i].getP2().x, surfaces[i].getP2().y);
+            op.occludedPoint = PointXY(surfaces[i + 1].getP1().x, surfaces[i + 1].getP1().y);
+            op.position = i + 1;
+            possibleLeftEndpts.push_back(op);
+        }
+
+        //Right endpoint ? Yes if the previous surface is further away
+        double distP2prev = surfaces[i - 1].distFromP2ToPoint(rbtPos.getX(), rbtPos.getY());
+        double distP1cur = surfaces[i].distFromP1ToPoint(rbtPos.getX(), rbtPos.getY());
+        bool prevSurfFurtherAway = distP2prev > distP1cur || (surfaces[i - 1].distFromP2ToPoint(surfaces[i].getP1().x, surfaces[i].getP1().y) < 100 && surfaces[i - 1].distFromP1ToPoint(rbtPos.getX(), rbtPos.getY()) > distP1cur);
+
+        if (prevSurfFurtherAway) {
+            OcclundingPoint op;
+            op.distance = surfaces[i].distFromP1ToPoint(rbtPos.getX(), rbtPos.getY());
+            op.point = PointXY(surfaces[i].getP1().x, surfaces[i].getP1().y);
+            op.occludedPoint = PointXY(surfaces[i - 1].getP2().x, surfaces[i - 1].getP2().y);
+            op.position = i - 1;
+            possibleRightEndpts.push_back(op);
+        }
+    }
+
+    //Find exits
+    for (unsigned int j = 0; j < possibleLeftEndpts.size(); j++) {
+        for (unsigned int k = 0; k < possibleRightEndpts.size(); k++) {
+            Surface exit(possibleLeftEndpts[j].point.getX(), possibleLeftEndpts[j].point.getY(), possibleRightEndpts[k].point.getX(), possibleRightEndpts[k].point.getY());
+
+            if (exit.length() > 600
+                    && possibleLeftEndpts[j].point.distFrom(possibleLeftEndpts[j].occludedPoint) > exit.length()
+                    && possibleRightEndpts[k].point.distFrom(possibleRightEndpts[k].occludedPoint) > exit.length()
+                    && possibleLeftEndpts[j].point.getX() < possibleRightEndpts[k].point.getX()) {
+
+
+                pair<int, int> interval = make_pair(possibleLeftEndpts[j].position, possibleRightEndpts[k].position);
+                bool keepInterval = true;
+                for (unsigned int l = 0; l < intervalsToDelete.size(); l++) {
+                    if (intervalsToDelete[l].first <= interval.first && interval.second <= intervalsToDelete[l].second) {
+                        keepInterval = false;
+                        break;
+                    }
+                }
+                if (keepInterval) {
+                    exitsFound.push_back(exit);
+                    intervalsToDelete.push_back(interval);
+                }
+
+            }
+        }
+    }
+
+    //Create boundaries
+    cv::Point2f lastPoint;
+    bool lastPointEmpty = true;
+    
+    for (unsigned int i = 0; i < surfaces.size(); i++) {
+        bool toKeep = true;
+        for (unsigned int j = 0; j < intervalsToDelete.size(); j++) {
+            if (intervalsToDelete[j].first <= i && i <= intervalsToDelete[j].second) {
+                toKeep = false;
+                break;
+            }
+        }
+        if (toKeep) {
+            if (!lastPointEmpty) {
+                boundaries.push_back(Surface(lastPoint.x, lastPoint.y, surfaces[i].getP1().x, surfaces[i].getP1().y));
+            }
+            boundaries.push_back(surfaces[i]);
+            lastPoint = surfaces[i].getP2();
+            lastPointEmpty = false;
+        }
+    }
+
+    boundaries.insert(boundaries.end(), exitsFound.begin(), exitsFound.end());
+
+    return boundaries;
+
 }

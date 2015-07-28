@@ -291,7 +291,7 @@ void Map::cleanMap(const vector<Surface>& cvSurfacesOnMap, const vector<Surface>
     vector<Surface> surfacesOutsideCV, finalSurfaces;
     vector<Surface> tempSurf;
     View tempView;
-    
+
     //Deleting the last view surfaces closer than MIN_DISTANCE_VISION
     vector<Surface> surfacesForPointInPolygon = ClearCloseSurfaces(cRobotSurfaces);
     vector<Surface> lastViewSurfaces = this->map[this->map.size() - 1].getSurfaces();
@@ -996,17 +996,21 @@ void Map::BuildMap(char* dataset, int firstView, int numSteps, Map *lastMap) {
         sprintf(viewName, "%s%d", "../outputs/Maps/view-", curView.getId());
         plotViewGNU(viewName, curView);
 
+        vector<Surface> boundaries = curView.findBoundaries();
+        char plotBoundaries[50];
+        sprintf(plotBoundaries, "%s%d%s", "../outputs/Maps/boundaries-", curView.getId(), ".png");
+        plotSurfacesGNU(plotBoundaries, boundaries);
 
         //Using odometer
         if (i == 0) {
             this->initializeMap(curView);
         } else {
-           
+
             //Add view to map
             View viewOnMap = this->computeCVUsingOdometer(curView);
             this->addCvAndClean(viewOnMap);
         }
-       
+
         //read odometer info
         sprintf(viewName, "%s%s%s%d", "../inputs/", dataset, "/surfaces/coordTrans-", curView.getId());
         readOdometry(Albot, viewName);
@@ -1712,15 +1716,18 @@ vector<AngleAndDistance> Map::FindWayHome() {
 
     //No direct way : A* algorithm
     cout << "Finding a way to avoid obstacles" << endl;
-    Surface orientation = exit;
-    orientation.rotate(cv::Point3f(orientation.midPoint().x, orientation.midPoint().y, -90));
+
     list<PointXY> path = findPathAStar(PointXY(exit.midPoint().x, exit.midPoint().y), beforeEntrance, allSurfaces);
     vector<PointXY> pathVect(path.begin(), path.end());
-    for (unsigned int i = 1; i < pathVect.size(); i++) {
+    Surface orientation = exit;
+    orientation.setP1(orientation.midPoint().x, orientation.midPoint().y);
+    orientation.rotateAroundP1(-90);
+
+    for (unsigned int i = 1; i < pathVect.size()-1; i++) {
         AngleAndDistance ad;
-        ad.distance = pathVect[i].distFrom(pathVect[i - 1]);
-        ad.angle = orientation.getAngleWithSurface(Surface(pathVect[i - 1].getX(), pathVect[i - 1].getY(), pathVect[i].getX(), pathVect[i].getY()));
-        orientation = makeSurfaceWith(orientation, ad.angle, 0, orientation.length());
+        ad.distance = orientation.distFromP1ToPoint(pathVect[i].getX(), pathVect[i].getY());
+        ad.angle = orientation.getAngleFromP1ToPoint(pathVect[i].getX(), pathVect[i].getY());
+        orientation = makeSurfaceWith(orientation, ad.angle, ad.distance, 200);
         wayHome.push_back(ad);
     }
 

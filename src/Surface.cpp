@@ -267,6 +267,23 @@ void Surface::setSurfaceSimple() {
 
 }
 
+void Surface::setP1Occluding(bool occluding) {
+    p1Occluding = occluding;
+}
+
+bool Surface::getP1Occluding() {
+    return p1Occluding;
+}
+
+void Surface::setP2Occluding(bool occluding) {
+    p2Occluding = occluding;
+}
+
+bool Surface::getP2Occluding() {
+    return p2Occluding;
+}
+
+
 //it uses OpenCV line fitting algorithm to set a surfaces from a vector of points
 
 void Surface::setSurface() {
@@ -368,6 +385,8 @@ double Surface::getAngleFromP1ToPoint(const double & a, const double & b) const 
 
     double r2 = x31 / lb;
     double angle2 = acos(r2);
+    
+    cout<<""<<endl; //It doesn't make sense but if I delete this line the findWayHome crashes...
 
     if (lb == 0)
         return 0;
@@ -381,7 +400,7 @@ double Surface::getAngleFromP1ToPoint(const double & a, const double & b) const 
     angle2 = ((180 / M_PI) * angle2);
 
     double diff = angle2 - angle1;
-
+    
     if (diff > 0)
         return diff;
     else
@@ -556,8 +575,8 @@ PointXY Surface::projectPointOnSurface(double x, double y) {
     return PointXY(newX, newY);
 }
 
-double Surface::distFromPoint(double x, double y){
-    return abs((P2.y-P1.y)*x-(P2.x-P1.x)*y+P2.x*P1.y-P2.y*P1.x) / sqrt((P2.y-P1.y)*(P2.y-P1.y)+(P2.x-P1.x)*(P2.x-P1.x));
+double Surface::distFromPoint(double x, double y) {
+    return abs((P2.y - P1.y) * x - (P2.x - P1.x) * y + P2.x * P1.y - P2.y * P1.x) / sqrt((P2.y - P1.y)*(P2.y - P1.y)+(P2.x - P1.x)*(P2.x - P1.x));
 }
 
 // Reference Surfaces

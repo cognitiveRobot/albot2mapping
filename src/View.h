@@ -139,6 +139,7 @@ public:
      */
     pair<vector<Surface>, vector<Surface> > computeExitBordersDirections();
 
+    vector<Surface> findBoundaries();
 
 };
 int readFolderNumber(const char* fileName);
