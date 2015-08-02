@@ -6,6 +6,7 @@
 #include "SameSurfaceFinderOdo.h"
 #include "GlobalMap.h"
 #include <list>
+#include "online_stereo.h"
 
 Map::Map(int _sizeX, int _sizeY) :
 sizeX(_sizeX), sizeY(_sizeY) {
@@ -139,6 +140,14 @@ void Map::setRefForNextLS(const Surface & surf) {
 
 Surface Map::getRefForNextLS() {
     return refForNextLS;
+}
+
+void Map::setMapBoundaries(vector<pair<Surface, bool> > boundaries) {
+    mapBoundaries = boundaries;
+}
+
+vector<pair<Surface, bool> > Map::getMapBoundaries() {
+    return mapBoundaries;
 }
 
 vector<int> Map::getLostStepsNumber() const {
@@ -658,7 +667,7 @@ void Map::addCvUsingGap(View & curView) {
     }
 
     //Plot long surfaces
-    char longSurfPlot [50];
+/*    char longSurfPlot [50];
     sprintf(longSurfPlot, "%s%d%s", "../outputs/Maps/longSurfCV-", curView.getId(), ".png");
     vector<Surface> tmp;
     tmp.push_back(longSurfCV);
@@ -669,10 +678,10 @@ void Map::addCvUsingGap(View & curView) {
     vector<Surface> tmp2;
     tmp2.push_back(longSurfPV);
     tmp2.push_back(prevView.getGap());
-    plotSurfacesGNU(longSurfPlot, tmp2);
+    plotSurfacesGNU(longSurfPlot, tmp2);*/
 
     //Plot gaps
-    char gapsplot[50];
+/*    char gapsplot[50];
     sprintf(gapsplot, "%s%d%s", "../outputs/Maps/gapsPlot-", curView.getId(), ".png");
     vector<Surface> tmpGapsPlot = curView.getSurfaces();
     tmpGapsPlot.push_back(curView.getGap());
@@ -680,7 +689,7 @@ void Map::addCvUsingGap(View & curView) {
     sprintf(gapsplot, "%s%d%s", "../outputs/Maps/gapsPlot-", curView.getId(), "-prev.png");
     vector<Surface> tmpGapsPlot2 = prevView.getSurfaces();
     tmpGapsPlot2.push_back(prevView.getGap());
-    plotSurfacesGNU(gapsplot, tmpGapsPlot2);
+    plotSurfacesGNU(gapsplot, tmpGapsPlot2);*/
 
     //Add view to map
     this->addViewUsingCorridorWidth(curView, longSurfCV, prevView.getGap(), prevView.getRobotSurfaces()[0].getP1());
@@ -981,14 +990,24 @@ void Map::BuildMap(char* dataset, int firstView, int numSteps, Map *lastMap) {
     View curView;
     curView.setRobotSurfaces(Albot.getRectRobot());
 
-    char viewName[50], pointFile[50];
+    char viewName[50], disparityFile[50], depthFile[50], pointCloudFile[50], point2DFile[50], leftImg[50], rightImg[50];
 
     for (unsigned int i = 0; i < numSteps; i++) {
 
         //construct view from points.
         curView.setId(firstView + i);
-        sprintf(pointFile, "%s%s%s%d", "../inputs/", dataset, "/pointCloud/points2D-", curView.getId());
-        curView.constructView(pointFile);
+        
+        sprintf(leftImg, "%s%s%s%d%s", "../inputs/", dataset, "/raw/left-", curView.getId(), ".pgm");
+        sprintf(rightImg, "%s%s%s%d%s", "../inputs/", dataset, "/raw/right-", curView.getId(), ".pgm");
+        sprintf(disparityFile, "%s%s%s%d%s", "../inputs/", dataset, "/disparity/disparity-", curView.getId(), ".png");
+        sprintf(depthFile, "%s%s%s%d%s", "../inputs/", dataset, "/depth/depth-", curView.getId(), ".png");
+        sprintf(point2DFile, "%s%s%s%d", "../inputs/", dataset, "/pointCloud/points2D-", curView.getId());
+        sprintf(pointCloudFile, "%s%s%s%d%s", "../inputs/", dataset, "/pointCloud/pointCloud-", curView.getId(), ".pcd");
+
+        computeDisparity(leftImg, rightImg, 0, 255, disparityFile);      
+        computeDepthAndPointCloud(depthFile, pointCloudFile, point2DFile);
+
+        curView.constructView(point2DFile);
 
         cout << "View is formed :)" << endl;
         cout << endl << "==================================================" << endl << endl;
@@ -996,10 +1015,10 @@ void Map::BuildMap(char* dataset, int firstView, int numSteps, Map *lastMap) {
         sprintf(viewName, "%s%d", "../outputs/Maps/view-", curView.getId());
         plotViewGNU(viewName, curView);
 
-        vector<Surface> boundaries = curView.findBoundaries();
-        char plotBoundaries[50];
-        sprintf(plotBoundaries, "%s%d%s", "../outputs/Maps/boundaries-", curView.getId(), ".png");
-        plotSurfacesGNU(plotBoundaries, boundaries);
+        /*     vector<Surface> boundaries = curView.findBoundaries();
+             char plotBoundaries[50];
+             sprintf(plotBoundaries, "%s%d%s", "../outputs/Maps/boundaries-", curView.getId(), ".png");
+             plotSurfacesGNU(plotBoundaries, boundaries); */
 
         //Using odometer
         if (i == 0) {
@@ -1021,6 +1040,87 @@ void Map::BuildMap(char* dataset, int firstView, int numSteps, Map *lastMap) {
             this->computeEntrance(*lastMap);
             this->addSurfacesAfterEntrance(*lastMap);
         }
+    }
+    cout << endl;
+
+    this->computeExit();
+}
+
+View Map::BuildMapWithBoundaries(char* dataset, View *firstView, Map *lastMap) {
+    Robot Albot;
+    View curView;
+    curView.setRobotSurfaces(Albot.getRectRobot());
+
+    char viewName[50], pointFile[50];
+
+    int numView = 1;
+    if (firstView != 0 && lastMap != 0) {
+        this->initializeMap(*firstView);
+        this->computeEntrance(*lastMap);
+        this->addSurfacesAfterEntrance(*lastMap);
+        mapBoundaries = this->map[0].findBoundaries();
+
+        numView = firstView->getId() + 1;
+    }
+
+    while (1) {
+        cout << "herea" << endl;
+
+        //construct view from points.
+        curView.setId(numView);
+        sprintf(pointFile, "%s%s%s%d", "../inputs/", dataset, "/pointCloud/points2D-", curView.getId());
+        struct stat buffer;
+        if (stat(pointFile, &buffer) != 0) {
+            //No more views
+            throw false;
+        }
+        curView.constructView(pointFile);
+
+        cout << "View is formed :)" << endl;
+        cout << endl << "==================================================" << endl << endl;
+        cout << "View no. " << curView.getId() << ":" << endl;
+        sprintf(viewName, "%s%d", "../outputs/Maps/view-", curView.getId());
+        plotViewGNU(viewName, curView);
+
+
+        //Using odometer
+        if (firstView == 0 && numView == 1) {
+            cout << "hereb" << endl;
+            vector < pair<Surface, bool> > viewBoundaries = curView.findBoundaries();
+            cout << "hered" << endl;
+            curView.setViewBoundaries(viewBoundaries);
+            cout << "heree" << endl;
+            this->initializeMap(curView);
+            cout << "heref" << endl;
+            mapBoundaries = viewBoundaries;
+            cout << "herec" << endl;
+        } else {
+            cv::Point2f firstRbtPos = this->map[0].getRobotSurfaces()[0].getP1();
+            cv::Point2f thisRbtPos = curView.getRobotSurfaces()[0].getP1();
+            bool sameLocalSpace = true;
+            for (unsigned int i = 0; i < mapBoundaries.size(); i++) {
+                if (!pointsOnSameSideOfSurface(thisRbtPos, firstRbtPos, mapBoundaries[i].first)) {
+                    sameLocalSpace = false;
+                    break;
+                }
+            }
+            if (!sameLocalSpace) {
+                return curView;
+            } else {
+                curView.setViewBoundaries(curView.findBoundaries());
+                //Add view to map
+                View viewOnMap = this->computeCVUsingOdometer(curView);
+                this->addCvAndClean(viewOnMap);
+            }
+
+        }
+
+
+        //read odometer info
+        sprintf(viewName, "%s%s%s%d", "../inputs/", dataset, "/surfaces/coordTrans-", curView.getId());
+        readOdometry(Albot, viewName);
+        this->addPathSegment(Albot.getLastLocomotion());
+        this->setLandmarkSurfaces(curView.getSurfaces());
     }
     cout << endl;
 
@@ -1530,9 +1630,9 @@ Surface FindGap(const vector<Surface>& surfaces, const vector<Surface>& robotSur
                 }
             }
             if (!isIntersecting) {
-                vector<Surface> tmpGapsPlot = surfaces;
+            /*    vector<Surface> tmpGapsPlot = surfaces;
                 tmpGapsPlot.push_back(gap);
-                plotSurfacesGNU("../outputs/Maps/gapsPlotTmp.png", tmpGapsPlot);
+                plotSurfacesGNU("../outputs/Maps/gapsPlotTmp.png", tmpGapsPlot);*/
                 char answer = 'y';
                 cout << "We found the following gap. Do you want another one ? y/n" << endl;
                 gap.display();
@@ -1630,7 +1730,7 @@ void Map::addViewUsingCorridorWidth(View& curView, Surface longSurfCV, Surface g
         }
 
         refCV = Surface(gapCV.getP1().x, gapCV.getP1().y, gapCV.getP1().x + longSurfVect.getX(), gapCV.getP1().y + longSurfVect.getY());
-        plotSurfacesGNU("../outputs/Maps/tangents.png", curSurfaces);
+  //      plotSurfacesGNU("../outputs/Maps/tangents.png", curSurfaces);
     } else {
         vector<Surface> tangents = findTangents(gapPV.getP2(), gapPV.getP1(), corridorLengthP2);
 
@@ -1645,7 +1745,7 @@ void Map::addViewUsingCorridorWidth(View& curView, Surface longSurfCV, Surface g
             }
         }
         refCV = Surface(gapCV.getP2().x, gapCV.getP2().y, gapCV.getP2().x + longSurfVect.getX(), gapCV.getP2().y + longSurfVect.getY());
-        plotSurfacesGNU("../outputs/Maps/tangents.png", curSurfaces);
+   //     plotSurfacesGNU("../outputs/Maps/tangents.png", curSurfaces);
     }
 
 
@@ -1723,7 +1823,7 @@ vector<AngleAndDistance> Map::FindWayHome() {
     orientation.setP1(orientation.midPoint().x, orientation.midPoint().y);
     orientation.rotateAroundP1(-90);
 
-    for (unsigned int i = 1; i < pathVect.size()-1; i++) {
+    for (unsigned int i = 1; i < pathVect.size() - 1; i++) {
         AngleAndDistance ad;
         ad.distance = orientation.distFromP1ToPoint(pathVect[i].getX(), pathVect[i].getY());
         ad.angle = orientation.getAngleFromP1ToPoint(pathVect[i].getX(), pathVect[i].getY());

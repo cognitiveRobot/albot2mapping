@@ -486,6 +486,14 @@ Surface View::getRPositionInPV() {
     return rPositionInPV;
 }
 
+void View::setViewBoundaries(vector<pair<Surface, bool> > boundaries) {
+    viewBoundaries = boundaries;
+}
+
+vector<pair<Surface, bool> > View::getViewBoundaries() {
+    return viewBoundaries;
+}
+
 void View::constructView(const char* filename) {
 
     vector<PointXY> points2D = readASCIIPoints2D(filename);
@@ -826,8 +834,8 @@ struct OcclundingPoint {
     int position;
 };
 
-vector<Surface> View::findBoundaries() {
-    vector<Surface> boundaries;
+vector<pair<Surface, bool> > View::findBoundaries() {
+    vector<pair<Surface, bool> > boundaries; //bool=true if it's a surface, false if it's an exit
 
     PointXY rbtPos = PointXY(robotSurfaces[0].getP1().x, robotSurfaces[0].getP1().y);
     list<Surface> exitsFound;
@@ -908,16 +916,18 @@ vector<Surface> View::findBoundaries() {
         }
         if (toKeep) {
             if (!lastPointEmpty) {
-                boundaries.push_back(Surface(lastPoint.x, lastPoint.y, surfaces[i].getP1().x, surfaces[i].getP1().y));
+                boundaries.push_back(make_pair(Surface(lastPoint.x, lastPoint.y, surfaces[i].getP1().x, surfaces[i].getP1().y), true));
             }
-            boundaries.push_back(surfaces[i]);
+            boundaries.push_back(make_pair(surfaces[i], true));
             lastPoint = surfaces[i].getP2();
             lastPointEmpty = false;
         }
     }
-
-    boundaries.insert(boundaries.end(), exitsFound.begin(), exitsFound.end());
-
+    
+    for(list<Surface>::iterator it=exitsFound.begin(); it!=exitsFound.end(); it++){
+        boundaries.push_back(make_pair(*it, false));
+    }
+    viewBoundaries=boundaries;
     return boundaries;
 
 }

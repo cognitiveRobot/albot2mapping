@@ -23,6 +23,10 @@ public:
     void addMap(const Map map);
 
     vector<Map> getMaps();
+    
+    void buildMaps(char* dataset);
+    
+    void printMaps();
 
 
     void printWaysHome();

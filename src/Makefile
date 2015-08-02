@@ -80,7 +80,8 @@ LIBSRCS = \
 	PathFinder.cpp \
 	ImageProcessing.cpp \
 	GlobalMap.cpp \
-	Node.cpp
+	Node.cpp \
+	online_stereo.cpp
 
 #main programs	
 PROGSRCS= \
@@ -89,7 +90,9 @@ PROGSRCS= \
 	offlineGuidedXnMapping.cpp \
 	onlineMapping.cpp \
 	minhMapping.cpp \
-	findWayHome.cpp
+	findWayHome.cpp \
+#	online_stereo.cpp \
+	stereo_match.cpp
 #	offlineMappingFromLS.cpp \
 #	testStereoMatching.cpp \
 #	renameFiles.cpp \
@@ -161,6 +164,7 @@ cleaninputs:
 	rm -f ../inputs/color/*
 	rm -f ../inputs/pointCloud/*
 	rm -f ../inputs/surfaces/*
+	rm -f ../inputs/disparity/*
 
 
 

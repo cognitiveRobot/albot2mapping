@@ -65,6 +65,7 @@ void print(std::map<int, int> map);
 int main(int argc, char** argv) {
 
     GlobalMap globalMap;
+      
     int mapId = 0;
     int numView = 1;
     char answer = 'y';
@@ -101,7 +102,8 @@ int main(int argc, char** argv) {
 
         mapId++;
     }
-
+  //  globalMap.buildMaps(argv[1]);
+ //   globalMap.printMaps();
     globalMap.printWaysHome();
 
     return 0;

@@ -102,6 +102,8 @@ int main(int argc, char** argv) {
         Bumblebee.getImage(); // Acquire image from camera
         curView.setView(Bumblebee.getTriclops(), Bumblebee.getDepthImage(), Albot.getPos()); // Set view from camera photograph
 
+        
+        
         //construct view from points.
         sprintf(pointFile, "%s%s%s%d", "../inputs/",argv[1],"/pointCloud/points2D-", curView.getId());
         curView.constructView(pointFile);

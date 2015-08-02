@@ -229,7 +229,7 @@ void Camera::getImage() {
     printf("wrote color file\n");
 
     //save point cloud in .pcd file
-    savePointCloud(triclops, depthImage);
+   // savePointCloud(triclops, depthImage);
 
     TriclopsImage leftImage, rightImage;
     //TriclopsColorImage leftImage, rightImage;
@@ -376,13 +376,13 @@ void Camera::savePointCloud(TriclopsContext triclops, TriclopsImage16 depthImage
     // <x> <y> <z> <red> <grn> <blu> <row> <col>
     // <x> <y> <z> <red> <grn> <blu> <row> <col>
     // ...
-    
+
     vector<PointXY> points;
     int lastI;
-    
+
     vector<vector<PointXY> > pointsAllRow;
     vector<PointXY> pointsOneRow;
-    
+
     int savedPoints = 0;
     // Determine the number of pixels spacing per row
     pixelinc = depthImage.rowinc / 2;
@@ -396,8 +396,8 @@ void Camera::savePointCloud(TriclopsContext triclops, TriclopsImage16 depthImage
             if (disparity < 0xFF00) {
                 // convert the 16 bit disparity value to floating point x,y,z
                 triclopsRCD16ToXYZ(triclops, i, j, disparity, &x, &y, &z);
-                
-                
+
+
                 /* (Source - Point Grey) By default, all Triclops library XYZ results are in the coordinate system of the reference (right) camera which is defined below:
 
 The origin of the system is the optical center of the lens of the reference camera.
@@ -409,23 +409,23 @@ The Z axis points forward from the camera.
 
                 // look at points within a range
                 if (y > -0.001 && y < 0.38 && z > 0.1) {
-                  //  cout<<i<<endl;
+                    //  cout<<i<<endl;
                     //waitHere();
                     cloud.points[savedPoints].x = x*CONVERT_M_TO_MM;
                     cloud.points[savedPoints].y = z*CONVERT_M_TO_MM;
                     cloud.points[savedPoints].z = -y*CONVERT_M_TO_MM;
                     savedPoints++;
-                    
+
                     //points in 2d
-                    points.push_back(PointXY(x*CONVERT_M_TO_MM,z*CONVERT_M_TO_MM));
-                    pointsOneRow.push_back(PointXY(x*CONVERT_M_TO_MM,z*CONVERT_M_TO_MM));
-                    
-                   // lastI = i;
+                    points.push_back(PointXY(x*CONVERT_M_TO_MM, z * CONVERT_M_TO_MM));
+                    pointsOneRow.push_back(PointXY(x*CONVERT_M_TO_MM, z * CONVERT_M_TO_MM));
+
+                    // lastI = i;
                 } else {
-                    pointsOneRow.push_back(PointXY(-1,-1));
+                    pointsOneRow.push_back(PointXY(-1, -1));
                 }
             } else {
-                pointsOneRow.push_back(PointXY(-1,-1));
+                pointsOneRow.push_back(PointXY(-1, -1));
             }
         }
         pointsAllRow.push_back(pointsOneRow);
@@ -448,30 +448,30 @@ The Z axis points forward from the camera.
 
             }
         }
-        
-        if(totalPointsInAColumn > 5) {
-        avgX = sumX / totalPointsInAColumn;
-        avgY = sumY / totalPointsInAColumn;
-        cout << "sumX " << sumX << " sumY " << sumY << endl;
-        cout << "avgX " << avgX << " avgY " << avgY << endl;
-        cout << "total points " << totalPointsInAColumn << endl;
-        //waitHere();
-        avgPoints.push_back(PointXY(avgX, avgY));
+
+        if (totalPointsInAColumn > 5) {
+            avgX = sumX / totalPointsInAColumn;
+            avgY = sumY / totalPointsInAColumn;
+            cout << "sumX " << sumX << " sumY " << sumY << endl;
+            cout << "avgX " << avgX << " avgY " << avgY << endl;
+            cout << "total points " << totalPointsInAColumn << endl;
+            //waitHere();
+            avgPoints.push_back(PointXY(avgX, avgY));
         }
     }
- //   waitHere();
+    //   waitHere();
 
     char fileName[50];
-    sprintf(fileName, "%s%d%s", "../inputs/pointCloud/pointCloud-", this->getV(),".pcd");
+    sprintf(fileName, "%s%d%s", "../inputs/pointCloud/pointCloud-", this->getV(), ".pcd");
 
     pcl::io::savePCDFileASCII(fileName, cloud);
-    std::cerr << "Saved " << savedPoints << " data points @pointCloud-" <<this->getV()<< std::endl;
+    std::cerr << "Saved " << savedPoints << " data points @pointCloud-" << this->getV() << std::endl;
     //std::cerr << "Saved " << cloud.points.size () << " data points to test_pcd.pcd." << std::endl;
-    
-   // plotPointsGNU("../outputs/Maps/points2D-",points);
+
+    // plotPointsGNU("../outputs/Maps/points2D-",points);
     //sprintf(fileName, "%s%d%s", "../outputs/pointCloud/points2D-", this->getV(),".png");
-   // plotPointsGNU(fileName,points);
+    // plotPointsGNU(fileName,points);
     sprintf(fileName, "%s%d", "../inputs/pointCloud/points2D-", this->getV());
-    writeASCIIPoints2D(fileName,avgPoints);
-    cout<<"Points are plotted using GNU."<<endl;
+    writeASCIIPoints2D(fileName, avgPoints);
+    cout << "Points are plotted using GNU." << endl;
 }

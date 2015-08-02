@@ -51,6 +51,8 @@ private:
     vector<Surface> landmarks;
 
     vector<Surface> robotSurfaces;
+    
+    vector<pair<Surface, bool> > viewBoundaries;
 
     Surface rPositionInPV;
 
@@ -86,6 +88,9 @@ public:
 
     void setRPositionInPV(const Surface & surf);
     Surface getRPositionInPV();
+    
+     void setViewBoundaries(vector<pair<Surface, bool> > boundaries);
+    vector<pair<Surface, bool> > getViewBoundaries();
 
 
     void constructView(const char* filename);
@@ -139,7 +144,7 @@ public:
      */
     pair<vector<Surface>, vector<Surface> > computeExitBordersDirections();
 
-    vector<Surface> findBoundaries();
+    vector<pair<Surface, bool> > findBoundaries();
 
 };
 int readFolderNumber(const char* fileName);
