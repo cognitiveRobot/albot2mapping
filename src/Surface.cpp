@@ -386,7 +386,7 @@ double Surface::getAngleFromP1ToPoint(const double & a, const double & b) const 
     double r2 = x31 / lb;
     double angle2 = acos(r2);
     
-    cout<<""<<endl; //It doesn't make sense but if I delete this line the findWayHome crashes...
+ //   cout<<""<<endl; //It doesn't make sense but if I delete this line the findWayHome crashes...
 
     if (lb == 0)
         return 0;

@@ -53,6 +53,7 @@
 #include "Printer.h"
 #include "PathFinder.h"
 #include "GlobalMap.h"
+#include "GeometryFuncs.h"
 
 /* ------------------------- Namespaces ------------------------- */
 
@@ -65,45 +66,60 @@ void print(std::map<int, int> map);
 int main(int argc, char** argv) {
 
     GlobalMap globalMap;
-      
+
     int mapId = 0;
     int numView = 1;
     char answer = 'y';
 
-    while (answer == 'y') {
-        Map curMap(1500, 1500);
-        curMap.setMapID(mapId);
-        int numSteps;
+    Map *curMap= new Map(1500, 1500);
+    
+     int numSteps;
         cout << "How many steps? ";
         cin >> numSteps;
-        
+
+    while (answer == 'y') {
+
+        curMap->setMapID(mapId);
+        Map *newMap;
+
         if (globalMap.getMaps().size() > 0) {
-            curMap.BuildMap(argv[1], numView, numSteps, &(globalMap.getMaps().back()));
+            newMap = curMap->BuildMap(argv[1], numView, numSteps, &(globalMap.getMaps().back()));
         } else {
-            curMap.BuildMap(argv[1], numView, numSteps);
+            newMap=curMap->BuildMap(argv[1], numView, numSteps);
         }
 
-        numView = curMap.getMap().back().getId() + 1;
-        globalMap.addMap(curMap);
- 
+
+        if(newMap->getMapID()!=0){
+            numView=newMap->getMap().front().getId()+1;
+        }else{
+            numView = curMap->getMap().back().getId() + 1;
+        }       
+        globalMap.addMap(*curMap);
+
         char mapName[50];
-        vector<Surface> toPlot; 
-        for (unsigned int j = 0; j < curMap.getMap().size(); j++) {
-            vector<Surface> tmp = curMap.getMap()[j].getSurfaces();
+        vector<Surface> toPlot;
+        for (unsigned int j = 0; j < curMap->getMap().size(); j++) {
+            vector<Surface> tmp = curMap->getMap()[j].getSurfaces();
             toPlot.insert(toPlot.end(), tmp.begin(), tmp.end());
         }
-        toPlot.push_back(curMap.getExit());
-        toPlot.push_back(curMap.getEntrance());
+        toPlot.push_back(curMap->getExit());
+        toPlot.push_back(curMap->getEntrance());
         sprintf(mapName, "%s%d%s", "../outputs/Maps/Map-", mapId, "-withExitEntrance.png");
         plotSurfacesGNU(mapName, toPlot);
-        
-        cout << "Do you want to create another local space ? y/n ";
-        cin >> answer;
 
         mapId++;
+        if (newMap->getMapID() !=0) {
+            delete curMap;
+            curMap = newMap;
+        } else {
+            //All maps have been built
+            delete curMap;
+            delete newMap;
+            break;
+        }
     }
-  //  globalMap.buildMaps(argv[1]);
- //   globalMap.printMaps();
+
+    globalMap.printMaps();
     globalMap.printWaysHome();
 
     return 0;

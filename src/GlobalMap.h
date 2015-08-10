@@ -24,8 +24,6 @@ public:
 
     vector<Map> getMaps();
     
-    void buildMaps(char* dataset);
-    
     void printMaps();
 
 

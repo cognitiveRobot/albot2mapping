@@ -29,23 +29,22 @@ int Map::getMapID() {
     return ID;
 }
 
-void Map::initializeMap(const View & firstView) {
-    map.clear(); //make sure the map is empty.
+void Map::initializeMap(View & firstView) {
+    map.clear(); //make sure the map is empty.    
     map.push_back(firstView); //add the first view.
     pathSegments.clear(); //make sure the pathsegments is empty.
-    /* vector<Surface> surfaces = firstView.getSurfaces(); // findTrustedSurfaces(firstView);
-    boundaries = list<Surface>(surfaces.begin(), surfaces.end());
-    Surface robotOrientation = firstView.getRobotSurfaces()[0];
-    double leftBoundaryAngle = robotOrientation.getAngleFromP1ToPoint(boundaries.front().getP1().x, boundaries.front().getP1().y);
-    double rightBoundaryAngle = robotOrientation.getAngleFromP1ToPoint(boundaries.back().getP2().x, boundaries.back().getP2().y);
-    anglesWithoutBoundaries[0] = pair<double, double>(leftBoundaryAngle, rightBoundaryAngle);
-     */
+
     entrance = firstView.getRobotSurfaces()[0];
     entrance.rotateAroundP1(-90);
     entrance.setP1(entrance.getP1().x - (entrance.getP2().x - entrance.getP1().x), entrance.getP1().y - (entrance.getP2().y - entrance.getP1().y));
     char mapName[50];
     sprintf(mapName, "%s%d%s%d%s", "../outputs/Maps/Map-", getMapID(), "-View-", firstView.getId(), "a-before.png");
+    mapBoundaries = firstView.getViewBoundaries();
+    mapExits = firstView.getViewExits();
     plotViewsGNU(mapName, this->getMap());
+    char bdName[50];
+    sprintf(bdName, "%s%d%s", "../outputs/Maps/boundaries-", firstView.getId(), ".png");
+    plotSurfacesGNU(bdName, firstView.getViewBoundaries());
 }
 
 void Map::setPreviousView(const View & pView) {
@@ -142,12 +141,20 @@ Surface Map::getRefForNextLS() {
     return refForNextLS;
 }
 
-void Map::setMapBoundaries(vector<pair<Surface, bool> > boundaries) {
+void Map::setMapBoundaries(vector<Surface> boundaries) {
     mapBoundaries = boundaries;
 }
 
-vector<pair<Surface, bool> > Map::getMapBoundaries() {
+vector<Surface> Map::getMapBoundaries() {
     return mapBoundaries;
+}
+
+void Map::setMapExits(vector<Surface> exits) {
+    mapExits = exits;
+}
+
+vector<Surface> Map::getMapExits() {
+    return mapExits;
 }
 
 vector<int> Map::getLostStepsNumber() const {
@@ -297,7 +304,7 @@ void Map::addCVUsingOdo(const View & curView, const AngleAndDistance & homeInfo)
 }
 
 void Map::cleanMap(const vector<Surface>& cvSurfacesOnMap, const vector<Surface>& cRobotSurfaces) {
-    vector<Surface> surfacesOutsideCV, finalSurfaces;
+    // vector<Surface> surfacesOutsideCV, finalSurfaces;
     vector<Surface> tempSurf;
     View tempView;
 
@@ -315,97 +322,106 @@ void Map::cleanMap(const vector<Surface>& cvSurfacesOnMap, const vector<Surface>
             tempView = this->map[i];
             tempSurf = tempView.getSurfaces();
 
-            //Check for surfaces we're seeing through
-            for (unsigned int j = 0; j < tempSurf.size(); j++) {
-                bool intersectingRbtPath = false;
-                for (unsigned int k = 0; k < robotPath.size(); k++) {
-                    if (tempSurf[j].intersects(robotPath[k])) {
-                        intersectingRbtPath = true;
-                        break;
-                    }
-                }
-                if (intersectingRbtPath) {
-                    //We don't keep the surface because the robot has passed through it
-                    continue;
-                }
+            //HERE
 
-                //Point in polygon
-                bool P1inPolygon = PointInPolygon(tempSurf[j].getP1().x, tempSurf[j].getP1().y, surfacesForPointInPolygon, cRobotSurfaces);
-                bool P2inPolygon = PointInPolygon(tempSurf[j].getP2().x, tempSurf[j].getP2().y, surfacesForPointInPolygon, cRobotSurfaces);
-                bool MiddleInPolygon = PointInPolygon(tempSurf[j].midPoint().x, tempSurf[j].midPoint().y, surfacesForPointInPolygon, cRobotSurfaces);
-                if (P1inPolygon && P2inPolygon && MiddleInPolygon) {
-                    // Don't keep the surface
-                    continue;
-                } else if (P1inPolygon || P2inPolygon || MiddleInPolygon) {
-                    // Keeps only the parts of the surface outside polygon
-                    vector<cv::Point2f> tempPoints = tempSurf[j].getAllPoints();
-                    cv::Point2f lastPointOut;
-                    bool inPolygon = P1inPolygon;
-                    if (!P1inPolygon) {
-                        lastPointOut = tempPoints[0];
-                    }
-                    for (unsigned int k = 1; k < tempPoints.size(); k++) {
-                        bool test = PointInPolygon(tempPoints[k].x, tempPoints[k].y, surfacesForPointInPolygon, cRobotSurfaces);
-                        if (inPolygon && !test) {
-                            lastPointOut = tempPoints[k];
-                            inPolygon = false;
-                        } else if (!inPolygon && test) {
-                            surfacesOutsideCV.push_back(Surface(lastPointOut.x, lastPointOut.y, tempPoints[k - 1].x, tempPoints[k - 1].y));
-                            inPolygon = true;
-                        }
-                    }
-                    if (!inPolygon) {
-                        //Close the last surface
-                        surfacesOutsideCV.push_back(Surface(lastPointOut.x, lastPointOut.y, tempPoints[tempPoints.size() - 1].x, tempPoints[tempPoints.size() - 1].y));
-                    }
-                } else if (!P1inPolygon && !P2inPolygon && !MiddleInPolygon) {
-                    // Keeps the whole surface
-                    surfacesOutsideCV.push_back(tempSurf[j]);
-                }
-            }
-            //Check for points hidden by a surface
-            for (unsigned int j = 0; j < surfacesOutsideCV.size(); j++) {
-                bool P1hidden = PointHiddenBySurfaces(surfacesOutsideCV[j].getP1(), lastViewSurfaces, tempView.getRobotSurfaces());
-                bool P2hidden = PointHiddenBySurfaces(surfacesOutsideCV[j].getP2(), lastViewSurfaces, tempView.getRobotSurfaces());
-                if (P1hidden && P2hidden) {
-                    // Don't keep the surface
-                    continue;
-                } else if (P1hidden || P2hidden) {
-                    // Keeps only the parts of the surface not hidden
-                    vector<cv::Point2f> points = surfacesOutsideCV[j].getAllPoints();
-                    cv::Point2f lastVisiblePoint;
-                    bool hidden = P1hidden;
-                    if (!P1hidden) {
-                        lastVisiblePoint = points[0];
-                    }
-                    for (unsigned int k = 1; k < points.size(); k++) {
-                        bool test = PointHiddenBySurfaces(points[k], lastViewSurfaces, cRobotSurfaces);
-                        if (hidden && !test) {
-                            lastVisiblePoint = points[k];
-                            hidden = false;
-                        } else if (!hidden && test) {
-                            finalSurfaces.push_back(Surface(lastVisiblePoint.x, lastVisiblePoint.y, points[k - 1].x, points[k - 1].y));
-                            hidden = true;
-                        }
-                    }
-                    if (!hidden) {
-                        //Close the last surface
-                        finalSurfaces.push_back(Surface(lastVisiblePoint.x, lastVisiblePoint.y, points[points.size() - 1].x, points[points.size() - 1].y));
-                    }
-                } else if (!P1hidden && !P2hidden) {
-                    // Keeps the whole surface
-                    finalSurfaces.push_back(surfacesOutsideCV[j]);
-                }
-            }
-            tempView.setSurfaces(finalSurfaces);
+            tempView.setSurfaces(cleanSurfaces(tempSurf, tempView.getRobotSurfaces(), lastViewSurfaces, cRobotSurfaces, robotPath, surfacesForPointInPolygon));
             this->map[i] = tempView;
             //clear variables to reuse.
             tempSurf.clear();
-            surfacesOutsideCV.clear();
-            finalSurfaces.clear();
+            // surfacesOutsideCV.clear();
+            // finalSurfaces.clear();
         }
     }
     cout << "Has been cleaned" << endl;
+}
+
+vector<Surface> cleanSurfaces(vector<Surface> surfaces, vector<Surface> robotSurfaces, vector<Surface> lastViewSurfaces, vector<Surface> lastRobotSurfaces, vector<Surface> robotPath, vector<Surface> surfacesForPointInPolygon) {
+
+    vector<Surface> surfacesOutsideCV, finalSurfaces;
+
+    //Check for surfaces we're seeing through
+    for (unsigned int j = 0; j < surfaces.size(); j++) {
+        bool intersectingRbtPath = false;
+        for (unsigned int k = 0; k < robotPath.size(); k++) {
+            if (surfaces[j].intersects(robotPath[k])) {
+                intersectingRbtPath = true;
+                break;
+            }
+        }
+        if (intersectingRbtPath) {
+            //We don't keep the surface because the robot has passed through it
+            continue;
+        }
+
+        //Point in polygon
+        bool P1inPolygon = PointInPolygon(surfaces[j].getP1().x, surfaces[j].getP1().y, surfacesForPointInPolygon, lastRobotSurfaces);
+        bool P2inPolygon = PointInPolygon(surfaces[j].getP2().x, surfaces[j].getP2().y, surfacesForPointInPolygon, lastRobotSurfaces);
+        bool MiddleInPolygon = PointInPolygon(surfaces[j].midPoint().x, surfaces[j].midPoint().y, surfacesForPointInPolygon, lastRobotSurfaces);
+        if (P1inPolygon && P2inPolygon && MiddleInPolygon) {
+            // Don't keep the surface
+            continue;
+        } else if (P1inPolygon || P2inPolygon || MiddleInPolygon) {
+            // Keeps only the parts of the surface outside polygon
+            vector<cv::Point2f> tempPoints = surfaces[j].getAllPoints();
+            cv::Point2f lastPointOut;
+            bool inPolygon = P1inPolygon;
+            if (!P1inPolygon) {
+                lastPointOut = tempPoints[0];
+            }
+            for (unsigned int k = 1; k < tempPoints.size(); k++) {
+                bool test = PointInPolygon(tempPoints[k].x, tempPoints[k].y, surfacesForPointInPolygon, lastRobotSurfaces);
+                if (inPolygon && !test) {
+                    lastPointOut = tempPoints[k];
+                    inPolygon = false;
+                } else if (!inPolygon && test) {
+                    surfacesOutsideCV.push_back(Surface(lastPointOut.x, lastPointOut.y, tempPoints[k - 1].x, tempPoints[k - 1].y));
+                    inPolygon = true;
+                }
+            }
+            if (!inPolygon) {
+                //Close the last surface
+                surfacesOutsideCV.push_back(Surface(lastPointOut.x, lastPointOut.y, tempPoints[tempPoints.size() - 1].x, tempPoints[tempPoints.size() - 1].y));
+            }
+        } else if (!P1inPolygon && !P2inPolygon && !MiddleInPolygon) {
+            // Keeps the whole surface
+            surfacesOutsideCV.push_back(surfaces[j]);
+        }
+    }
+    //Check for points hidden by a surface
+    for (unsigned int j = 0; j < surfacesOutsideCV.size(); j++) {
+        bool P1hidden = PointHiddenBySurfaces(surfacesOutsideCV[j].getP1(), lastViewSurfaces, robotSurfaces);
+        bool P2hidden = PointHiddenBySurfaces(surfacesOutsideCV[j].getP2(), lastViewSurfaces, robotSurfaces);
+        if (P1hidden && P2hidden) {
+            // Don't keep the surface
+            continue;
+        } else if (P1hidden || P2hidden) {
+            // Keeps only the parts of the surface not hidden
+            vector<cv::Point2f> points = surfacesOutsideCV[j].getAllPoints();
+            cv::Point2f lastVisiblePoint;
+            bool hidden = P1hidden;
+            if (!P1hidden) {
+                lastVisiblePoint = points[0];
+            }
+            for (unsigned int k = 1; k < points.size(); k++) {
+                bool test = PointHiddenBySurfaces(points[k], lastViewSurfaces, robotSurfaces);
+                if (hidden && !test) {
+                    lastVisiblePoint = points[k];
+                    hidden = false;
+                } else if (!hidden && test) {
+                    finalSurfaces.push_back(Surface(lastVisiblePoint.x, lastVisiblePoint.y, points[k - 1].x, points[k - 1].y));
+                    hidden = true;
+                }
+            }
+            if (!hidden) {
+                //Close the last surface
+                finalSurfaces.push_back(Surface(lastVisiblePoint.x, lastVisiblePoint.y, points[points.size() - 1].x, points[points.size() - 1].y));
+            }
+        } else if (!P1hidden && !P2hidden) {
+            // Keeps the whole surface
+            finalSurfaces.push_back(surfacesOutsideCV[j]);
+        }
+    }
+    return finalSurfaces;
 }
 
 void Map::cleanMapUsingOdo(const View & curView, const AngleAndDistance & homeInfo) {
@@ -517,9 +533,9 @@ void Map::addCVUsingMultipleRef(const View & curView) {
     // waitHere();
 }
 
-View Map::computeCVUsingOdometer(const View& curView) {
+View Map::computeCVUsingOdometer(View& curView) {
     ReferenceSurfaces refSurfacePair;
-    //using odometer.
+    //using odometer
     refSurfacePair.setMapSurface(makeSurfaceWith(this->getMap().back().getRobotSurfaces()[0],
             this->getPathSegments().back().angle, this->getPathSegments().back().distance, 400.0));
     refSurfacePair.setViewSurface(curView.getRobotSurfaces()[0]);
@@ -535,6 +551,28 @@ View Map::computeCVUsingOdometer(const View& curView) {
                 curView.getSurfaces()[i], refSurfacePair.getRefPoint());
         allCVSurfacesOnMap.push_back(cvSurfaceOnMap);
     }
+
+    vector <Surface> viewBoundaries = curView.getViewBoundaries();
+    Surface cvBoundaryOnMap;
+    vector <Surface> allCVBoundariesOnMap;
+    for (unsigned int i = 0; i < viewBoundaries.size(); i++) {
+        //trangulate this surface.
+        cvBoundaryOnMap = trangulateSurface(refSurfacePair.getMapSurface(), refSurfacePair.getViewSurface(),
+                viewBoundaries[i], refSurfacePair.getRefPoint());
+        allCVBoundariesOnMap.push_back(cvBoundaryOnMap);
+    }
+
+    vector <Surface> viewExits = curView.getViewExits();
+    Surface cvExitOnMap;
+    vector <Surface> allCVExitsOnMap;
+    for (unsigned int i = 0; i < viewExits.size(); i++) {
+        //trangulate this surface.
+        cvExitOnMap = trangulateSurface(refSurfacePair.getMapSurface(), refSurfacePair.getViewSurface(),
+                viewExits[i], refSurfacePair.getRefPoint());
+        allCVExitsOnMap.push_back(cvExitOnMap);
+    }
+
+
     //compute robot surfaces.
     Surface cRobotSurfaceOnMap;
     vector<Surface> cRobotSurfacesOnMap;
@@ -545,6 +583,8 @@ View Map::computeCVUsingOdometer(const View& curView) {
     }
     View cViewOnMap;
     cViewOnMap.setSurfaces(allCVSurfacesOnMap);
+    cViewOnMap.setViewBoundaries(allCVBoundariesOnMap);
+    cViewOnMap.setViewExits(allCVExitsOnMap);
     cViewOnMap.setRobotSurfaces(cRobotSurfacesOnMap);
     cViewOnMap.setId(curView.getId());
     cViewOnMap.setHasGap(curView.getHasGap());
@@ -582,16 +622,46 @@ void Map::addView(View& view) {
     this->map.push_back(view);
 }
 
-void Map::addCvAndClean(const View& view) {
+void Map::addCvAndClean(View& view) {
     this->map.push_back(view);
     char mapName[50];
     sprintf(mapName, "%s%d%s%d%s", "../outputs/Maps/Map-", getMapID(), "-View-", view.getId(), "a-before.png");
     plotViewsGNU(mapName, this->getMap());
+    char bdName[50];
+    sprintf(bdName, "%s%d%s", "../outputs/Maps/boundaries-", view.getId(), "a-before.png");
+    plotSurfacesGNU(bdName, view.getViewBoundaries());
+
+    //Clean boundaries
+  /*  View tempView;
+    vector<Surface> surfacesForPointInPolygon = ClearCloseSurfaces(this->map.back().getRobotSurfaces());
+    vector<Surface> lastViewSurfaces = this->map[this->map.size() - 1].getSurfaces();
+    vector<Surface> robotPath;
+    for (unsigned int i = 1; i<this->map.size(); i++) {
+        cv::Point2f rbtPos1 = this->map[i - 1].getRobotSurfaces()[0].getP1();
+        cv::Point2f rbtPos2 = this->map[i].getRobotSurfaces()[0].getP1();
+        robotPath.push_back(Surface(rbtPos1.x, rbtPos1.y, rbtPos2.x, rbtPos2.y));
+    }
+    if (lastViewSurfaces.size() > 0) {
+        for (unsigned int i = 0; i<this->map.size() - 1; i++) {
+            tempView = this->map[i];
+            vector <Surface> viewBoundaries = tempView.getViewBoundaries();
+
+            vector<Surface> newBoundariesSurf = cleanSurfaces(viewBoundaries, tempView.getRobotSurfaces(), lastViewSurfaces, this->map.back().getRobotSurfaces(), robotPath, surfacesForPointInPolygon);
+
+            tempView.setViewBoundaries(newBoundariesSurf);
+            this->map[i] = tempView;
+        }
+    }
+    char plotBoundaries[50];
+    sprintf(plotBoundaries, "%s%d%s", "../outputs/Maps/boundaries-", view.getId(), "b-after.png");
+    plotSurfacesGNU(plotBoundaries, map[view.getId()-1].getViewBoundaries());*/
+    cout << "Has been cleaned" << endl;
+
     //cleanMap.
     cleanMap(view.getSurfaces(), view.getRobotSurfaces());
+
     sprintf(mapName, "%s%d%s%d%s", "../outputs/Maps/Map-", getMapID(), "-View-", view.getId(), "b-after.png");
     plotViewsGNU(mapName, this->getMap());
-    // waitHere();
 }
 
 View Map::computeCVUsingGap(View & curView, double angleLastLocomotion) {
@@ -667,29 +737,29 @@ void Map::addCvUsingGap(View & curView) {
     }
 
     //Plot long surfaces
-/*    char longSurfPlot [50];
-    sprintf(longSurfPlot, "%s%d%s", "../outputs/Maps/longSurfCV-", curView.getId(), ".png");
-    vector<Surface> tmp;
-    tmp.push_back(longSurfCV);
-    tmp.push_back(curView.getGap());
-    plotSurfacesGNU(longSurfPlot, tmp);
+    /*    char longSurfPlot [50];
+        sprintf(longSurfPlot, "%s%d%s", "../outputs/Maps/longSurfCV-", curView.getId(), ".png");
+        vector<Surface> tmp;
+        tmp.push_back(longSurfCV);
+        tmp.push_back(curView.getGap());
+        plotSurfacesGNU(longSurfPlot, tmp);
 
-    sprintf(longSurfPlot, "%s%d%s", "../outputs/Maps/longSurfPV-", curView.getId(), ".png");
-    vector<Surface> tmp2;
-    tmp2.push_back(longSurfPV);
-    tmp2.push_back(prevView.getGap());
-    plotSurfacesGNU(longSurfPlot, tmp2);*/
+        sprintf(longSurfPlot, "%s%d%s", "../outputs/Maps/longSurfPV-", curView.getId(), ".png");
+        vector<Surface> tmp2;
+        tmp2.push_back(longSurfPV);
+        tmp2.push_back(prevView.getGap());
+        plotSurfacesGNU(longSurfPlot, tmp2);*/
 
     //Plot gaps
-/*    char gapsplot[50];
-    sprintf(gapsplot, "%s%d%s", "../outputs/Maps/gapsPlot-", curView.getId(), ".png");
-    vector<Surface> tmpGapsPlot = curView.getSurfaces();
-    tmpGapsPlot.push_back(curView.getGap());
-    plotSurfacesGNU(gapsplot, tmpGapsPlot);
-    sprintf(gapsplot, "%s%d%s", "../outputs/Maps/gapsPlot-", curView.getId(), "-prev.png");
-    vector<Surface> tmpGapsPlot2 = prevView.getSurfaces();
-    tmpGapsPlot2.push_back(prevView.getGap());
-    plotSurfacesGNU(gapsplot, tmpGapsPlot2);*/
+    /*    char gapsplot[50];
+        sprintf(gapsplot, "%s%d%s", "../outputs/Maps/gapsPlot-", curView.getId(), ".png");
+        vector<Surface> tmpGapsPlot = curView.getSurfaces();
+        tmpGapsPlot.push_back(curView.getGap());
+        plotSurfacesGNU(gapsplot, tmpGapsPlot);
+        sprintf(gapsplot, "%s%d%s", "../outputs/Maps/gapsPlot-", curView.getId(), "-prev.png");
+        vector<Surface> tmpGapsPlot2 = prevView.getSurfaces();
+        tmpGapsPlot2.push_back(prevView.getGap());
+        plotSurfacesGNU(gapsplot, tmpGapsPlot2);*/
 
     //Add view to map
     this->addViewUsingCorridorWidth(curView, longSurfCV, prevView.getGap(), prevView.getRobotSurfaces()[0].getP1());
@@ -984,7 +1054,7 @@ Surface Map::findLongSurfaceInCV(View& curView, View& prevView) {
     return principalComponentAnalysis(surfacePts);
 }
 
-void Map::BuildMap(char* dataset, int firstView, int numSteps, Map *lastMap) {
+Map* Map::BuildMap(char* dataset, int firstView, int numSteps, Map *lastMap) {
 
     Robot Albot;
     View curView;
@@ -996,7 +1066,7 @@ void Map::BuildMap(char* dataset, int firstView, int numSteps, Map *lastMap) {
 
         //construct view from points.
         curView.setId(firstView + i);
-        
+
         sprintf(leftImg, "%s%s%s%d%s", "../inputs/", dataset, "/raw/left-", curView.getId(), ".pgm");
         sprintf(rightImg, "%s%s%s%d%s", "../inputs/", dataset, "/raw/right-", curView.getId(), ".pgm");
         sprintf(disparityFile, "%s%s%s%d%s", "../inputs/", dataset, "/disparity/disparity-", curView.getId(), ".png");
@@ -1004,10 +1074,13 @@ void Map::BuildMap(char* dataset, int firstView, int numSteps, Map *lastMap) {
         sprintf(point2DFile, "%s%s%s%d", "../inputs/", dataset, "/pointCloud/points2D-", curView.getId());
         sprintf(pointCloudFile, "%s%s%s%d%s", "../inputs/", dataset, "/pointCloud/pointCloud-", curView.getId(), ".pcd");
 
-        computeDisparity(leftImg, rightImg, 0, 255, disparityFile);      
+        computeDisparity(leftImg, rightImg, 0, 255, disparityFile);
         computeDepthAndPointCloud(depthFile, pointCloudFile, point2DFile);
 
         curView.constructView(point2DFile);
+        curView.findBoundaries();
+
+        vector <Surface> viewBoundaries = curView.getViewBoundaries();
 
         cout << "View is formed :)" << endl;
         cout << endl << "==================================================" << endl << endl;
@@ -1015,16 +1088,48 @@ void Map::BuildMap(char* dataset, int firstView, int numSteps, Map *lastMap) {
         sprintf(viewName, "%s%d", "../outputs/Maps/view-", curView.getId());
         plotViewGNU(viewName, curView);
 
-        /*     vector<Surface> boundaries = curView.findBoundaries();
-             char plotBoundaries[50];
-             sprintf(plotBoundaries, "%s%d%s", "../outputs/Maps/boundaries-", curView.getId(), ".png");
-             plotSurfacesGNU(plotBoundaries, boundaries); */
+        bool needNewMap = false;
 
-        //Using odometer
-        if (i == 0) {
+        if (this->mapBoundaries.size() > 0) {
+            cv::Point2f curRbtPos = curView.getRobotSurfaces()[0].getP1();
+            cv::Point2f lastRbtPos = this->map.back().getRobotSurfaces()[0].getP1();
+            for (unsigned int j = 0; j < mapBoundaries.size(); j++) {
+                if (!pointsOnSameSideOfSurface(curRbtPos, lastRbtPos, mapBoundaries[j])) {
+                    needNewMap = true;
+                    break;
+                }
+            }
+        }
+
+        if (needNewMap) {
+            cout << "Creating another local space" << endl;
+            this->computeExit();
+
+            Map *newMap = new Map(1500, 1500);
+            newMap->setMapID(this->ID + 1);
+
+
+            newMap->initializeMap(curView);
+            newMap->computeEntrance(*this);
+            //    newMap->addSurfacesAfterEntrance(*this);
+            newMap->getMap().back().findBoundaries();
+
+            curView = newMap->getMap().back();
+
+            newMap->setMapBoundaries(curView.getViewBoundaries());
+
+            //read odometer info
+            sprintf(viewName, "%s%s%s%d", "../inputs/", dataset, "/surfaces/coordTrans-", curView.getId());
+            readOdometry(Albot, viewName);
+            newMap->addPathSegment(Albot.getLastLocomotion());
+            newMap->setLandmarkSurfaces(curView.getSurfaces());
+
+            return newMap;
+        }
+
+        if (this->map.size() == 0) {
             this->initializeMap(curView);
         } else {
-
             //Add view to map
             View viewOnMap = this->computeCVUsingOdometer(curView);
             this->addCvAndClean(viewOnMap);
@@ -1035,96 +1140,12 @@ void Map::BuildMap(char* dataset, int firstView, int numSteps, Map *lastMap) {
         readOdometry(Albot, viewName);
         this->addPathSegment(Albot.getLastLocomotion());
         this->setLandmarkSurfaces(curView.getSurfaces());
-
-        if (i == 0 && lastMap != 0) {
-            this->computeEntrance(*lastMap);
-            this->addSurfacesAfterEntrance(*lastMap);
-        }
     }
     cout << endl;
 
     this->computeExit();
-}
 
-View Map::BuildMapWithBoundaries(char* dataset, View *firstView, Map *lastMap) {
-    Robot Albot;
-    View curView;
-    curView.setRobotSurfaces(Albot.getRectRobot());
-
-    char viewName[50], pointFile[50];
-
-    int numView = 1;
-    if (firstView != 0 && lastMap != 0) {
-        this->initializeMap(*firstView);
-        this->computeEntrance(*lastMap);
-        this->addSurfacesAfterEntrance(*lastMap);
-        mapBoundaries = this->map[0].findBoundaries();
-
-        numView = firstView->getId() + 1;
-    }
-
-    while (1) {
-        cout << "herea" << endl;
-
-        //construct view from points.
-        curView.setId(numView);
-        sprintf(pointFile, "%s%s%s%d", "../inputs/", dataset, "/pointCloud/points2D-", curView.getId());
-        struct stat buffer;
-        if (stat(pointFile, &buffer) != 0) {
-            //No more views
-            throw false;
-        }
-        curView.constructView(pointFile);
-
-        cout << "View is formed :)" << endl;
-        cout << endl << "==================================================" << endl << endl;
-        cout << "View no. " << curView.getId() << ":" << endl;
-        sprintf(viewName, "%s%d", "../outputs/Maps/view-", curView.getId());
-        plotViewGNU(viewName, curView);
-
-
-        //Using odometer
-        if (firstView == 0 && numView == 1) {
-            cout << "hereb" << endl;
-            vector < pair<Surface, bool> > viewBoundaries = curView.findBoundaries();
-            cout << "hered" << endl;
-            curView.setViewBoundaries(viewBoundaries);
-            cout << "heree" << endl;
-            this->initializeMap(curView);
-            cout << "heref" << endl;
-            mapBoundaries = viewBoundaries;
-            cout << "herec" << endl;
-        } else {
-            cv::Point2f firstRbtPos = this->map[0].getRobotSurfaces()[0].getP1();
-            cv::Point2f thisRbtPos = curView.getRobotSurfaces()[0].getP1();
-            bool sameLocalSpace = true;
-            for (unsigned int i = 0; i < mapBoundaries.size(); i++) {
-                if (!pointsOnSameSideOfSurface(thisRbtPos, firstRbtPos, mapBoundaries[i].first)) {
-                    sameLocalSpace = false;
-                    break;
-                }
-            }
-            if (!sameLocalSpace) {
-                return curView;
-            } else {
-                curView.setViewBoundaries(curView.findBoundaries());
-                //Add view to map
-                View viewOnMap = this->computeCVUsingOdometer(curView);
-                this->addCvAndClean(viewOnMap);
-            }
-
-        }
-
-
-        //read odometer info
-        sprintf(viewName, "%s%s%s%d", "../inputs/", dataset, "/surfaces/coordTrans-", curView.getId());
-        readOdometry(Albot, viewName);
-        this->addPathSegment(Albot.getLastLocomotion());
-        this->setLandmarkSurfaces(curView.getSurfaces());
-    }
-    cout << endl;
-
-    this->computeExit();
+    return new Map(0, 0);
 }
 
 vector<double> findBoundariesOfCV(const vector<Surface> & cvSurfaces, double extension) {
@@ -1324,12 +1345,21 @@ bool PointHiddenBySurfaces(const cv::Point2f pointToCheck, const vector<Surface>
         cv::Point2f robotPos = robotSurfaces[0].getP1();
         vector<Surface> adjacentSurfaces;
         adjacentSurfaces.push_back(allSurfaces[0]);
+        //   bool toTest = false;
         for (unsigned int i = 1; i < allSurfaces.size(); i++) {
             if (adjacentSurfaces[adjacentSurfaces.size() - 1].getP2() == allSurfaces[i].getP1()) {
                 adjacentSurfaces.push_back(allSurfaces[i]);
-                continue;
+                /*   if (!pointsOnSameSideOfSurface(pointToCheck, robotSurfaces[0].getP1(), allSurfaces[i])) {
+                       toTest = true;
+                   }*/
+                if (i != allSurfaces.size() - 1) {
+                    continue;
+                }
+
             }
             if (!PointInPolygon(pointToCheck.x, pointToCheck.y, adjacentSurfaces, robotSurfaces)) {
+                // if (toTest) {
+                //   toTest = false;
                 // Test whether the point is in the right angle range to be hidden by adjacentSurfaces
                 Surface s1 = Surface(robotPos.x, robotPos.y, adjacentSurfaces[0].getP1().x, adjacentSurfaces[0].getP1().y);
                 Surface s2 = Surface(robotPos.x, robotPos.y, adjacentSurfaces[adjacentSurfaces.size() - 1].getP2().x, adjacentSurfaces[adjacentSurfaces.size() - 1].getP2().y);
@@ -1630,9 +1660,9 @@ Surface FindGap(const vector<Surface>& surfaces, const vector<Surface>& robotSur
                 }
             }
             if (!isIntersecting) {
-            /*    vector<Surface> tmpGapsPlot = surfaces;
-                tmpGapsPlot.push_back(gap);
-                plotSurfacesGNU("../outputs/Maps/gapsPlotTmp.png", tmpGapsPlot);*/
+                /*    vector<Surface> tmpGapsPlot = surfaces;
+                    tmpGapsPlot.push_back(gap);
+                    plotSurfacesGNU("../outputs/Maps/gapsPlotTmp.png", tmpGapsPlot);*/
                 char answer = 'y';
                 cout << "We found the following gap. Do you want another one ? y/n" << endl;
                 gap.display();
@@ -1730,7 +1760,7 @@ void Map::addViewUsingCorridorWidth(View& curView, Surface longSurfCV, Surface g
         }
 
         refCV = Surface(gapCV.getP1().x, gapCV.getP1().y, gapCV.getP1().x + longSurfVect.getX(), gapCV.getP1().y + longSurfVect.getY());
-  //      plotSurfacesGNU("../outputs/Maps/tangents.png", curSurfaces);
+        //      plotSurfacesGNU("../outputs/Maps/tangents.png", curSurfaces);
     } else {
         vector<Surface> tangents = findTangents(gapPV.getP2(), gapPV.getP1(), corridorLengthP2);
 
@@ -1745,7 +1775,7 @@ void Map::addViewUsingCorridorWidth(View& curView, Surface longSurfCV, Surface g
             }
         }
         refCV = Surface(gapCV.getP2().x, gapCV.getP2().y, gapCV.getP2().x + longSurfVect.getX(), gapCV.getP2().y + longSurfVect.getY());
-   //     plotSurfacesGNU("../outputs/Maps/tangents.png", curSurfaces);
+        //     plotSurfacesGNU("../outputs/Maps/tangents.png", curSurfaces);
     }
 
 
@@ -1848,14 +1878,36 @@ void Map::addSurfacesAfterEntrance(Map& lastMap) {
         }
     }
 
-    View v = this->map.front();
+    /*  View v = this->map.front();
+      vector<Surface> surfaceInViewCoordinates;
+      for (unsigned int i = 0; i < afterExit.size(); i++) {
+          surfaceInViewCoordinates.push_back(trangulateSurface(entrance, lastMap.getExit(), afterExit[i], 1));
+      }
+
+      v.addSurfaces(surfaceInViewCoordinates);
+      this->map[0] = v;*/
+
     vector<Surface> surfaceInViewCoordinates;
     for (unsigned int i = 0; i < afterExit.size(); i++) {
         surfaceInViewCoordinates.push_back(trangulateSurface(entrance, lastMap.getExit(), afterExit[i], 1));
     }
 
-    v.addSurfaces(surfaceInViewCoordinates);
-    this->map[0] = v;
+    vector<Surface> rbtSurfaces;
+    vector<Surface> lastRbtSurf = lastMap.getMap().back().getRobotSurfaces();
+    for (unsigned int i = 0; i < lastRbtSurf.size(); i++) {
+        rbtSurfaces.push_back(trangulateSurface(entrance, lastMap.getExit(), lastRbtSurf[i], 1));
+    }
+
+    View v(surfaceInViewCoordinates);
+    v.setRobotSurfaces(rbtSurfaces);
+    this->addView(v);
+    cleanMap(surfaceInViewCoordinates, rbtSurfaces);
+
+    View finalView = this->map[0];
+    finalView.addSurfaces(this->map[1].getSurfaces());
+    finalView.findBoundaries();
+    this->map.clear();
+    this->map.push_back(finalView);
 }
 
 View computeViewPositionWithExitBorders(View& view, pair<Surface, Surface> pcaExitBordersPV, double angleLastLocomotion, Surface rbtOrientationPV) {

@@ -23,124 +23,6 @@ vector<Map> GlobalMap::getMaps() {
     return maps;
 }
 
-void GlobalMap::buildMaps(char* dataset) {
-    Robot Albot;
-    Map map(1500, 1500);
-    
-    View v=map.BuildMapWithBoundaries(dataset, 0, 0);
-    Map lastMap=map; 
-    
-    bool keepGoing=true;
-    while (keepGoing){
-        map=Map(1500, 1500);
-        try{
-            v=map.BuildMapWithBoundaries(dataset, &v, &lastMap);
-        }catch(bool e){
-            keepGoing=false;
-        }       
-        lastMap=map;
-    }
-    
-
- /* View curView;
-    curView.setRobotSurfaces(Albot.getRectRobot());
-
-    char viewName[50], pointFile[50];
-
-    bool sameLocalSpace = true;
-    int numView = 1;
-    int numMap = 0;
-    bool firstViewInMap = true;
-
-    map.setMapID(numMap);
-      
-    while (1) {
-
-        //construct view from points.
-        curView.setId(numView);
-        sprintf(pointFile, "%s%s%s%d", "../inputs/", dataset, "/pointCloud/points2D-", curView.getId());
-
-        struct stat buffer;
-        if (stat(pointFile, &buffer) != 0) {
-            //No more views
-            return;
-        }
-        curView.constructView(pointFile);
-
-        cout << "View is formed :)" << endl;
-        cout << endl << "==================================================" << endl << endl;
-        cout << "View no. " << curView.getId() << ":" << endl;
-        sprintf(viewName, "%s%d", "../outputs/Maps/view-", curView.getId());
-        plotViewGNU(viewName, curView);
-
-        vector < pair<Surface, bool> > viewBoundaries;
-
-        //Using odometer
-        if (firstViewInMap) {
-            viewBoundaries = curView.findBoundaries();
-            curView.setViewBoundaries(viewBoundaries);
-
-            map.initializeMap(curView);
-            map.setMapBoundaries(viewBoundaries);
-            firstViewInMap = false;
-
-        } else {
-            cv::Point2f firstRbtPos = map.getMap()[0].getRobotSurfaces()[0].getP1();
-            cv::Point2f thisRbtPos = curView.getRobotSurfaces()[0].getP1();
-            for (unsigned int i = 0; i < map.getMapBoundaries().size(); i++) {
-                if (!pointsOnSameSideOfSurface(thisRbtPos, firstRbtPos, map.getMapBoundaries()[i].first)) {
-                    sameLocalSpace = false;
-                    break;
-                }
-            }
-            if (!sameLocalSpace) {
-                cout<<"here"<<endl;
-                this->addMap(map);
-                numMap++;
-                map = Map(1500, 1500);
-                map.setMapID(numMap);
-                map.initializeMap(curView);
-                map.computeEntrance(this->getMaps()[numMap - 1]);
-                map.addSurfacesAfterEntrance(this->getMaps()[numMap - 1]);
-
-                viewBoundaries = curView.findBoundaries();
-                curView.setViewBoundaries(viewBoundaries);
-                map.setMapBoundaries(viewBoundaries);
-                sameLocalSpace=true;
-
-            } else {
-                viewBoundaries = curView.findBoundaries();
-                curView.setViewBoundaries(viewBoundaries);
-                //Add view to map
-                View viewOnMap = map.computeCVUsingOdometer(curView);
-                map.addCvAndClean(viewOnMap);
-                cout<<"here2"<<endl;
-            }
-        }
-
-        //Plot
-        vector<Surface> surfaceBoundaries;
-        for (unsigned int i = 0; i < viewBoundaries.size(); i++) {
-            surfaceBoundaries.push_back(viewBoundaries[i].first);
-        }
-
-        char plotBoundaries[50];
-        sprintf(plotBoundaries, "%s%d%s", "../outputs/Maps/boundaries-", curView.getId(), ".png");
-        plotSurfacesGNU(plotBoundaries, surfaceBoundaries);
-
-        //read odometer info
-        sprintf(viewName, "%s%s%s%d", "../inputs/", dataset, "/surfaces/coordTrans-", curView.getId());
-        readOdometry(Albot, viewName);
-        map.addPathSegment(Albot.getLastLocomotion());
-        map.setLandmarkSurfaces(curView.getSurfaces());
-
-        numView++;
-    }
-    cout << endl;
-
-    map.computeExit();*/
-}
-
 void GlobalMap::printMaps() {
     for (unsigned int i = 0; i < maps.size(); i++) {
         vector<Surface> toPlotSurfaces;
@@ -148,12 +30,8 @@ void GlobalMap::printMaps() {
         for (unsigned int j = 0; j < maps[i].getMap().size(); j++) {
             vector<Surface> tmp = maps[i].getMap()[j].getSurfaces();
             toPlotSurfaces.insert(toPlotSurfaces.end(), tmp.begin(), tmp.end());
-            vector < pair<Surface, bool> > viewBoundaries = maps[i].getMap()[j].getViewBoundaries();
-            for (unsigned int k = 0; k < viewBoundaries.size(); k++) {
-                if(viewBoundaries[k].second){
-                    toPlotBoundaries.push_back(viewBoundaries[k].first);
-                }
-            }
+            vector <Surface> viewBoundaries = maps[i].getMap()[j].getViewBoundaries();
+            toPlotBoundaries.insert(toPlotBoundaries.end(), viewBoundaries.begin(), viewBoundaries.end());         
         }
         toPlotSurfaces.push_back(maps[i].getExit());
         toPlotSurfaces.push_back(maps[i].getEntrance());

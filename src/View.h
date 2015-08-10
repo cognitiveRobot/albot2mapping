@@ -52,7 +52,8 @@ private:
 
     vector<Surface> robotSurfaces;
     
-    vector<pair<Surface, bool> > viewBoundaries;
+    vector<Surface> viewBoundaries;
+    vector<Surface> viewExits;
 
     Surface rPositionInPV;
 
@@ -89,8 +90,11 @@ public:
     void setRPositionInPV(const Surface & surf);
     Surface getRPositionInPV();
     
-     void setViewBoundaries(vector<pair<Surface, bool> > boundaries);
-    vector<pair<Surface, bool> > getViewBoundaries();
+     void setViewBoundaries(vector<Surface> boundaries);
+    vector<Surface>  getViewBoundaries() const;
+    
+    void setViewExits(vector<Surface> exits);
+    vector<Surface>  getViewExits() const;
 
 
     void constructView(const char* filename);
@@ -143,10 +147,16 @@ public:
      * @return one vector of main directions for each side
      */
     pair<vector<Surface>, vector<Surface> > computeExitBordersDirections();
-
-    vector<pair<Surface, bool> > findBoundaries();
+    
+    /**
+     * Find the exits and boundaries of the view
+     * Exit : 2 points where we can see further surfaces inbetween 
+     * and the distance to those surfaces is higher than the exit length
+     */
+    void findBoundaries();
 
 };
+
 int readFolderNumber(const char* fileName);
 void readALocalSpace(View & cView, const char* fileName);
 void readAView(View & cView, const char* fileName);

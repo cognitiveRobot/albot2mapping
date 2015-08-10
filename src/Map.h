@@ -27,7 +27,8 @@ private:
     int ID;
 
     vector<View> map;
-    vector<pair<Surface, bool> > mapBoundaries; //bool=true if it's a surface, false if it's an exit       
+    vector<Surface> mapBoundaries; 
+    vector<Surface> mapExits;
     Surface exit;
     Surface entrance;
     vector<AngleAndDistance> pathSegments;
@@ -55,15 +56,20 @@ public:
     Map(int _sizeX, int _sizeY);
     ~Map();
 
-    void initializeMap(const View & firstView);
+    void initializeMap(View & firstView);
 
     void setMapID(const int & a);
     int getMapID();
 
     vector<View> getMap() const;
 
-    void setMapBoundaries(vector<pair<Surface, bool> > boundaries);
-    vector<pair<Surface, bool> > getMapBoundaries();
+    void setMapBoundaries(vector<Surface> boundaries);
+    vector<Surface> getMapBoundaries();
+    
+    void setMapExits(vector<Surface> exits);
+    vector<Surface> getMapExits();
+    
+    
     Surface getEntrance() const;
 
     Surface getExit() const;
@@ -100,7 +106,7 @@ public:
     void computeEntrance(const Map& prevMap);
     void computeExit();
     
-    View computeCVUsingOdometer(const View & curView);
+    View computeCVUsingOdometer(View & curView);
     
     /**
      * Transform curView in map's coordinate using gaps as reference
@@ -126,7 +132,7 @@ public:
      * Doesn't change the view coordinates.
      * @param view
      */
-    void addCvAndClean(const View & view);
+    void addCvAndClean(View & view);
     
         /**
      * Add curView to the map using gaps and long surfaces (uses addViewUsingCorridorWidth)
@@ -170,9 +176,7 @@ public:
      * @param numSteps number of steps to compute
      * @param lastMap previous map computed
      */
-    void BuildMap(char* dataset, int firstView, int numSteps, Map *lastMap = 0);
-
-    View BuildMapWithBoundaries(char* dataset, View *firstView = 0, Map *lastMap = 0);
+    Map* BuildMap(char* dataset, int firstView, int numSteps, Map *lastMap = 0);
 
     vector<AngleAndDistance> FindWayHome();
 
@@ -304,6 +308,8 @@ ReferenceSurfaces findTheClosestReference(Surface & cvSurface, vector<ReferenceS
  * @return 
  */
 Surface FindGap(const vector<Surface>& surfaces, const vector<Surface>& robotSurfaces, const bool takeBorderPoints = false);
+
+vector<Surface> cleanSurfaces(vector<Surface> surfaces, vector<Surface> robotSurfaces, vector<Surface> lastViewSurfaces, vector<Surface> lastRobotSurfaces, vector<Surface> robotPath, vector<Surface> surfacesForPointInPolygon );
 
 #endif	/* MAPPER_H */
 

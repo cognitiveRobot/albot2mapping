@@ -486,12 +486,20 @@ Surface View::getRPositionInPV() {
     return rPositionInPV;
 }
 
-void View::setViewBoundaries(vector<pair<Surface, bool> > boundaries) {
+void View::setViewBoundaries(vector<Surface> boundaries) {
     viewBoundaries = boundaries;
 }
 
-vector<pair<Surface, bool> > View::getViewBoundaries() {
+vector<Surface> View::getViewBoundaries() const {
     return viewBoundaries;
+}
+
+void View::setViewExits(vector<Surface> exits) {
+    viewExits = exits;
+}
+
+vector<Surface> View::getViewExits() const {
+    return viewExits;
 }
 
 void View::constructView(const char* filename) {
@@ -834,11 +842,33 @@ struct OcclundingPoint {
     int position;
 };
 
-vector<pair<Surface, bool> > View::findBoundaries() {
-    vector<pair<Surface, bool> > boundaries; //bool=true if it's a surface, false if it's an exit
+struct SortSurfacesByX {
+    vector<Surface> robotSurfaces;
+
+    SortSurfacesByX(const vector<Surface>& rbtSurfaces) {
+        robotSurfaces = rbtSurfaces;
+    }
+
+    bool operator()(const Surface& a, Surface& b) {
+        double angleA = robotSurfaces[0].getAngleFromP1ToPoint(a.getP1().x, a.getP1().y);
+        if (angleA > 180) angleA -= 360;
+        double angleB = robotSurfaces[0].getAngleFromP1ToPoint(b.getP1().x, b.getP1().y);
+        if (angleB > 180) angleB -= 360;
+        return angleB < angleA;
+    }
+};
+
+void View::findBoundaries() {
+    vector <Surface> boundaries;
+
+    //Sort surfaces
+    list<Surface> surfList(surfaces.begin(), surfaces.end());
+    SortSurfacesByX s(robotSurfaces);
+    surfList.sort(s);
+    surfaces = vector<Surface>(surfList.begin(), surfList.end());
 
     PointXY rbtPos = PointXY(robotSurfaces[0].getP1().x, robotSurfaces[0].getP1().y);
-    list<Surface> exitsFound;
+    vector<Surface> exitsFound;
     vector<OcclundingPoint > possibleLeftEndpts;
     vector<OcclundingPoint > possibleRightEndpts;
     vector<pair<int, int> > intervalsToDelete; //Indexes of surfaces outside boundaries
@@ -855,7 +885,7 @@ vector<pair<Surface, bool> > View::findBoundaries() {
             op.distance = surfaces[i].distFromP2ToPoint(rbtPos.getX(), rbtPos.getY());
             op.point = PointXY(surfaces[i].getP2().x, surfaces[i].getP2().y);
             op.occludedPoint = PointXY(surfaces[i + 1].getP1().x, surfaces[i + 1].getP1().y);
-            op.position = i + 1;
+            op.position = i;
             possibleLeftEndpts.push_back(op);
         }
 
@@ -869,7 +899,7 @@ vector<pair<Surface, bool> > View::findBoundaries() {
             op.distance = surfaces[i].distFromP1ToPoint(rbtPos.getX(), rbtPos.getY());
             op.point = PointXY(surfaces[i].getP1().x, surfaces[i].getP1().y);
             op.occludedPoint = PointXY(surfaces[i - 1].getP2().x, surfaces[i - 1].getP2().y);
-            op.position = i - 1;
+            op.position = i;
             possibleRightEndpts.push_back(op);
         }
     }
@@ -905,29 +935,28 @@ vector<pair<Surface, bool> > View::findBoundaries() {
     //Create boundaries
     cv::Point2f lastPoint;
     bool lastPointEmpty = true;
-    
+
     for (unsigned int i = 0; i < surfaces.size(); i++) {
         bool toKeep = true;
         for (unsigned int j = 0; j < intervalsToDelete.size(); j++) {
-            if (intervalsToDelete[j].first <= i && i <= intervalsToDelete[j].second) {
+            if (intervalsToDelete[j].first < i && i < intervalsToDelete[j].second) {
                 toKeep = false;
                 break;
+            } else if (i == intervalsToDelete[j].second) {
+                //Exit
+                lastPointEmpty = true;
             }
         }
         if (toKeep) {
             if (!lastPointEmpty) {
-                boundaries.push_back(make_pair(Surface(lastPoint.x, lastPoint.y, surfaces[i].getP1().x, surfaces[i].getP1().y), true));
+                boundaries.push_back(Surface(lastPoint.x, lastPoint.y, surfaces[i].getP1().x, surfaces[i].getP1().y));
             }
-            boundaries.push_back(make_pair(surfaces[i], true));
+            boundaries.push_back(surfaces[i]);
             lastPoint = surfaces[i].getP2();
             lastPointEmpty = false;
         }
     }
-    
-    for(list<Surface>::iterator it=exitsFound.begin(); it!=exitsFound.end(); it++){
-        boundaries.push_back(make_pair(*it, false));
-    }
-    viewBoundaries=boundaries;
-    return boundaries;
 
+    viewBoundaries = boundaries;
+    viewExits=exitsFound;
 }

@@ -68,6 +68,7 @@ void plotSurfacesGNU(const char * filename, const vector<vector<Surface> > & som
 void plotMapGNU(const char * filename, const Map & map, bool printID = false);
 void plotViewGNU(const char * filename, const View & view, bool printID = false);
 void plotViewsGNU(const char * filename, const vector<View> & views, bool printID = false);
+//void plotViewBoundariesGNU(const char * filename, const vector<View> & views, bool printID = false);
 void plotPointsAndSurfacesGNU(const char * filename, const vector<PointXY> & points, const vector<Surface> & robotSurfaces);
 
 
