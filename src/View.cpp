@@ -502,6 +502,10 @@ vector<Surface> View::getViewExits() const {
     return viewExits;
 }
 
+vector<Surface> View::getSurfacesInBoundaries() const {
+    return surfacesInBoundaries;
+}
+
 void View::constructView(const char* filename) {
 
     vector<PointXY> points2D = readASCIIPoints2D(filename);
@@ -842,22 +846,6 @@ struct OcclundingPoint {
     int position;
 };
 
-struct SortSurfacesByX {
-    vector<Surface> robotSurfaces;
-
-    SortSurfacesByX(const vector<Surface>& rbtSurfaces) {
-        robotSurfaces = rbtSurfaces;
-    }
-
-    bool operator()(const Surface& a, Surface& b) {
-        double angleA = robotSurfaces[0].getAngleFromP1ToPoint(a.getP1().x, a.getP1().y);
-        if (angleA > 180) angleA -= 360;
-        double angleB = robotSurfaces[0].getAngleFromP1ToPoint(b.getP1().x, b.getP1().y);
-        if (angleB > 180) angleB -= 360;
-        return angleB < angleA;
-    }
-};
-
 void View::findBoundaries() {
     vector <Surface> boundaries;
 
@@ -958,5 +946,26 @@ void View::findBoundaries() {
     }
 
     viewBoundaries = boundaries;
-    viewExits=exitsFound;
+    viewExits = exitsFound;
+}
+
+void View::findBoundariesWithThreshold() {
+
+    viewBoundaries.clear();
+    surfacesInBoundaries.clear();
+    cv::Point2f robotPos = robotSurfaces[0].getP1();
+    cv::Point2f lastPoint;
+    bool lastPointEmpty = true;
+    for (unsigned int i = 0; i < surfaces.size(); i++) {
+        if (min(surfaces[i].distFromP1ToPoint(robotPos.x, robotPos.y),
+                surfaces[i].distFromP2ToPoint(robotPos.x, robotPos.y)) < 8000) {
+            if (!lastPointEmpty) {
+                viewBoundaries.push_back(Surface(lastPoint.x, lastPoint.y, surfaces[i].getP1().x, surfaces[i].getP1().y));
+            }
+            viewBoundaries.push_back(surfaces[i]);
+            surfacesInBoundaries.push_back(surfaces[i]);
+            lastPoint = surfaces[i].getP2();
+            lastPointEmpty = false;
+        }
+    }
 }

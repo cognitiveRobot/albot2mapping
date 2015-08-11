@@ -34,6 +34,22 @@
 using namespace std;
 //using namespace cv;
 
+struct SortSurfacesByX {
+    vector<Surface> robotSurfaces;
+
+    SortSurfacesByX(const vector<Surface>& rbtSurfaces) {
+        robotSurfaces = rbtSurfaces;
+    }
+
+    bool operator()(const Surface& a, Surface& b) {
+        double angleA = robotSurfaces[0].getAngleFromP1ToPoint(a.getP1().x, a.getP1().y);
+        if (angleA > 180) angleA -= 360;
+        double angleB = robotSurfaces[0].getAngleFromP1ToPoint(b.getP1().x, b.getP1().y);
+        if (angleB > 180) angleB -= 360;
+        return angleB < angleA;
+    }
+};
+
 /* View class contains :
  * Robot position and orientation
  * Vector of surfaces
@@ -54,6 +70,7 @@ private:
     
     vector<Surface> viewBoundaries;
     vector<Surface> viewExits;
+    vector<Surface> surfacesInBoundaries;
 
     Surface rPositionInPV;
 
@@ -95,6 +112,8 @@ public:
     
     void setViewExits(vector<Surface> exits);
     vector<Surface>  getViewExits() const;
+    
+     vector<Surface>  getSurfacesInBoundaries() const;
 
 
     void constructView(const char* filename);
@@ -154,6 +173,8 @@ public:
      * and the distance to those surfaces is higher than the exit length
      */
     void findBoundaries();
+    
+    void findBoundariesWithThreshold();
 
 };
 
