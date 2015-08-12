@@ -102,9 +102,9 @@ int main(int argc, char** argv) {
             vector<Surface> tmp = curMap->getMap()[j].getSurfaces();
             toPlot.insert(toPlot.end(), tmp.begin(), tmp.end());
         }
-        toPlot.push_back(curMap->getExit());
-        toPlot.push_back(curMap->getEntrance());
-        sprintf(mapName, "%s%d%s", "../outputs/Maps/Map-", mapId, "-withExitEntrance.png");
+     //   toPlot.push_back(curMap->getExit());
+     //   toPlot.push_back(curMap->getEntrance());
+        sprintf(mapName, "%s%d%s", "../outputs/Maps/ASR-", mapId, ".png");
         plotSurfacesGNU(mapName, toPlot);
 
         mapId++;

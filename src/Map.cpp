@@ -308,7 +308,7 @@ void Map::cleanMap(const vector<Surface>& cvSurfacesOnMap, const vector<Surface>
     View tempView;
 
     //Deleting the last view surfaces closer than MIN_DISTANCE_VISION
-    vector<Surface> surfacesForPointInPolygon = ClearCloseSurfaces(cRobotSurfaces);
+    vector<Surface> surfacesForPointInPolygon = this->map[this->map.size() - 1].getSurfaces(); //ClearCloseSurfaces(cRobotSurfaces);
     vector<Surface> lastViewSurfaces = this->map[this->map.size() - 1].getSurfaces();
     vector<Surface> robotPath;
     for (unsigned int i = 1; i<this->map.size(); i++) {
@@ -384,8 +384,8 @@ vector<Surface> cleanSurfaces(vector<Surface> surfaces, vector<Surface> robotSur
     }
     //Check for points hidden by a surface
     for (unsigned int j = 0; j < surfacesOutsideCV.size(); j++) {
-        bool P1hidden = PointHiddenBySurfaces(surfacesOutsideCV[j].getP1(), lastViewSurfaces, robotSurfaces);
-        bool P2hidden = PointHiddenBySurfaces(surfacesOutsideCV[j].getP2(), lastViewSurfaces, robotSurfaces);
+        bool P1hidden = PointHidden(surfacesOutsideCV[j].getP1(), lastViewSurfaces, robotSurfaces[0].getP1());
+        bool P2hidden = PointHidden(surfacesOutsideCV[j].getP2(), lastViewSurfaces, robotSurfaces[0].getP1());
         if (P1hidden && P2hidden) {
             // Don't keep the surface
             continue;
@@ -398,7 +398,7 @@ vector<Surface> cleanSurfaces(vector<Surface> surfaces, vector<Surface> robotSur
                 lastVisiblePoint = points[0];
             }
             for (unsigned int k = 1; k < points.size(); k++) {
-                bool test = PointHiddenBySurfaces(points[k], lastViewSurfaces, robotSurfaces);
+                bool test = PointHidden(points[k], lastViewSurfaces, robotSurfaces[0].getP1());
                 if (hidden && !test) {
                     lastVisiblePoint = points[k];
                     hidden = false;
@@ -617,30 +617,70 @@ void Map::addView(View& view) {
     this->map.push_back(view);
 }
 
+struct SortPoints {
+    vector<Surface> robotSurfaces;
+
+    SortPoints(const vector<Surface>& rbtSurfaces) {
+        robotSurfaces = rbtSurfaces;
+    }
+
+    bool operator()(const cv::Point2f& a, cv::Point2f& b) {
+        double angleA = robotSurfaces[0].getAngleFromP1ToPoint(a.x, a.y);
+        if (angleA > 180) angleA -= 360;
+        double angleB = robotSurfaces[0].getAngleFromP1ToPoint(b.x, b.y);
+        if (angleB > 180) angleB -= 360;
+        return angleB < angleA;
+    }
+};
+
 void Map::addCvAndClean(View& view) {
     this->map.push_back(view);
     char mapName[50];
     sprintf(mapName, "%s%d%s%d%s", "../outputs/Maps/Map-", getMapID(), "-View-", view.getId(), "a-before.png");
     plotViewsGNU(mapName, this->getMap());
- /*   char bdName[50];
-    sprintf(bdName, "%s%d%s", "../outputs/Maps/boundaries-", view.getId(), "a-before.png");
-    plotSurfacesGNU(bdName, view.getViewBoundaries());*/
+    /*   char bdName[50];
+       sprintf(bdName, "%s%d%s", "../outputs/Maps/boundaries-", view.getId(), "a-before.png");
+       plotSurfacesGNU(bdName, view.getViewBoundaries());*/
 
     //cleanMap.
     cleanMap(view.getSurfaces(), view.getRobotSurfaces());
 
     //Order map boundaries
-    list<Surface> surfList;
+    list<cv::Point2f> ptList;
     for (unsigned int i = 0; i < map.size(); i++) {
         map[i].findBoundariesWithThreshold();
         vector<Surface> tmp = map[i].getSurfacesInBoundaries();
-        surfList.insert(surfList.end(), tmp.begin(), tmp.end());
-    }       
-    SortSurfacesByX s(map.front().getRobotSurfaces());
-    surfList.sort(s);
+        for (unsigned int j = 0; j < tmp.size(); j++) {
+            ptList.push_back(tmp[j].getP1());
+            ptList.push_back(tmp[j].getP2());
+        }
+    }
+    SortPoints s(map.front().getRobotSurfaces());
+    ptList.sort(s);
     mapBoundaries.clear();
-    mapBoundaries.insert(mapBoundaries.end(), surfList.begin(), surfList.end());
-    
+    cv::Point2f lastPoint = ptList.front();
+    ptList.pop_front();
+    for (list<cv::Point2f>::iterator it = ptList.begin(); it != ptList.end(); it++) {
+        mapBoundaries.push_back(Surface(lastPoint.x, lastPoint.y, it->x, it->y));
+        lastPoint = *it;
+    }
+    //mapBoundaries.push_back(Surface(lastPoint.x, lastPoint.y, mapBoundaries[0].getP1().x, mapBoundaries[0].getP1().y));
+
+    Surface closure(lastPoint.x, lastPoint.y, mapBoundaries[0].getP1().x, mapBoundaries[0].getP1().y);
+    bool intersects = false;
+    for (unsigned int i = 0; i < mapBoundaries.size(); i++) {
+        if (closure.intersects(mapBoundaries[i])) {
+            intersects = true;
+            break;
+        }
+    }
+    if (intersects) {
+        mapBoundaries.push_back(Surface(lastPoint.x, lastPoint.y, map[0].getRobotSurfaces()[0].getP1().x, map[0].getRobotSurfaces()[0].getP1().y));
+        mapBoundaries.push_back(Surface(map[0].getRobotSurfaces()[0].getP1().x, map[0].getRobotSurfaces()[0].getP1().y,
+                mapBoundaries[0].getP1().x, mapBoundaries[0].getP1().y));
+    } else {
+        mapBoundaries.push_back(closure);
+    }
 
     sprintf(mapName, "%s%d%s%d%s", "../outputs/Maps/Map-", getMapID(), "-View-", view.getId(), "b-after.png");
     plotViewsGNU(mapName, this->getMap());
@@ -1074,8 +1114,8 @@ Map* Map::BuildMap(char* dataset, int firstView, int numSteps, Map *lastMap) {
         bool needNewMap = false;
 
         //Check if we're entering a new local space
-        
-        if (this->mapBoundaries.size() > 0) {
+
+        if (this->mapBoundaries.size() > 0 && pathSegments.back().distance > 100) {
             View viewOnMap = this->computeCVUsingOdometer(curView);
             cv::Point2f curRbtPos = viewOnMap.getRobotSurfaces()[0].getP1();
             vector<PointXY> points;
@@ -1084,29 +1124,42 @@ Map* Map::BuildMap(char* dataset, int firstView, int numSteps, Map *lastMap) {
                 points.push_back(PointXY(mapBoundaries[i].getP1().x, mapBoundaries[i].getP1().y));
                 points.push_back(PointXY(mapBoundaries[i].getP2().x, mapBoundaries[i].getP2().y));
             }
+
+            /*   vector<Surface> polygon;
+               PointXY lastPoint=points[0];
+               for(unsigned int i=1; i<points.size(); i++){
+                   polygon.push_back(Surface(lastPoint.getX(), lastPoint.getY(), points[i].getX(), points[i].getY()));
+                   lastPoint=points[i];
+               }
             
-            vector<Surface> polygon;
-            PointXY lastPoint=points[0];
-            for(unsigned int i=1; i<points.size(); i++){
-                polygon.push_back(Surface(lastPoint.getX(), lastPoint.getY(), points[i].getX(), points[i].getY()));
-                lastPoint=points[i];
-            }
-            
-            char polygonName[50];
-            sprintf(polygonName, "%s%d%s", "../outputs/Maps/polygon", curView.getId(), ".png");
-            plotSurfacesGNU(polygonName, polygon);
-            
-            
+               char polygonName[50];
+               sprintf(polygonName, "%s%d%s", "../outputs/Maps/polygon", curView.getId(), ".png");
+               plotSurfacesGNU(polygonName, polygon);*/
+
+
             vector<Surface> curBoundaries = viewOnMap.getViewBoundaries();
-            Surface boundaryCrossed;
-            needNewMap=true;
+            needNewMap = true;
             for (unsigned int i = 0; i < curBoundaries.size(); i++) {
-                    if (pointInPolygon(curBoundaries[i].getP1().x, curBoundaries[i].getP1().y, points)
-                            && pointInPolygon(curBoundaries[i].getP2().x, curBoundaries[i].getP2().y, points)) {
-                        needNewMap = false;
+                if (pointInPolygon(curBoundaries[i].getP1().x, curBoundaries[i].getP1().y, points)
+                        && pointInPolygon(curBoundaries[i].getP2().x, curBoundaries[i].getP2().y, points)) {
+                    needNewMap = false;
+                    break;
+                }
+            }
+
+         /*   if (needNewMap) {
+                needNewMap=false;
+                for (unsigned int i = 0; i < viewOnMap.getSurfacesInBoundaries().size(); i++) {
+                    if (!PointHidden(viewOnMap.getSurfaces()[i].getP1(), mapBoundaries, viewOnMap.getRobotSurfaces()[0].getP1())
+                     && !PointHidden(viewOnMap.getSurfaces()[i].getP2(), mapBoundaries, viewOnMap.getRobotSurfaces()[0].getP1())) {
+                        needNewMap = true;
                         break;
                     }
-            }
+                }
+                vector<Surface> test = viewOnMap.getSurfaces();
+                test.insert(test.end(), mapBoundaries.begin(), mapBoundaries.end());
+                plotSurfacesGNU("../outputs/Maps/Test.png", test);
+            }*/
         }
 
         if (needNewMap) {
@@ -1353,25 +1406,20 @@ bool PointHiddenBySurfaces(const cv::Point2f pointToCheck, const vector<Surface>
         cv::Point2f robotPos = robotSurfaces[0].getP1();
         vector<Surface> adjacentSurfaces;
         adjacentSurfaces.push_back(allSurfaces[0]);
-        //   bool toTest = false;
         for (unsigned int i = 1; i < allSurfaces.size(); i++) {
             if (adjacentSurfaces[adjacentSurfaces.size() - 1].getP2() == allSurfaces[i].getP1()) {
                 adjacentSurfaces.push_back(allSurfaces[i]);
-                /*   if (!pointsOnSameSideOfSurface(pointToCheck, robotSurfaces[0].getP1(), allSurfaces[i])) {
-                       toTest = true;
-                   }*/
                 if (i != allSurfaces.size() - 1) {
                     continue;
                 }
 
             }
             if (!PointInPolygon(pointToCheck.x, pointToCheck.y, adjacentSurfaces, robotSurfaces)) {
-                // if (toTest) {
-                //   toTest = false;
                 // Test whether the point is in the right angle range to be hidden by adjacentSurfaces
                 Surface s1 = Surface(robotPos.x, robotPos.y, adjacentSurfaces[0].getP1().x, adjacentSurfaces[0].getP1().y);
                 Surface s2 = Surface(robotPos.x, robotPos.y, adjacentSurfaces[adjacentSurfaces.size() - 1].getP2().x, adjacentSurfaces[adjacentSurfaces.size() - 1].getP2().y);
                 Surface stest = Surface(robotPos.x, robotPos.y, pointToCheck.x, pointToCheck.y);
+
                 double stestAngle = stest.getAngleWithXaxis();
                 double diffAngle = s1.getAngleFromP1ToPoint(s2.getP2().x, s2.getP2().y);
                 if ((diffAngle > 180 && stestAngle <= s1.getAngleWithXaxis() && stestAngle >= s2.getAngleWithXaxis())
@@ -1381,6 +1429,16 @@ bool PointHiddenBySurfaces(const cv::Point2f pointToCheck, const vector<Surface>
                 adjacentSurfaces.clear();
                 adjacentSurfaces.push_back(allSurfaces[i]);
             }
+        }
+    }
+    return false;
+}
+
+bool PointHidden(const cv::Point2f pointToCheck, const vector<Surface>& allSurfaces, const cv::Point2f& robotPos) {
+    Surface stest = Surface(robotPos.x, robotPos.y, pointToCheck.x, pointToCheck.y);
+    for (unsigned int i = 0; i < allSurfaces.size(); i++) {
+        if (stest.intersects(allSurfaces[i])) {
+            return true;
         }
     }
     return false;

@@ -279,8 +279,14 @@ Surface findLongSurfaceInPV(View& prevView, View& curView, cv::Point2f rbtPosNex
 
 /**
  * Return true if the point to check can't be seen from the robot position because it's hidden by a surface in allSurfaces
+ * Deprecated : replaced by PointHidden
  */
 bool PointHiddenBySurfaces(const cv::Point2f pointToCheck, const vector<Surface>& allSurfaces, const vector<Surface>& robotSurfaces);
+
+/**
+ * Return true if the point to check can't be seen from the robot position because it's hidden by a surface in allSurfaces
+ */
+bool PointHidden(const cv::Point2f pointToCheck, const vector<Surface>& allSurfaces, const cv::Point2f& robotPos);
 
 /**
  * Returns true if the surface is hiding pointToCheck
