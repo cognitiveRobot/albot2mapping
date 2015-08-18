@@ -34,19 +34,23 @@
 using namespace std;
 //using namespace cv;
 
-struct SortSurfacesByX {
+struct SortSurfacesByAngle {
     vector<Surface> robotSurfaces;
 
-    SortSurfacesByX(const vector<Surface>& rbtSurfaces) {
+    SortSurfacesByAngle(const vector<Surface>& rbtSurfaces) {
         robotSurfaces = rbtSurfaces;
     }
 
     bool operator()(const Surface& a, Surface& b) {
         double angleA = robotSurfaces[0].getAngleFromP1ToPoint(a.getP1().x, a.getP1().y);
         if (angleA > 180) angleA -= 360;
+        double angleA2 = robotSurfaces[0].getAngleFromP1ToPoint(a.getP2().x, a.getP2().y);
+        if (angleA2 > 180) angleA2 -= 360;
         double angleB = robotSurfaces[0].getAngleFromP1ToPoint(b.getP1().x, b.getP1().y);
         if (angleB > 180) angleB -= 360;
-        return angleB < angleA;
+        double angleB2 = robotSurfaces[0].getAngleFromP1ToPoint(b.getP2().x, b.getP2().y);
+        if (angleB2 > 180) angleB2 -= 360;
+        return min(angleB, angleB2) < min(angleA, angleA2);
     }
 };
 

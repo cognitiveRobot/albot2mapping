@@ -63,7 +63,7 @@ public:
 
     vector<View> getMap() const;
 
-    void setMapBoundaries(vector<Surface> boundaries);
+    void setMapBoundaries(list<Surface> boundaries);
     vector<Surface> getMapBoundaries();
     
     void setMapExits(vector<Surface> exits);

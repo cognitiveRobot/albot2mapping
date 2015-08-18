@@ -851,7 +851,7 @@ void View::findBoundaries() {
 
     //Sort surfaces
     list<Surface> surfList(surfaces.begin(), surfaces.end());
-    SortSurfacesByX s(robotSurfaces);
+    SortSurfacesByAngle s(robotSurfaces);
     surfList.sort(s);
     surfaces = vector<Surface>(surfList.begin(), surfList.end());
 

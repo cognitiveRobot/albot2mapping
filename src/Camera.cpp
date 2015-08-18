@@ -229,7 +229,7 @@ void Camera::getImage() {
     printf("wrote color file\n");
 
     //save point cloud in .pcd file
-   // savePointCloud(triclops, depthImage);
+    savePointCloud(triclops, depthImage);
 
     TriclopsImage leftImage, rightImage;
     //TriclopsColorImage leftImage, rightImage;
