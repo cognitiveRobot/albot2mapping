@@ -27,14 +27,14 @@ private:
     int ID;
 
     vector<View> map;
-    vector<Surface> mapBoundaries; 
+    vector<Surface> mapBoundaries;
     vector<Surface> mapExits;
     Surface exit;
     Surface entrance;
     vector<AngleAndDistance> pathSegments;
-    vector<int> lostSteps; //it contains view number of lost situations.  
 
     //Attributes not used in current version of the program
+    vector<int> lostSteps; //it contains view number of lost situations.  
     View currentView;
     View previousView;
     vector<Surface> surfaces;
@@ -65,11 +65,11 @@ public:
 
     void setMapBoundaries(list<Surface> boundaries);
     vector<Surface> getMapBoundaries();
-    
+
     void setMapExits(vector<Surface> exits);
     vector<Surface> getMapExits();
-    
-    
+
+
     Surface getEntrance() const;
 
     Surface getExit() const;
@@ -101,13 +101,13 @@ public:
     bool setAnglesWithoutBoundaries(unsigned int index, pair<double, double> value);
     void addAnglesWithoutBoundaries(pair<double, double> value);
     //--End getters & setters --------------------------------------------------------------------------------------------------
-    
-    
+
+
     void computeEntrance(const Map& prevMap);
     void computeExit();
-    
+
     View computeCVUsingOdometer(View & curView);
-    
+
     /**
      * Transform curView in map's coordinate using gaps as reference
      * @param curView
@@ -115,8 +115,8 @@ public:
      * @return  view in map's coordinates
      */
     View computeCVUsingGap(View & curView, double angleLastLocomotion);
-    
-        /**
+
+    /**
      * Adds curView to the map by finding in CV the (orthogonal) distance between longSurfCV and the other side of the gap
      * and building a surface in PV at the same (orthogonal) distance from the corresponding gap endpoint 
      * that passes by the other gap endpoint (throws false if impossible)
@@ -126,28 +126,28 @@ public:
      * @param prevRbtPos
      */
     void addViewUsingCorridorWidth(View& curView, Surface longSurfCV, Surface gapPV, cv::Point2f prevRbtPos);
-    
-        /**
+
+    /**
      * Adds view to the map, clean it and plot it.
      * Doesn't change the view coordinates.
      * @param view
      */
     void addCvAndClean(View & view);
-    
-        /**
+
+    /**
      * Add curView to the map using gaps and long surfaces (uses addViewUsingCorridorWidth)
      * @param curView
      */
     void addCvUsingGap(View & curView);
-    
-        /**
+
+    /**
      * Update the map by cleaning incoherent surfaces
      * @param cvSurfacesOnMap
      * @param cRobotSurfaces
      */
     void cleanMap(const vector<Surface>& cvSurfacesOnMap, const vector<Surface>& cRobotSurfaces);
-    
-        /**
+
+    /**
      * Deletes surfaces less than MIN_DISTANCE_VISION away
      * @param robotSurfaces
      * @return the surfaces of the last view with the robot position in place of the deleted surfaces (for PointInPolygon)
@@ -168,7 +168,7 @@ public:
      * @param prevView
      */
     Surface FindGapWithDistance(const Surface& robotOrientation, const View& curView, const View& prevView);
-    
+
     /**
      * Build a map from the input data and compute its entrance and exit
      * @param dataset name of the folder containing the data
@@ -178,10 +178,18 @@ public:
      */
     Map* BuildMap(char* dataset, int firstView, int numSteps, Map *lastMap = 0);
 
+    /**
+     * Find a way for the robot to goes from the exit to the entrance
+     * @return steps to follow to get to the entrance
+     */
     vector<AngleAndDistance> FindWayHome();
 
+    /**
+     * Adds in the first view of this map the surfaces after the exit of lastMap
+     * @param lastMap map before the current one
+     */
     void addSurfacesAfterEntrance(Map& lastMap);
-    
+
 
     //Methods not used in current version of the program (not sure) ---------------------------------------------------------
     vector<Surface> transformToGlobalMap(const vector<Surface>& rpSurfaces,
@@ -240,7 +248,7 @@ public:
      * @param longSurfInPV equivalent surface in previous view
      */
     void addViewProjectingGapOnLongSurf(View& curView, Surface gapInCV, Surface gapInPV, Surface longSurfInCV, Surface longSurfInPV);
-    
+
 };
 
 Surface makeSurfaceWith(const Surface & refInMap, double angle, double distance, double length);
@@ -315,7 +323,7 @@ ReferenceSurfaces findTheClosestReference(Surface & cvSurface, vector<ReferenceS
  */
 Surface FindGap(const vector<Surface>& surfaces, const vector<Surface>& robotSurfaces, const bool takeBorderPoints = false);
 
-vector<Surface> cleanSurfaces(vector<Surface> surfaces, vector<Surface> robotSurfaces, vector<Surface> lastViewSurfaces, vector<Surface> lastRobotSurfaces, vector<Surface> robotPath, vector<Surface> surfacesForPointInPolygon );
+vector<Surface> cleanSurfaces(vector<Surface> surfaces, vector<Surface> robotSurfaces, vector<Surface> lastViewSurfaces, vector<Surface> lastRobotSurfaces, vector<Surface> robotPath, vector<Surface> surfacesForPointInPolygon);
 
 #endif	/* MAPPER_H */
 
